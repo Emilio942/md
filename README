@@ -1,44 +1,36 @@
-DM and Two-Particle Simulation
-Welcome to the DM (Dynamics and Motion) and Two-Particle Simulation repository! This project aims to simulate the dynamics and interactions between two particles under various physical conditions. Whether you're a student, researcher, or enthusiast, this repository provides a platform to explore and visualize fundamental principles of particle dynamics in a 3D space.
-<!-- Ersetze "path_to_your_image.png" durch den tatsächlichen Pfad zu deinem Bild. -->
-Table of Contents
-Introduction
-Features
-Usage
-Examples
-Contributing
-License
-Introduction
-This project is designed to simulate the behavior of two interacting particles in a 3D space. It provides a straightforward approach to understanding fundamental concepts such as Newton's laws of motion, gravitational forces, and potential energy interactions. The simulation is implemented in Python, leveraging libraries such as NumPy and Matplotlib for efficient computation and visualization.
+# DM and Two-Particle Simulation
 
-Features
-Simulate the dynamics of two particles in a 3D space.
-Visualize the trajectory and interactions of the particles over time.
-Customize initial conditions including position, velocity, and mass of each particle.
-Apply different force models (e.g., gravitational, electrostatic).
-Export simulation data for further analysis.
-Usage
-You can run the simulation script with default or custom parameters. Simply download the script and execute it with Python.
+Welcome to the **DM (Dynamics and Motion) and Two-Particle Simulation** repository! This project simulates the dynamics and interactions between two particles under various physical conditions. It provides a platform to explore and visualize fundamental principles of particle dynamics in a 3D space.
 
+![Particles Interaction](Emilio942/md/DALL·E 2024-06-18 09.08.41 - A colorful cartoon-style image of two particles in a 3D space interacting with each other. The particles should be represented as round, vibrant spher.webp) <!-- Ersetze "path_to_your_image.png" durch den tatsächlichen Pfad zu deinem Bild. -->
 
+## Table of Contents
+- [Introduction](#introduction)
+- [Features](#features)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [License](#license)
 
-Examples
-Here are a few examples of how you can use the simulation:
+## Introduction
 
-Basic Gravitational Interaction:
+This project is designed to simulate the behavior of two interacting particles in a **3D space**. It helps in understanding fundamental concepts like Newton's laws of motion, gravitational forces, and potential energy interactions. The simulation is implemented in Python using **NumPy** and **Matplotlib** for efficient computation and visualization.
 
-Simulate two particles under gravitational attraction.
-Initial conditions: Particle 1 (mass=5kg, position=(0,0,0), velocity=(0,1,0) m/s), Particle 2 (mass=10kg, position=(1,1,1), velocity=(-1,0,0) m/s).
-Electrostatic Forces:
+## Features
 
-Modify the force model to simulate electrostatic interactions between two charged particles.
-Custom Scenarios:
+- **3D Particle Dynamics**: Simulate the motion of two particles in a 3D environment.
+- **Trajectory Visualization**: Track and visualize the paths and interactions of the particles over time.
+- **Custom Initial Conditions**: Set initial positions, velocities, and masses for each particle.
+- **Force Models**: Choose from different interaction models (e.g., gravitational, electrostatic).
+- **Data Export**: Export simulation results for further analysis.
 
-Define your own initial conditions and force models to explore different physical scenarios.
-Each example can be visualized using the built-in plotting functions.
+## Usage
 
-Contributing
-Contributions are welcome! If you have ideas for new features or improvements, feel free to open an issue or submit a pull request. Please make sure to follow the guidelines in our Contributing document.
+To run the simulation script with default or custom parameters, use the following commands:
 
-License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+```bash
+# Run the simulation with default settings
+python simulate.py
+
+# Run the simulation with custom parameters
+python simulate.py --mass1 5 --mass2 10 --pos1 0,0,0 --pos2 1,1,1 --vel1 0,1,0 --vel2 -1,0,0
