@@ -1,11 +1,11 @@
 # DM and Two-Particle Simulation
 
 Welcome to the **DM (Dynamics and Motion) and Two-Particle Simulation** repository! This project simulates the dynamics and interactions between two particles under various physical conditions. It provides a platform to explore and visualize fundamental principles of particle dynamics in a 3D space.
+
 ![Particles Interaction](DALL.webp)
 
+## Table of Contents
 
-## Table of Contents
-## Table of Contents
 - [Introduction](#introduction)
 - [Features](#features)
 - [Usage](#usage)
