@@ -2,89 +2,104 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-# Parameter der Simulation
-num_molecules = 5  # Anzahl der Moleküle
-box_size = 10.0  # Größe des Simulationswürfels (nm)
-time_steps = 200  # Anzahl der Simulationsschritte
-delta_t = 0.01  # Zeitschritt (ps)
-charge = 1.0  # Elementarladung für Wasserstoff (willkürliche Einheit für Visualisierung)
-epsilon_0 = 8.854e-12  # Permittivität des Vakuums (F/m)
-mu_0 = 4 * np.pi * 1e-7  # Magnetische Feldkonstante (T*m/A)
+# Simulation parameters
+num_molecules = 5       # Number of molecules
+box_size = 10.0         # Simulation box size (nm)
+time_steps = 200        # Number of time steps
+delta_t = 0.01          # Time step (ps)
+charge = 1.0            # Charge unit (arbitrary for visualization)
+epsilon_0 = 8.854e-12   # Vacuum permittivity (F/m)
+mu_0 = 4 * np.pi * 1e-7 # Vacuum permeability (T·m/A)
 
-# Erzeugen zufälliger Startpositionen und moderater Anfangsgeschwindigkeiten
+# Initialize positions and velocities
+np.random.seed(42)
 positions = np.random.uniform(0, box_size, (num_molecules, 3))
 velocities = np.random.uniform(-1.0, 1.0, (num_molecules, 3))
 
-# Funktion zur Berechnung des elektrischen Feldes
+# Electric field calculation
 def electric_field(r, charge):
-    r_magnitude = np.linalg.norm(r)
-    if r_magnitude == 0:
+    r_mag = np.linalg.norm(r)
+    if r_mag == 0:
         return np.zeros(3)
-    field = (charge / (4 * np.pi * epsilon_0 * r_magnitude**3)) * r
-    return field
+    return (charge / (4 * np.pi * epsilon_0 * r_mag**3)) * r
 
-# Funktion zur Berechnung des Magnetfeldes
-def magnetic_field(position, velocity):
-    r = np.linalg.norm(position)
-    if r == 0:
-        return np.zeros(3)
-    field = (mu_0 / (4 * np.pi)) * (charge * np.cross(velocity, position) / r**3)
-    return field
+# Vectorized magnetic field calculation
+def calculate_magnetic_field(positions, velocities, X, Y):
+    grid_res = X.shape[0]
+    grid_points = np.stack([X, Y, np.zeros_like(X)], axis=2)
+    
+    # Calculate displacement vectors from molecules to grid points
+    displacement = grid_points[:, :, np.newaxis, :] - positions
+    r = np.linalg.norm(displacement, axis=3, keepdims=True)
+    r[r == 0] = np.inf  # Avoid division by zero
+    
+    # Calculate magnetic field contributions
+    velocities_reshaped = velocities.reshape(1, 1, num_molecules, 3)
+    cross_prod = np.cross(velocities_reshaped, displacement, axis=3)
+    B_contrib = (mu_0 / (4 * np.pi)) * (charge * cross_prod) / r**3
+    
+    # Sum contributions and calculate magnitude
+    B_total = np.sum(B_contrib, axis=2)
+    return np.linalg.norm(B_total, axis=2)
 
-# Funktion zur Berechnung der Kräfte für alle Atome
+# Force calculation with periodic boundary conditions
 def compute_forces(positions):
     forces = np.zeros_like(positions)
     for i in range(num_molecules):
-        for j in range(i + 1, num_molecules):
-            if i != j:
-                r_ij = positions[j] - positions[i]
-                force_ij = electric_field(r_ij, charge)
-                forces[i] += force_ij
-                forces[j] -= force_ij
+        for j in range(i+1, num_molecules):
+            r_ij = positions[j] - positions[i]
+            r_ij -= np.rint(r_ij / box_size) * box_size  # Minimum image convention
+            E_ij = electric_field(r_ij, charge)
+            forces[i] += charge * E_ij
+            forces[j] -= charge * E_ij
     return forces
 
-# Funktion zur Aktualisierung der Positionen und Geschwindigkeiten
+# Update positions with velocity Verlet integration
 def update_positions(positions, velocities, forces):
     velocities += forces * delta_t
     positions += velocities * delta_t
-    positions = positions % box_size  # Periodische Randbedingungen
-    return positions, velocities
+    return positions % box_size, velocities  # Periodic boundaries
 
-# Initialisieren der Animation
+# Initialize visualization
 fig = plt.figure(figsize=(12, 10))
 ax = fig.add_subplot(111, projection='3d')
-scat = ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c='b', label='Atoms')
+scat = ax.scatter([], [], [], c='b', s=100, label='Molecules')
 
-# Funktion zur Visualisierung der Magnetfeld-Kreise
-def plot_magnetic_field(ax, positions, velocities):
-    X, Y = np.meshgrid(np.linspace(0, box_size, 100), np.linspace(0, box_size, 100))
-    Z = np.zeros_like(X)
-    for i in range(X.shape[0]):
-        for j in range(Y.shape[1]):
-            B_total = np.zeros(3)
-            for k in range(num_molecules):
-                B_total += magnetic_field(np.array([X[i, j], Y[i, j], 0]) - positions[k], velocities[k])
-            Z[i, j] = np.linalg.norm(B_total)
-    
-    ax.contour(X, Y, Z, levels=10, cmap='coolwarm')
+# Magnetic field grid setup
+grid_res = 15
+X, Y = np.meshgrid(np.linspace(0, box_size, grid_res), 
+                   np.linspace(0, box_size, grid_res))
+contours = []
 
-# Plotten der Anfangskonfiguration des Magnetfeldes
-plot_magnetic_field(ax, positions, velocities)
-
-def animate(step):
-    global positions, velocities
+# Animation function
+def animate(frame):
+    global positions, velocities, contours
     forces = compute_forces(positions)
     positions, velocities = update_positions(positions, velocities, forces)
-    scat._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
-    ax.set_title(f'Schritt {step}')
-    # Aktualisieren der Magnetfeld-Kreise
-    ax.collections.clear()
-    plot_magnetic_field(ax, positions, velocities)
-    ax.scatter(positions[:, 0], positions[:, 1], positions[:, 2], c='b')
     
+    # Update scatter plot
+    scat._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
+    
+    # Clear previous field contours
+    for coll in contours:
+        coll.remove()
+    contours.clear()
+    
+    # Calculate and plot new magnetic field
+    B_mag = calculate_magnetic_field(positions, velocities, X, Y)
+    new_contour = ax.contour(X, Y, B_mag, levels=8, cmap='coolwarm')
+    contours.extend(new_contour.collections)
+    
+    ax.set_title(f'Time Step: {frame}')
     return scat,
 
-# Animieren der Simulation
+# Configure and run animation
 ani = FuncAnimation(fig, animate, frames=time_steps, interval=50, blit=False)
+ax.set_xlim(0, box_size)
+ax.set_ylim(0, box_size)
+ax.set_zlim(0, box_size)
+ax.set_xlabel('X (nm)')
+ax.set_ylabel('Y (nm)')
+ax.set_zlabel('Z (nm)')
 ax.legend()
 plt.show()
