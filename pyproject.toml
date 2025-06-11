@@ -1,0 +1,198 @@
+# Configuration for pyproject.toml - Modern Python packaging and tool configuration
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proteinMD"
+version = "0.1.0"
+description = "A comprehensive molecular dynamics simulation system for protein behavior in cellular environments"
+authors = [
+    {name = "Emilio", email = "your.email@example.com"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.22.0",
+    "matplotlib>=3.5.0",
+    "scipy>=1.8.0",
+    "tqdm>=4.62.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-html>=3.1.0",
+    "pytest-json-report>=1.5.0",
+    "pytest-benchmark>=4.0.0",
+    "black>=22.0.0",
+    "isort>=5.10.0",
+    "flake8>=5.0.0",
+    "mypy>=0.991",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
+    "docstring-coverage>=2.0.0",
+    "radon>=5.1.0",
+    "xenon>=0.9.0",
+]
+analysis = [
+    "mdtraj>=1.9.7; python_version < '3.11'",
+    "ipython>=7.0.0",
+    "jupyter>=1.0.0",
+]
+docs = [
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+    "sphinx-autodoc-typehints>=1.19.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/proteinMD"
+Repository = "https://github.com/yourusername/proteinMD"
+Documentation = "https://proteinmd.readthedocs.io"
+"Bug Tracker" = "https://github.com/yourusername/proteinMD/issues"
+
+[project.scripts]
+proteinmd = "proteinMD.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["proteinMD*"]
+exclude = ["tests*"]
+
+# Black formatting configuration
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# isort import sorting configuration
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["proteinMD"]
+known_third_party = ["numpy", "matplotlib", "scipy", "tqdm", "pytest"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+# MyPy type checking configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_untyped_defs = false  # Set to true when ready for strict typing
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "proteinMD.tests.*"
+ignore_errors = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--tb=short",
+    "--durations=10",
+]
+testpaths = ["proteinMD/tests"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow tests",
+    "performance: Performance tests",
+    "memory: Memory tests",
+    "validation: Validation tests",
+    "benchmark: Benchmark tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["proteinMD"]
+omit = [
+    "proteinMD/tests/*",
+    "proteinMD/examples/*",
+    "proteinMD/benchmarks/*",
+    "setup.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# Bandit security configuration
+[tool.bandit]
+exclude_dirs = ["tests", "proteinMD/tests"]
+skips = ["B101", "B601"]  # Skip assert_used and shell_injection_subprocess
+
+# Docstring coverage configuration
+[tool.docstring-coverage]
+paths = ["proteinMD"]
+exclude = ["proteinMD/tests"]
+verbose = 2
+missing-descriptions = true
+missing-docstrings = true
+missing-parameters = true
+missing-raises = true
+missing-returns = true
+missing-yields = true

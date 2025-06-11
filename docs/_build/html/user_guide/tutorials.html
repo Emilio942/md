@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tutorials &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CLI Reference" href="cli_reference.html" />
+    <link rel="prev" title="Quick Start" href="quick_start.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tutorials">
+<h1>Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading">¶</a></h1>
+<p>This section provides step-by-step tutorials for common molecular dynamics tasks using ProteinMD.</p>
+<nav class="contents local" id="tutorial-topics">
+<p class="topic-title">Tutorial Topics</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#basic-protein-simulation" id="id1">Basic Protein Simulation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#setting-up-your-first-simulation" id="id2">Setting Up Your First Simulation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#advanced-simulation-techniques" id="id3">Advanced Simulation Techniques</a></p>
+<ul>
+<li><p><a class="reference internal" href="#enhanced-sampling-with-umbrella-sampling" id="id4">Enhanced Sampling with Umbrella Sampling</a></p></li>
+<li><p><a class="reference internal" href="#replica-exchange-molecular-dynamics" id="id5">Replica Exchange Molecular Dynamics</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#analysis-workflows" id="id6">Analysis Workflows</a></p>
+<ul>
+<li><p><a class="reference internal" href="#structural-analysis" id="id7">Structural Analysis</a></p></li>
+<li><p><a class="reference internal" href="#energy-analysis" id="id8">Energy Analysis</a></p></li>
+<li><p><a class="reference internal" href="#advanced-analysis-techniques" id="id9">Advanced Analysis Techniques</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#troubleshooting-common-issues" id="id10">Troubleshooting Common Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#simulation-stability-problems" id="id11">Simulation Stability Problems</a></p></li>
+<li><p><a class="reference internal" href="#performance-optimization" id="id12">Performance Optimization</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#see-also" id="id13">See Also</a></p></li>
+</ul>
+</nav>
+<section id="basic-protein-simulation">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Basic Protein Simulation</a><a class="headerlink" href="#basic-protein-simulation" title="Link to this heading">¶</a></h2>
+<section id="setting-up-your-first-simulation">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Setting Up Your First Simulation</a><a class="headerlink" href="#setting-up-your-first-simulation" title="Link to this heading">¶</a></h3>
+<p>This tutorial walks through setting up a basic MD simulation of a protein in water.</p>
+<p><strong>Step 1: Prepare the Protein Structure</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProteinStructure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructureValidator</span>
+
+<span class="c1"># Load protein structure</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">ProteinStructure</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;1ubq.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Validate structure</span>
+<span class="n">validator</span> <span class="o">=</span> <span class="n">StructureValidator</span><span class="p">()</span>
+<span class="n">issues</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">issues</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Structure issues found:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">issue</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add missing hydrogens</span>
+<span class="n">protein</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">(</span><span class="n">ph</span><span class="o">=</span><span class="mf">7.0</span><span class="p">)</span>
+
+<span class="c1"># Save prepared structure</span>
+<span class="n">protein</span><span class="o">.</span><span class="n">to_pdb</span><span class="p">(</span><span class="s2">&quot;1ubq_prepared.pdb&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Step 2: Set Up Simulation Environment</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">WaterModel</span><span class="p">,</span> <span class="n">PeriodicBoundary</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+
+<span class="c1"># Create water box</span>
+<span class="n">water_model</span> <span class="o">=</span> <span class="n">WaterModel</span><span class="p">(</span><span class="s2">&quot;TIP3P&quot;</span><span class="p">)</span>
+<span class="n">box_size</span> <span class="o">=</span> <span class="n">protein</span><span class="o">.</span><span class="n">get_bounding_box</span><span class="p">()</span> <span class="o">+</span> <span class="mf">2.0</span>  <span class="c1"># 2 nm padding</span>
+
+<span class="c1"># Set up periodic boundaries</span>
+<span class="n">boundary</span> <span class="o">=</span> <span class="n">PeriodicBoundary</span><span class="p">(</span><span class="n">box_size</span><span class="p">)</span>
+
+<span class="c1"># Solvate protein</span>
+<span class="n">solvated_system</span> <span class="o">=</span> <span class="n">water_model</span><span class="o">.</span><span class="n">solvate</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">boundary</span><span class="p">)</span>
+
+<span class="c1"># Add ions for neutralization</span>
+<span class="n">solvated_system</span><span class="o">.</span><span class="n">add_ions</span><span class="p">(</span><span class="n">concentration</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>  <span class="c1"># 150 mM NaCl</span>
+</pre></div>
+</div>
+<p><strong>Step 3: Configure Force Field</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize force field</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+
+<span class="c1"># Apply force field parameters</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="n">solvated_system</span><span class="p">)</span>
+
+<span class="c1"># Set up non-bonded interactions</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_nonbonded_cutoff</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># 1 nm cutoff</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_pme_parameters</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.31</span><span class="p">)</span>  <span class="c1"># PME electrostatics</span>
+</pre></div>
+</div>
+<p><strong>Step 4: Run Simulation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">MDSimulation</span><span class="p">,</span> <span class="n">VelocityVerletIntegrator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangevinThermostat</span><span class="p">,</span> <span class="n">BerendsenBarostat</span>
+
+<span class="c1"># Set up integrator and thermostats</span>
+<span class="n">integrator</span> <span class="o">=</span> <span class="n">VelocityVerletIntegrator</span><span class="p">(</span><span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">)</span>  <span class="c1"># 2 fs</span>
+<span class="n">thermostat</span> <span class="o">=</span> <span class="n">LangevinThermostat</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span> <span class="n">friction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">barostat</span> <span class="o">=</span> <span class="n">BerendsenBarostat</span><span class="p">(</span><span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="c1"># Create simulation</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">MDSimulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="n">integrator</span><span class="o">=</span><span class="n">integrator</span><span class="p">,</span>
+    <span class="n">thermostat</span><span class="o">=</span><span class="n">thermostat</span><span class="p">,</span>
+    <span class="n">barostat</span><span class="o">=</span><span class="n">barostat</span>
+<span class="p">)</span>
+
+<span class="c1"># Energy minimization</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Equilibration (NVT)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run_nvt</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">)</span>  <span class="c1"># 100 ps</span>
+
+<span class="c1"># Production run (NPT)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run_npt</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">2500000</span><span class="p">,</span>  <span class="c1"># 5 ns</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">output_frequency</span><span class="o">=</span><span class="mi">1000</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-simulation-techniques">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Advanced Simulation Techniques</a><a class="headerlink" href="#advanced-simulation-techniques" title="Link to this heading">¶</a></h2>
+<section id="enhanced-sampling-with-umbrella-sampling">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Enhanced Sampling with Umbrella Sampling</a><a class="headerlink" href="#enhanced-sampling-with-umbrella-sampling" title="Link to this heading">¶</a></h3>
+<p>Learn how to use umbrella sampling to calculate free energy profiles.</p>
+<p><strong>Setting Up Umbrella Sampling</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">UmbrellaSampling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReactionCoordinate</span>
+
+<span class="c1"># Define reaction coordinate (e.g., distance between two residues)</span>
+<span class="n">rc</span> <span class="o">=</span> <span class="n">ReactionCoordinate</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span>
+    <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;CA:LEU10&quot;</span><span class="p">,</span>
+    <span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;CA:VAL50&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Set up umbrella sampling windows</span>
+<span class="n">umbrella</span> <span class="o">=</span> <span class="n">UmbrellaSampling</span><span class="p">(</span>
+    <span class="n">reaction_coordinate</span><span class="o">=</span><span class="n">rc</span><span class="p">,</span>
+    <span class="n">windows</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">window_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>  <span class="c1"># 0.5 to 3.0 nm</span>
+    <span class="n">force_constant</span><span class="o">=</span><span class="mf">1000.0</span>  <span class="c1"># kJ/mol/nm²</span>
+<span class="p">)</span>
+
+<span class="c1"># Run sampling</span>
+<span class="k">for</span> <span class="n">window_id</span><span class="p">,</span> <span class="n">restraint_value</span> <span class="ow">in</span> <span class="n">umbrella</span><span class="o">.</span><span class="n">get_windows</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running window </span><span class="si">{</span><span class="n">window_id</span><span class="si">}</span><span class="s2">: restraint at </span><span class="si">{</span><span class="n">restraint_value</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Set up restraint</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">add_harmonic_restraint</span><span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">restraint_value</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">)</span>
+
+    <span class="c1"># Run simulation for this window</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)</span>  <span class="c1"># 2 ns per window</span>
+
+    <span class="c1"># Save trajectory</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">save_trajectory</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;umbrella_window_</span><span class="si">{</span><span class="n">window_id</span><span class="si">}</span><span class="s2">.dcd&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Analyzing Results with WHAM</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">WHAM</span>
+
+<span class="c1"># Collect data from all windows</span>
+<span class="n">wham</span> <span class="o">=</span> <span class="n">WHAM</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">window_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
+    <span class="n">trajectory</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;umbrella_window_</span><span class="si">{</span><span class="n">window_id</span><span class="si">}</span><span class="s2">.dcd&quot;</span>
+    <span class="n">restraint_center</span> <span class="o">=</span> <span class="n">umbrella</span><span class="o">.</span><span class="n">get_restraint_center</span><span class="p">(</span><span class="n">window_id</span><span class="p">)</span>
+
+    <span class="n">wham</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span>
+        <span class="n">trajectory</span><span class="o">=</span><span class="n">trajectory</span><span class="p">,</span>
+        <span class="n">restraint_center</span><span class="o">=</span><span class="n">restraint_center</span><span class="p">,</span>
+        <span class="n">force_constant</span><span class="o">=</span><span class="mf">1000.0</span>
+    <span class="p">)</span>
+
+<span class="c1"># Calculate free energy profile</span>
+<span class="n">bins</span><span class="p">,</span> <span class="n">free_energy</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">wham</span><span class="o">.</span><span class="n">calculate_pmf</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Plot results</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">free_energy</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">error</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;o-&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Distance (nm)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Free Energy (kJ/mol)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Free Energy Profile from Umbrella Sampling&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="replica-exchange-molecular-dynamics">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Replica Exchange Molecular Dynamics</a><a class="headerlink" href="#replica-exchange-molecular-dynamics" title="Link to this heading">¶</a></h3>
+<p>Set up temperature replica exchange simulations for enhanced conformational sampling.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReplicaExchange</span>
+
+<span class="c1"># Define temperature range</span>
+<span class="n">temperatures</span> <span class="o">=</span> <span class="p">[</span><span class="mi">300</span><span class="p">,</span> <span class="mi">310</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">330</span><span class="p">,</span> <span class="mi">345</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">375</span><span class="p">,</span> <span class="mi">390</span><span class="p">,</span> <span class="mi">410</span><span class="p">,</span> <span class="mi">430</span><span class="p">]</span>
+
+<span class="c1"># Set up replica exchange</span>
+<span class="n">remd</span> <span class="o">=</span> <span class="n">ReplicaExchange</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="n">temperatures</span><span class="o">=</span><span class="n">temperatures</span><span class="p">,</span>
+    <span class="n">exchange_frequency</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>  <span class="c1"># Attempt exchanges every 1000 steps</span>
+    <span class="n">output_frequency</span><span class="o">=</span><span class="mi">5000</span>
+<span class="p">)</span>
+
+<span class="c1"># Run REMD simulation</span>
+<span class="n">remd</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="n">steps_per_replica</span><span class="o">=</span><span class="mi">5000000</span><span class="p">,</span>  <span class="c1"># 10 ns per replica</span>
+    <span class="n">equilibration_steps</span><span class="o">=</span><span class="mi">500000</span>  <span class="c1"># 1 ns equilibration</span>
+<span class="p">)</span>
+
+<span class="c1"># Analyze exchange statistics</span>
+<span class="n">exchange_stats</span> <span class="o">=</span> <span class="n">remd</span><span class="o">.</span><span class="n">get_exchange_statistics</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average exchange probability: </span><span class="si">{</span><span class="n">exchange_stats</span><span class="p">[</span><span class="s1">&#39;avg_probability&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Extract conformations at different temperatures</span>
+<span class="k">for</span> <span class="n">temp</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">300</span><span class="p">,</span> <span class="mi">350</span><span class="p">,</span> <span class="mi">400</span><span class="p">]:</span>
+    <span class="n">conformations</span> <span class="o">=</span> <span class="n">remd</span><span class="o">.</span><span class="n">get_conformations</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sampled </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">conformations</span><span class="p">)</span><span class="si">}</span><span class="s2"> conformations at </span><span class="si">{</span><span class="n">temp</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="analysis-workflows">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Analysis Workflows</a><a class="headerlink" href="#analysis-workflows" title="Link to this heading">¶</a></h2>
+<section id="structural-analysis">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Structural Analysis</a><a class="headerlink" href="#structural-analysis" title="Link to this heading">¶</a></h3>
+<p>Comprehensive analysis of protein structure and dynamics.</p>
+<p><strong>RMSD and RMSF Analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">RMSD</span><span class="p">,</span> <span class="n">RMSF</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Load trajectory</span>
+<span class="n">trajectory</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_trajectory</span><span class="p">()</span>
+
+<span class="c1"># Calculate RMSD relative to initial structure</span>
+<span class="n">rmsd_calc</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">(</span><span class="n">reference</span><span class="o">=</span><span class="n">trajectory</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">rmsd_values</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="p">:</span>
+    <span class="n">rmsd</span> <span class="o">=</span> <span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;protein&quot;</span><span class="p">)</span>
+    <span class="n">rmsd_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rmsd</span><span class="p">)</span>
+
+<span class="c1"># Calculate RMSF for each residue</span>
+<span class="n">rmsf_calc</span> <span class="o">=</span> <span class="n">RMSF</span><span class="p">()</span>
+<span class="n">rmsf_values</span> <span class="o">=</span> <span class="n">rmsf_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;CA&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot results</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="c1"># RMSD plot</span>
+<span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rmsd_values</span><span class="p">))</span> <span class="o">*</span> <span class="mf">0.002</span>  <span class="c1"># 2 fs timestep</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">rmsd_values</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (ns)&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;RMSD (nm)&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Protein RMSD vs Time&#39;</span><span class="p">)</span>
+
+<span class="c1"># RMSF plot</span>
+<span class="n">residue_ids</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rmsf_values</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">residue_ids</span><span class="p">,</span> <span class="n">rmsf_values</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;RMSF (nm)&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Per-Residue Flexibility&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Secondary Structure Analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">SecondaryStructure</span>
+
+<span class="c1"># Calculate secondary structure for each frame</span>
+<span class="n">ss_calc</span> <span class="o">=</span> <span class="n">SecondaryStructure</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;dssp&quot;</span><span class="p">)</span>
+<span class="n">ss_timeline</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="p">:</span>
+    <span class="n">ss</span> <span class="o">=</span> <span class="n">ss_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+    <span class="n">ss_timeline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span>
+
+<span class="c1"># Analyze secondary structure content</span>
+<span class="n">ss_content</span> <span class="o">=</span> <span class="n">ss_calc</span><span class="o">.</span><span class="n">analyze_content</span><span class="p">(</span><span class="n">ss_timeline</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average Secondary Structure Content:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  α-helix: </span><span class="si">{</span><span class="n">ss_content</span><span class="p">[</span><span class="s1">&#39;helix&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  β-sheet: </span><span class="si">{</span><span class="n">ss_content</span><span class="p">[</span><span class="s1">&#39;sheet&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Turn:    </span><span class="si">{</span><span class="n">ss_content</span><span class="p">[</span><span class="s1">&#39;turn&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Coil:    </span><span class="si">{</span><span class="n">ss_content</span><span class="p">[</span><span class="s1">&#39;coil&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot secondary structure timeline</span>
+<span class="n">ss_calc</span><span class="o">.</span><span class="n">plot_timeline</span><span class="p">(</span><span class="n">ss_timeline</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="s2">&quot;ss_timeline.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Hydrogen Bond Analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">HydrogenBonds</span>
+
+<span class="c1"># Analyze hydrogen bonds</span>
+<span class="n">hb_calc</span> <span class="o">=</span> <span class="n">HydrogenBonds</span><span class="p">(</span>
+    <span class="n">donor_cutoff</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>    <span class="c1"># 3.5 Å</span>
+    <span class="n">angle_cutoff</span><span class="o">=</span><span class="mf">30.0</span>     <span class="c1"># 30 degrees</span>
+<span class="p">)</span>
+
+<span class="c1"># Calculate hydrogen bonds for each frame</span>
+<span class="n">hb_data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="p">:</span>
+    <span class="n">hbonds</span> <span class="o">=</span> <span class="n">hb_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+    <span class="n">hb_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hbonds</span><span class="p">)</span>
+
+<span class="c1"># Analyze persistent hydrogen bonds</span>
+<span class="n">persistent_hbonds</span> <span class="o">=</span> <span class="n">hb_calc</span><span class="o">.</span><span class="n">find_persistent</span><span class="p">(</span>
+    <span class="n">hb_data</span><span class="p">,</span>
+    <span class="n">occupancy_threshold</span><span class="o">=</span><span class="mf">0.5</span>  <span class="c1"># Present in 50% of frames</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">persistent_hbonds</span><span class="p">)</span><span class="si">}</span><span class="s2"> persistent hydrogen bonds:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">hbond</span> <span class="ow">in</span> <span class="n">persistent_hbonds</span><span class="p">[:</span><span class="mi">10</span><span class="p">]:</span>  <span class="c1"># Show first 10</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">hbond</span><span class="p">[</span><span class="s1">&#39;donor&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">hbond</span><span class="p">[</span><span class="s1">&#39;acceptor&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>
+          <span class="sa">f</span><span class="s2">&quot;(occupancy: </span><span class="si">{</span><span class="n">hbond</span><span class="p">[</span><span class="s1">&#39;occupancy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="energy-analysis">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Energy Analysis</a><a class="headerlink" href="#energy-analysis" title="Link to this heading">¶</a></h3>
+<p>Analyze energy components and thermodynamic properties.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnergyAnalysis</span>
+
+<span class="c1"># Load energy data</span>
+<span class="n">energy_data</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_energy_data</span><span class="p">()</span>
+
+<span class="c1"># Create energy analyzer</span>
+<span class="n">energy_analyzer</span> <span class="o">=</span> <span class="n">EnergyAnalysis</span><span class="p">(</span><span class="n">energy_data</span><span class="p">)</span>
+
+<span class="c1"># Calculate averages and fluctuations</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">energy_analyzer</span><span class="o">.</span><span class="n">calculate_statistics</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Energy Statistics (last 1 ns):&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Potential Energy: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;potential&#39;</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ± &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;potential&#39;</span><span class="p">][</span><span class="s1">&#39;std&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Kinetic Energy:   </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;kinetic&#39;</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ± &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;kinetic&#39;</span><span class="p">][</span><span class="s1">&#39;std&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Temperature:      </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ± &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">][</span><span class="s1">&#39;std&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check energy conservation</span>
+<span class="n">drift</span> <span class="o">=</span> <span class="n">energy_analyzer</span><span class="o">.</span><span class="n">calculate_energy_drift</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Energy Drift:     </span><span class="si">{</span><span class="n">drift</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol/ns&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot energy components</span>
+<span class="n">energy_analyzer</span><span class="o">.</span><span class="n">plot_components</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="s2">&quot;energy_analysis.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-analysis-techniques">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Advanced Analysis Techniques</a><a class="headerlink" href="#advanced-analysis-techniques" title="Link to this heading">¶</a></h3>
+<p><strong>Principal Component Analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCA</span>
+
+<span class="c1"># Perform PCA on Cα coordinates</span>
+<span class="n">pca</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">()</span>
+<span class="n">pca</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;CA&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get principal components</span>
+<span class="n">eigenvalues</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">get_eigenvalues</span><span class="p">()</span>
+<span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">get_eigenvectors</span><span class="p">()</span>
+
+<span class="c1"># Project trajectory onto PC space</span>
+<span class="n">projections</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First 5 eigenvalues: </span><span class="si">{</span><span class="n">eigenvalues</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cumulative variance explained by first 10 PCs: &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pca</span><span class="o">.</span><span class="n">get_explained_variance</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot first two principal components</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">projections</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">projections</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+           <span class="n">c</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">projections</span><span class="p">)),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;PC1 (</span><span class="si">{</span><span class="n">pca</span><span class="o">.</span><span class="n">get_explained_variance</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">% variance)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;PC2 (</span><span class="si">{</span><span class="n">pca</span><span class="o">.</span><span class="n">get_explained_variance</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">% variance)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Principal Component Analysis&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Time (frames)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Dynamic Cross-Correlation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynamicCrossCorrelation</span>
+
+<span class="c1"># Calculate cross-correlation matrix</span>
+<span class="n">dcc</span> <span class="o">=</span> <span class="n">DynamicCrossCorrelation</span><span class="p">()</span>
+<span class="n">correlation_matrix</span> <span class="o">=</span> <span class="n">dcc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;CA&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot correlation matrix</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">correlation_matrix</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;RdBu&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Correlation Coefficient&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Dynamic Cross-Correlation Matrix&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Find highly correlated motions</span>
+<span class="n">high_correlations</span> <span class="o">=</span> <span class="n">dcc</span><span class="o">.</span><span class="n">find_correlations</span><span class="p">(</span>
+    <span class="n">correlation_matrix</span><span class="p">,</span>
+    <span class="n">threshold</span><span class="o">=</span><span class="mf">0.7</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">high_correlations</span><span class="p">)</span><span class="si">}</span><span class="s2"> highly correlated residue pairs:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">high_correlations</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Residues </span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">: &quot;</span>
+          <span class="sa">f</span><span class="s2">&quot;correlation = </span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting-common-issues">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Troubleshooting Common Issues</a><a class="headerlink" href="#troubleshooting-common-issues" title="Link to this heading">¶</a></h2>
+<section id="simulation-stability-problems">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Simulation Stability Problems</a><a class="headerlink" href="#simulation-stability-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Simulation Crashes with “LINCS Warning”</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solution 1: Reduce timestep</span>
+<span class="n">integrator</span> <span class="o">=</span> <span class="n">VelocityVerletIntegrator</span><span class="p">(</span><span class="n">timestep</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>  <span class="c1"># 1 fs instead of 2 fs</span>
+
+<span class="c1"># Solution 2: Use constraints</span>
+<span class="n">system</span><span class="o">.</span><span class="n">add_constraints</span><span class="p">(</span><span class="s2">&quot;h-bonds&quot;</span><span class="p">)</span>  <span class="c1"># Constrain hydrogen bonds</span>
+
+<span class="c1"># Solution 3: More thorough energy minimization</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span>
+    <span class="n">max_iterations</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+    <span class="n">convergence_tolerance</span><span class="o">=</span><span class="mf">10.0</span>  <span class="c1"># kJ/mol/nm</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Issue: Temperature or Pressure Fluctuations</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solution 1: Adjust thermostat parameters</span>
+<span class="n">thermostat</span> <span class="o">=</span> <span class="n">LangevinThermostat</span><span class="p">(</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">friction</span><span class="o">=</span><span class="mf">2.0</span>  <span class="c1"># Increase friction for better coupling</span>
+<span class="p">)</span>
+
+<span class="c1"># Solution 2: Use different barostat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParrinelloRahmanBarostat</span>
+<span class="n">barostat</span> <span class="o">=</span> <span class="n">ParrinelloRahmanBarostat</span><span class="p">(</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">tau</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>  <span class="c1"># Longer coupling time</span>
+    <span class="n">compressibility</span><span class="o">=</span><span class="mf">4.5e-5</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-optimization">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Performance Optimization</a><a class="headerlink" href="#performance-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Improving Simulation Speed</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use optimized settings</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_nonbonded_cutoff</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># Reasonable cutoff</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_neighbor_list_update</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># Update every 10 steps</span>
+<span class="n">system</span><span class="o">.</span><span class="n">enable_fast_kernels</span><span class="p">()</span>  <span class="c1"># Use optimized algorithms</span>
+
+<span class="c1"># Adjust output frequency</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_output_frequency</span><span class="p">(</span>
+    <span class="n">trajectory</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>    <span class="c1"># Save coordinates every 10 ps</span>
+    <span class="n">energy</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>        <span class="c1"># Save energy every 2 ps</span>
+    <span class="n">checkpoint</span><span class="o">=</span><span class="mi">50000</span>    <span class="c1"># Checkpoint every 100 ps</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Memory Usage Optimization</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process trajectory in chunks</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajectoryChunker</span>
+
+<span class="n">chunker</span> <span class="o">=</span> <span class="n">TrajectoryChunker</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># 1000 frames per chunk</span>
+
+<span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunker</span><span class="o">.</span><span class="n">process_trajectory</span><span class="p">(</span><span class="s2">&quot;trajectory.dcd&quot;</span><span class="p">):</span>
+    <span class="c1"># Analyze each chunk separately</span>
+    <span class="n">rmsd_values</span> <span class="o">=</span> <span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+    <span class="c1"># Process results...</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="quick_start.html"><span class="doc">Quick Start</span></a> - Getting started with ProteinMD</p></li>
+<li><p><a class="reference internal" href="cli_reference.html"><span class="doc">CLI Reference</span></a> - Command-line interface reference</p></li>
+<li><p><a class="reference internal" href="examples.html"><span class="doc">Examples</span></a> - More examples and use cases</p></li>
+<li><p><a class="reference internal" href="../api/analysis.html"><span class="doc">Analysis Tools</span></a> - Analysis module API reference</p></li>
+<li><p><a class="reference internal" href="../api/sampling.html"><span class="doc">Sampling Methods API Reference</span></a> - Enhanced sampling API reference</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-protein-simulation">Basic Protein Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-simulation-techniques">Advanced Simulation Techniques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-workflows">Analysis Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting-common-issues">Troubleshooting Common Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="quick_start.html" title="previous chapter">Quick Start</a></li>
+      <li>Next: <a href="cli_reference.html" title="next chapter">CLI Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/user_guide/tutorials.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

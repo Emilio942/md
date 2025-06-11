@@ -1,0 +1,16 @@
+2025-06-10 16:13:00,471 - INFO - ProteinMD Integration Test Runner
+2025-06-10 16:13:00,471 - INFO - Platform: linux 6.8.0-60-generic
+2025-06-10 16:13:00,471 - INFO - Python: 3.12.3
+2025-06-10 16:13:00,471 - INFO - Setting up test environment for linux
+2025-06-10 16:13:00,471 - INFO - Environment setup completed successfully
+2025-06-10 16:13:00,609 - ERROR - ✗ mock missing
+2025-06-10 16:13:00,609 - ERROR - Missing dependencies: mock
+2025-06-10 16:13:00,609 - ERROR - Install missing packages or use --skip-deps to continue
+2025-06-10 16:13:19,257 - INFO - ProteinMD Integration Test Runner
+2025-06-10 16:13:19,257 - INFO - Platform: linux 6.8.0-60-generic
+2025-06-10 16:13:19,257 - INFO - Python: 3.12.3
+2025-06-10 16:13:19,258 - INFO - Setting up test environment for linux
+2025-06-10 16:13:19,258 - INFO - Environment setup completed successfully
+2025-06-10 16:13:19,258 - INFO - Running integration tests on linux 6.8.0-60-generic
+2025-06-10 16:13:19,258 - INFO - Executing: /home/emilio/Documents/ai/md/.venv/bin/python -m pytest -v --tb=short --durations=10 tests/*workflow* -n 16 --json-report=--file=test_results_linux_20250610_161319.json --html=test_report_linux_20250610_161319.html --self-contained-html
+2025-06-10 16:13:19,618 - INFO - Cleanup completed

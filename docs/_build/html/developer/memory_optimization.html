@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Memory Optimization Guide &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Profiling Guide" href="profiling.html" />
+    <link rel="prev" title="CUDA Development Guide" href="cuda_development.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="memory-optimization-guide">
+<h1>Memory Optimization Guide<a class="headerlink" href="#memory-optimization-guide" title="Link to this heading">¶</a></h1>
+<p>This guide provides comprehensive strategies for optimizing memory usage in ProteinMD, covering both CPU and GPU memory management, data structures, and algorithms.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p>
+<ul>
+<li><p><a class="reference internal" href="#key-principles" id="id2">Key Principles</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#memory-profiling" id="id3">Memory Profiling</a></p>
+<ul>
+<li><p><a class="reference internal" href="#python-memory-profiling" id="id4">Python Memory Profiling</a></p></li>
+<li><p><a class="reference internal" href="#advanced-memory-tracking" id="id5">Advanced Memory Tracking</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#data-structure-optimization" id="id6">Data Structure Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#efficient-array-layouts" id="id7">Efficient Array Layouts</a></p></li>
+<li><p><a class="reference internal" href="#memory-efficient-data-types" id="id8">Memory-Efficient Data Types</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#memory-pool-management" id="id9">Memory Pool Management</a></p>
+<ul>
+<li><p><a class="reference internal" href="#cpu-memory-pools" id="id10">CPU Memory Pools</a></p></li>
+<li><p><a class="reference internal" href="#smart-pointers-for-python" id="id11">Smart Pointers for Python</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#cache-optimization" id="id12">Cache Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#cpu-cache-optimization" id="id13">CPU Cache Optimization</a></p></li>
+<li><p><a class="reference internal" href="#memory-access-patterns" id="id14">Memory Access Patterns</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#gpu-memory-optimization" id="id15">GPU Memory Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#cuda-memory-management" id="id16">CUDA Memory Management</a></p></li>
+<li><p><a class="reference internal" href="#memory-coalescing" id="id17">Memory Coalescing</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#memory-layout-optimization" id="id18">Memory Layout Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#data-alignment" id="id19">Data Alignment</a></p></li>
+<li><p><a class="reference internal" href="#structure-padding" id="id20">Structure Padding</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#algorithm-level-optimizations" id="id21">Algorithm-Level Optimizations</a></p>
+<ul>
+<li><p><a class="reference internal" href="#spatial-data-structures" id="id22">Spatial Data Structures</a></p></li>
+<li><p><a class="reference internal" href="#lazy-evaluation" id="id23">Lazy Evaluation</a></p></li>
+<li><p><a class="reference internal" href="#memory-aware-algorithms" id="id24">Memory-Aware Algorithms</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-monitoring" id="id25">Performance Monitoring</a></p>
+<ul>
+<li><p><a class="reference internal" href="#memory-usage-tracking" id="id26">Memory Usage Tracking</a></p></li>
+<li><p><a class="reference internal" href="#automated-memory-optimization" id="id27">Automated Memory Optimization</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices-summary" id="id28">Best Practices Summary</a></p>
+<ul>
+<li><p><a class="reference internal" href="#general-guidelines" id="id29">General Guidelines</a></p></li>
+<li><p><a class="reference internal" href="#memory-optimization-checklist" id="id30">Memory Optimization Checklist</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#tools-and-resources" id="id31">Tools and Resources</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Memory optimization is crucial for molecular dynamics simulations, which often involve millions of atoms and require efficient data access patterns. This guide covers memory-related optimizations across all levels of the ProteinMD stack.</p>
+<section id="key-principles">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Key Principles</a><a class="headerlink" href="#key-principles" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Minimize memory footprint:</strong> Use appropriate data types and structures</p></li>
+<li><p><strong>Optimize access patterns:</strong> Ensure cache-friendly memory layouts</p></li>
+<li><p><strong>Reduce allocations:</strong> Reuse memory when possible</p></li>
+<li><p><strong>Profile memory usage:</strong> Identify bottlenecks and leaks</p></li>
+<li><p><strong>Balance speed vs. memory:</strong> Trade-offs between performance and memory usage</p></li>
+</ul>
+</section>
+</section>
+<section id="memory-profiling">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Memory Profiling</a><a class="headerlink" href="#memory-profiling" title="Link to this heading">¶</a></h2>
+<section id="python-memory-profiling">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Python Memory Profiling</a><a class="headerlink" href="#python-memory-profiling" title="Link to this heading">¶</a></h3>
+<p><strong>Memory Profiler Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">memory_profiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">profile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="nd">@profile</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">memory_intensive_function</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Example function for memory profiling.&quot;&quot;&quot;</span>
+    <span class="c1"># Large array allocation</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="c1"># Process data</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">track_memory_usage</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Track overall memory usage.&quot;&quot;&quot;</span>
+    <span class="n">process</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span>
+    <span class="n">memory_info</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RSS: </span><span class="si">{</span><span class="n">memory_info</span><span class="o">.</span><span class="n">rss</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;VMS: </span><span class="si">{</span><span class="n">memory_info</span><span class="o">.</span><span class="n">vms</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Memory percentage</span>
+    <span class="n">memory_percent</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_percent</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory usage: </span><span class="si">{</span><span class="n">memory_percent</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Line-by-Line Profiling:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run with: kernprof -l -v script.py</span>
+<span class="nd">@profile</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimize_memory_access</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">forces</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Profile memory access patterns.&quot;&quot;&quot;</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Line-by-line memory tracking</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">)</span>  <span class="c1"># Memory allocation</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">):</span>     <span class="c1"># Memory access pattern</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>        <span class="c1"># Cache-friendly access</span>
+        <span class="n">energies</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pos</span> <span class="o">*</span> <span class="n">forces</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">energies</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-memory-tracking">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Advanced Memory Tracking</a><a class="headerlink" href="#advanced-memory-tracking" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tracemalloc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MemoryTracker</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Advanced memory tracking for ProteinMD.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snapshots</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_tracking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start memory tracking.&quot;&quot;&quot;</span>
+        <span class="n">tracemalloc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">take_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Take a memory snapshot.&quot;&quot;&quot;</span>
+        <span class="n">snapshot</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">take_snapshot</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snapshots</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">snapshot</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compare_snapshots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare two memory snapshots.&quot;&quot;&quot;</span>
+        <span class="n">snap1</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">s</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots</span> <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="n">name1</span><span class="p">)</span>
+        <span class="n">snap2</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">s</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots</span> <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="n">name2</span><span class="p">)</span>
+
+        <span class="n">top_stats</span> <span class="o">=</span> <span class="n">snap2</span><span class="o">.</span><span class="n">compare_to</span><span class="p">(</span><span class="n">snap1</span><span class="p">,</span> <span class="s1">&#39;lineno&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory comparison: </span><span class="si">{</span><span class="n">name1</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">name2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">top_stats</span><span class="p">[:</span><span class="mi">10</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">stat</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_memory_leaks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Identify potential memory leaks.&quot;&quot;&quot;</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>  <span class="c1"># Force garbage collection</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshots</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">recent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">top_stats</span> <span class="o">=</span> <span class="n">recent</span><span class="o">.</span><span class="n">compare_to</span><span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="s1">&#39;lineno&#39;</span><span class="p">)</span>
+            <span class="n">leaks</span> <span class="o">=</span> <span class="p">[</span><span class="n">stat</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">top_stats</span> <span class="k">if</span> <span class="n">stat</span><span class="o">.</span><span class="n">size_diff</span> <span class="o">&gt;</span> <span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="p">]</span>  <span class="c1"># &gt; 1MB</span>
+
+            <span class="k">return</span> <span class="n">leaks</span>
+        <span class="k">return</span> <span class="p">[]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-structure-optimization">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Data Structure Optimization</a><a class="headerlink" href="#data-structure-optimization" title="Link to this heading">¶</a></h2>
+<section id="efficient-array-layouts">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Efficient Array Layouts</a><a class="headerlink" href="#efficient-array-layouts" title="Link to this heading">¶</a></h3>
+<p><strong>Array of Structures vs Structure of Arrays:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Array of Structures (AoS) - Less cache-friendly</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParticleAoS</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_particles</span><span class="p">):</span>
+        <span class="c1"># Each particle is a structure containing position, velocity, force</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([</span>
+            <span class="p">(</span><span class="s1">&#39;position&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;velocity&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;force&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;charge&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">particles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_particles</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+<span class="c1"># Structure of Arrays (SoA) - More cache-friendly</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParticleSoA</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_particles</span><span class="p">):</span>
+        <span class="c1"># Separate arrays for each property</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_particles</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_particles</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_particles</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_particles</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">charges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_particles</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">benchmark_memory_access</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Benchmark memory access patterns.&quot;&quot;&quot;</span>
+    <span class="n">n_particles</span> <span class="o">=</span> <span class="mi">1000000</span>
+
+    <span class="c1"># AoS access</span>
+    <span class="n">aos</span> <span class="o">=</span> <span class="n">ParticleAoS</span><span class="p">(</span><span class="n">n_particles</span><span class="p">)</span>
+    <span class="n">positions_aos</span> <span class="o">=</span> <span class="n">aos</span><span class="o">.</span><span class="n">particles</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
+
+    <span class="c1"># SoA access</span>
+    <span class="n">soa</span> <span class="o">=</span> <span class="n">ParticleSoA</span><span class="p">(</span><span class="n">n_particles</span><span class="p">)</span>
+    <span class="n">positions_soa</span> <span class="o">=</span> <span class="n">soa</span><span class="o">.</span><span class="n">positions</span>
+
+    <span class="c1"># Benchmark shows SoA is typically faster for vectorized operations</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">result_aos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">positions_aos</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">aos_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">result_soa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">positions_soa</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">soa_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AoS time: </span><span class="si">{</span><span class="n">aos_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SoA time: </span><span class="si">{</span><span class="n">soa_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-efficient-data-types">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Memory-Efficient Data Types</a><a class="headerlink" href="#memory-efficient-data-types" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">OptimizedDataTypes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Demonstrate memory-efficient data type choices.&quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compare_precision</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare memory usage of different precisions.&quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="mi">1000000</span>
+
+        <span class="c1"># Double precision (64-bit)</span>
+        <span class="n">data_f64</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="c1"># Single precision (32-bit) - 50% memory savings</span>
+        <span class="n">data_f32</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># Half precision (16-bit) - 75% memory savings (limited range)</span>
+        <span class="n">data_f16</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Float64 memory: </span><span class="si">{</span><span class="n">data_f64</span><span class="o">.</span><span class="n">nbytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Float32 memory: </span><span class="si">{</span><span class="n">data_f32</span><span class="o">.</span><span class="n">nbytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Float16 memory: </span><span class="si">{</span><span class="n">data_f16</span><span class="o">.</span><span class="n">nbytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimize_integer_types</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Use appropriate integer types.&quot;&quot;&quot;</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="mi">100000</span>
+
+        <span class="c1"># Over-sized integer (wastes memory)</span>
+        <span class="n">atom_ids_large</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+        <span class="c1"># Right-sized integer</span>
+        <span class="k">if</span> <span class="n">n_atoms</span> <span class="o">&lt;</span> <span class="mi">65536</span><span class="p">:</span>
+            <span class="n">atom_ids_small</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">n_atoms</span> <span class="o">&lt;</span> <span class="mi">4294967296</span><span class="p">:</span>
+            <span class="n">atom_ids_small</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">atom_ids_small</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Large int memory: </span><span class="si">{</span><span class="n">atom_ids_large</span><span class="o">.</span><span class="n">nbytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> KB&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Small int memory: </span><span class="si">{</span><span class="n">atom_ids_small</span><span class="o">.</span><span class="n">nbytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> KB&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="memory-pool-management">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Memory Pool Management</a><a class="headerlink" href="#memory-pool-management" title="Link to this heading">¶</a></h2>
+<section id="cpu-memory-pools">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">CPU Memory Pools</a><a class="headerlink" href="#cpu-memory-pools" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MemoryPool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Efficient memory pool for array allocations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_size_mb</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allocated_arrays</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_size</span> <span class="o">=</span> <span class="n">initial_size_mb</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">allocate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Allocate array from pool.&quot;&quot;&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+            <span class="c1"># Reuse existing array</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Create new array</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">allocated_arrays</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">array</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">array</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">deallocate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return array to pool.&quot;&quot;&quot;</span>
+        <span class="n">array_id</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">array_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allocated_arrays</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allocated_arrays</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">array_id</span><span class="p">)</span>
+
+            <span class="c1"># Flatten array for reuse</span>
+            <span class="n">flat_array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">flat_array</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">flat_array</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat_array</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all pools.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allocated_arrays</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get memory pool statistics.&quot;&quot;&quot;</span>
+        <span class="n">total_pooled</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">arrays</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">total_pooled</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">nbytes</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;pooled_memory_mb&#39;</span><span class="p">:</span> <span class="n">total_pooled</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;n_pool_types&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">),</span>
+            <span class="s1">&#39;n_allocated&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allocated_arrays</span><span class="p">)</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="smart-pointers-for-python">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Smart Pointers for Python</a><a class="headerlink" href="#smart-pointers-for-python" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SmartArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Smart pointer-like behavior for NumPy arrays.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">pool</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MemoryPool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">pool</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_array</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">acquire</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Acquire reference to array.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">allocate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Release reference to array.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_count</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ref_count</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">deallocate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_array</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cache-optimization">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Cache Optimization</a><a class="headerlink" href="#cache-optimization" title="Link to this heading">¶</a></h2>
+<section id="cpu-cache-optimization">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">CPU Cache Optimization</a><a class="headerlink" href="#cpu-cache-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Cache-Friendly Data Layout:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">optimize_cache_access</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Demonstrate cache-friendly access patterns.&quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+
+    <span class="c1"># Cache-friendly: row-major access</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">row_major_sum</span><span class="p">():</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>  <span class="c1"># Sequential memory access</span>
+        <span class="k">return</span> <span class="n">total</span>
+
+    <span class="c1"># Cache-unfriendly: column-major access</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">column_major_sum</span><span class="p">():</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>  <span class="c1"># Strided memory access</span>
+        <span class="k">return</span> <span class="n">total</span>
+
+    <span class="c1"># Vectorized (most efficient)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vectorized_sum</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+    <span class="c1"># Benchmark</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">result1</span> <span class="o">=</span> <span class="n">row_major_sum</span><span class="p">()</span>
+    <span class="n">row_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">result2</span> <span class="o">=</span> <span class="n">column_major_sum</span><span class="p">()</span>
+    <span class="n">col_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">result3</span> <span class="o">=</span> <span class="n">vectorized_sum</span><span class="p">()</span>
+    <span class="n">vec_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Row-major: </span><span class="si">{</span><span class="n">row_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Column-major: </span><span class="si">{</span><span class="n">col_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vectorized: </span><span class="si">{</span><span class="n">vec_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Blocking for Cache Efficiency:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">blocked_matrix_multiply</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="mi">64</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cache-efficient blocked matrix multiplication.&quot;&quot;&quot;</span>
+    <span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">B</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+                <span class="c1"># Define block boundaries</span>
+                <span class="n">i_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+                <span class="n">j_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+                <span class="n">k_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+
+                <span class="c1"># Multiply blocks</span>
+                <span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i_end</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j_end</span><span class="p">]</span> <span class="o">+=</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i_end</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="n">k_end</span><span class="p">]</span> <span class="o">@</span> <span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">:</span><span class="n">k_end</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j_end</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">C</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-access-patterns">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Memory Access Patterns</a><a class="headerlink" href="#memory-access-patterns" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">OptimizedForceCalculation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Memory-optimized force calculation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_atoms</span> <span class="o">=</span> <span class="n">n_atoms</span>
+        <span class="c1"># Use contiguous arrays for better cache performance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_forces_optimized</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cache-optimized force calculation.&quot;&quot;&quot;</span>
+        <span class="c1"># Process atoms in blocks for better cache utilization</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="mi">256</span>
+
+        <span class="k">for</span> <span class="n">block_start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+            <span class="n">block_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">block_start</span> <span class="o">+</span> <span class="n">block_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
+
+            <span class="c1"># Load block data into cache</span>
+            <span class="n">pos_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">[</span><span class="n">block_start</span><span class="p">:</span><span class="n">block_end</span><span class="p">]</span>
+            <span class="n">force_block</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pos_block</span><span class="p">)</span>
+
+            <span class="c1"># Calculate forces within block</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pos_block</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_block</span><span class="p">)):</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="n">pos_block</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">pos_block</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                    <span class="n">r_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">r_norm</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">force</span> <span class="o">=</span> <span class="n">r</span> <span class="o">/</span> <span class="p">(</span><span class="n">r_norm</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># Simplified force</span>
+                        <span class="n">force_block</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">force</span>
+                        <span class="n">force_block</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">force</span>
+
+            <span class="c1"># Write back to main array</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="p">[</span><span class="n">block_start</span><span class="p">:</span><span class="n">block_end</span><span class="p">]</span> <span class="o">=</span> <span class="n">force_block</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="gpu-memory-optimization">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">GPU Memory Optimization</a><a class="headerlink" href="#gpu-memory-optimization" title="Link to this heading">¶</a></h2>
+<section id="cuda-memory-management">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">CUDA Memory Management</a><a class="headerlink" href="#cuda-memory-management" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">GPUMemoryOptimizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Optimize GPU memory usage for ProteinMD.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_pool</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_default_memory_pool</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pinned_memory_pool</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_default_pinned_memory_pool</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimize_transfers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpu_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Optimize CPU-GPU transfers using pinned memory.&quot;&quot;&quot;</span>
+        <span class="c1"># Use pinned memory for faster transfers</span>
+        <span class="n">pinned_array</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">alloc_pinned_memory</span><span class="p">(</span><span class="n">cpu_data</span><span class="o">.</span><span class="n">nbytes</span><span class="p">)</span>
+        <span class="n">pinned_view</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">pinned_array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cpu_data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">pinned_view</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">cpu_data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="c1"># Transfer to GPU</span>
+        <span class="n">gpu_data</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pinned_view</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">cpu_data</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">gpu_data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">minimize_allocations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shapes_and_types</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pre-allocate GPU arrays to minimize allocations.&quot;&quot;&quot;</span>
+        <span class="n">arrays</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span> <span class="ow">in</span> <span class="n">shapes_and_types</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">arrays</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">arrays</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">use_unified_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Use CUDA Unified Memory for automatic management.&quot;&quot;&quot;</span>
+        <span class="c1"># Note: This is conceptual - CuPy doesn&#39;t directly expose unified memory</span>
+        <span class="c1"># In practice, use memory pools and careful transfer management</span>
+        <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_memory_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get detailed GPU memory statistics.&quot;&quot;&quot;</span>
+        <span class="n">used_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_pool</span><span class="o">.</span><span class="n">used_bytes</span><span class="p">()</span>
+        <span class="n">total_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_pool</span><span class="o">.</span><span class="n">total_bytes</span><span class="p">()</span>
+
+        <span class="n">free_bytes</span><span class="p">,</span> <span class="n">device_total</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">memGetInfo</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;pool_used_mb&#39;</span><span class="p">:</span> <span class="n">used_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;pool_total_mb&#39;</span><span class="p">:</span> <span class="n">total_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;device_free_mb&#39;</span><span class="p">:</span> <span class="n">free_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;device_total_mb&#39;</span><span class="p">:</span> <span class="n">device_total</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;utilization&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">device_total</span> <span class="o">-</span> <span class="n">free_bytes</span><span class="p">)</span> <span class="o">/</span> <span class="n">device_total</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-coalescing">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Memory Coalescing</a><a class="headerlink" href="#memory-coalescing" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Good: Coalesced memory access</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">coalesced_kernel_example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Example of memory coalescing optimization.&quot;&quot;&quot;</span>
+    <span class="n">kernel_code</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    extern &quot;C&quot; __global__</span>
+<span class="s1">    void coalesced_add(float* a, float* b, float* c, int n) {</span>
+<span class="s1">        int idx = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span class="s1">        if (idx &lt; n) {</span>
+<span class="s1">            c[idx] = a[idx] + b[idx];  // Coalesced access</span>
+<span class="s1">        }</span>
+<span class="s1">    }</span>
+<span class="s1">    &#39;&#39;&#39;</span>
+
+    <span class="c1"># Compile and use kernel</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">RawKernel</span><span class="p">(</span><span class="n">kernel_code</span><span class="p">,</span> <span class="s1">&#39;coalesced_add&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">kernel</span>
+
+<span class="c1"># Bad: Non-coalesced memory access</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">non_coalesced_kernel_example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Example of poor memory access pattern.&quot;&quot;&quot;</span>
+    <span class="n">kernel_code</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    extern &quot;C&quot; __global__</span>
+<span class="s1">    void non_coalesced_add(float* a, float* b, float* c, int n, int stride) {</span>
+<span class="s1">        int idx = blockIdx.x * blockDim.x + threadIdx.x;</span>
+<span class="s1">        if (idx &lt; n) {</span>
+<span class="s1">            int real_idx = idx * stride;  // Non-coalesced access</span>
+<span class="s1">            c[real_idx] = a[real_idx] + b[real_idx];</span>
+<span class="s1">        }</span>
+<span class="s1">    }</span>
+<span class="s1">    &#39;&#39;&#39;</span>
+
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">RawKernel</span><span class="p">(</span><span class="n">kernel_code</span><span class="p">,</span> <span class="s1">&#39;non_coalesced_add&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">kernel</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="memory-layout-optimization">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Memory Layout Optimization</a><a class="headerlink" href="#memory-layout-optimization" title="Link to this heading">¶</a></h2>
+<section id="data-alignment">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Data Alignment</a><a class="headerlink" href="#data-alignment" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_alignment</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure array is aligned for SIMD operations.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data</span> <span class="o">%</span> <span class="n">alignment</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Create aligned copy</span>
+        <span class="n">aligned_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+        <span class="n">aligned_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">array</span>
+        <span class="k">return</span> <span class="n">aligned_array</span>
+    <span class="k">return</span> <span class="n">array</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_aligned_array</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create aligned array from scratch.&quot;&quot;&quot;</span>
+    <span class="c1"># Calculate total size with padding</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">itemsize</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">itemsize</span>
+    <span class="n">total_bytes</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="n">itemsize</span>
+
+    <span class="c1"># Allocate with extra space for alignment</span>
+    <span class="n">raw_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">total_bytes</span> <span class="o">+</span> <span class="n">alignment</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+    <span class="c1"># Find aligned offset</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="n">alignment</span> <span class="o">-</span> <span class="p">(</span><span class="n">raw_data</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data</span> <span class="o">%</span> <span class="n">alignment</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">offset</span> <span class="o">==</span> <span class="n">alignment</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Create view of aligned data</span>
+    <span class="n">aligned_data</span> <span class="o">=</span> <span class="n">raw_data</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset</span> <span class="o">+</span> <span class="n">total_bytes</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">aligned_data</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="structure-padding">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Structure Padding</a><a class="headerlink" href="#structure-padding" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Inefficient: poor padding</span>
+<span class="n">particle_dtype_bad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>      <span class="c1"># 4 bytes</span>
+    <span class="p">(</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>  <span class="c1"># 8 bytes (will be padded to 8-byte boundary)</span>
+    <span class="p">(</span><span class="s1">&#39;charge&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="c1"># 4 bytes</span>
+    <span class="p">(</span><span class="s1">&#39;position&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="c1"># 12 bytes</span>
+<span class="p">])</span>  <span class="c1"># Total: likely 32 bytes due to padding</span>
+
+<span class="c1"># Efficient: manual padding optimization</span>
+<span class="n">particle_dtype_good</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>      <span class="c1"># 4 bytes</span>
+    <span class="p">(</span><span class="s1">&#39;charge&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="c1"># 4 bytes (fills gap)</span>
+    <span class="p">(</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>  <span class="c1"># 8 bytes (naturally aligned)</span>
+    <span class="p">(</span><span class="s1">&#39;position&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="c1"># 12 bytes</span>
+    <span class="p">(</span><span class="s1">&#39;_padding&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>   <span class="c1"># 4 bytes padding for alignment</span>
+<span class="p">])</span>  <span class="c1"># Total: 32 bytes with explicit control</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="algorithm-level-optimizations">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Algorithm-Level Optimizations</a><a class="headerlink" href="#algorithm-level-optimizations" title="Link to this heading">¶</a></h2>
+<section id="spatial-data-structures">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Spatial Data Structures</a><a class="headerlink" href="#spatial-data-structures" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SpatialGrid</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Memory-efficient spatial grid for neighbor finding.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box_size</span><span class="p">,</span> <span class="n">cell_size</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">box_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell_size</span> <span class="o">=</span> <span class="n">cell_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box_size</span> <span class="o">/</span> <span class="n">cell_size</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="c1"># Use flat array instead of nested lists for better memory locality</span>
+        <span class="n">total_cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell_contents</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_cells</span><span class="p">)]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get flat cell index from position.&quot;&quot;&quot;</span>
+        <span class="n">cell_coords</span> <span class="o">=</span> <span class="p">(</span><span class="n">position</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_size</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">cell_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">cell_coords</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Convert 3D coordinates to flat index</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">cell_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
+                <span class="n">cell_coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
+                <span class="n">cell_coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update grid with new positions.&quot;&quot;&quot;</span>
+        <span class="c1"># Clear existing contents</span>
+        <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_contents</span><span class="p">:</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Add particles to cells</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+            <span class="n">cell_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cell_index</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cell_contents</span><span class="p">[</span><span class="n">cell_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">radius</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get neighbors within radius.&quot;&quot;&quot;</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Calculate cell range to check</span>
+        <span class="n">cell_radius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">radius</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_size</span><span class="p">))</span>
+        <span class="n">center_cell</span> <span class="o">=</span> <span class="p">(</span><span class="n">position</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_size</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">dx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">cell_radius</span><span class="p">,</span> <span class="n">cell_radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">dy</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">cell_radius</span><span class="p">,</span> <span class="n">cell_radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">dz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">cell_radius</span><span class="p">,</span> <span class="n">cell_radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">cell_coords</span> <span class="o">=</span> <span class="n">center_cell</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">])</span>
+
+                    <span class="c1"># Check bounds</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">cell_coords</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">cell_coords</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span><span class="p">):</span>
+                        <span class="k">continue</span>
+
+                    <span class="n">cell_idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">cell_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
+                               <span class="n">cell_coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cells</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span>
+                               <span class="n">cell_coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+                    <span class="n">neighbors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_contents</span><span class="p">[</span><span class="n">cell_idx</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">neighbors</span>
+</pre></div>
+</div>
+</section>
+<section id="lazy-evaluation">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Lazy Evaluation</a><a class="headerlink" href="#lazy-evaluation" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LazyArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lazy evaluation for memory-intensive computations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compute_func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_func</span> <span class="o">=</span> <span class="n">compute_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_result</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_computed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__array__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert to numpy array when needed.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_computed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_func</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_computed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Invalidate cache to save memory.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_result</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_computed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get shape without computing full array.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_computed</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_result</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Return shape without full computation if possible</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_func</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">compute_shape_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-aware-algorithms">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Memory-Aware Algorithms</a><a class="headerlink" href="#memory-aware-algorithms" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">memory_efficient_matrix_ops</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Memory-efficient large matrix operations.&quot;&quot;&quot;</span>
+    <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">B</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="c1"># Process in chunks to control memory usage</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">):</span>
+        <span class="n">end_i</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="n">chunk_A</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">end_i</span><span class="p">]</span>
+
+        <span class="c1"># Compute chunk result</span>
+        <span class="n">chunk_result</span> <span class="o">=</span> <span class="n">chunk_A</span> <span class="o">@</span> <span class="n">B</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">end_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">chunk_result</span>
+
+        <span class="c1"># Explicitly delete chunk to free memory</span>
+        <span class="k">del</span> <span class="n">chunk_A</span><span class="p">,</span> <span class="n">chunk_result</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-monitoring">
+<h2><a class="toc-backref" href="#id25" role="doc-backlink">Performance Monitoring</a><a class="headerlink" href="#performance-monitoring" title="Link to this heading">¶</a></h2>
+<section id="memory-usage-tracking">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Memory Usage Tracking</a><a class="headerlink" href="#memory-usage-tracking" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">memory_monitor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;operation&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager for monitoring memory usage.&quot;&quot;&quot;</span>
+    <span class="n">process</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">()</span>
+
+    <span class="c1"># Initial memory</span>
+    <span class="n">initial_memory</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">initial_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> - Memory: </span><span class="si">{</span><span class="n">initial_memory</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Final memory</span>
+        <span class="n">final_memory</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">final_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">memory_delta</span> <span class="o">=</span> <span class="n">final_memory</span> <span class="o">-</span> <span class="n">initial_memory</span>
+        <span class="n">time_delta</span> <span class="o">=</span> <span class="n">final_time</span> <span class="o">-</span> <span class="n">initial_time</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Completed </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> - Memory: </span><span class="si">{</span><span class="n">final_memory</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;(Δ</span><span class="si">{</span><span class="n">memory_delta</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> MB) in </span><span class="si">{</span><span class="n">time_delta</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="automated-memory-optimization">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Automated Memory Optimization</a><a class="headerlink" href="#automated-memory-optimization" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AutoMemoryOptimizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Automatically optimize memory usage based on monitoring.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory_limit_mb</span><span class="o">=</span><span class="mi">8000</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_limit</span> <span class="o">=</span> <span class="n">memory_limit_mb</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># Convert to bytes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_memory_usage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check current memory usage.&quot;&quot;&quot;</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">()</span>
+        <span class="n">current_memory</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span>
+        <span class="k">return</span> <span class="n">current_memory</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">current_memory</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_limit</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_optimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition_func</span><span class="p">,</span> <span class="n">optimization_func</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register an optimization strategy.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;condition&#39;</span><span class="p">:</span> <span class="n">condition_func</span><span class="p">,</span>
+            <span class="s1">&#39;optimization&#39;</span><span class="p">:</span> <span class="n">optimization_func</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span>
+        <span class="p">})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimize_if_needed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply optimizations if memory usage is high.&quot;&quot;&quot;</span>
+        <span class="n">memory_mb</span><span class="p">,</span> <span class="n">needs_optimization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_memory_usage</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">needs_optimization</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory usage high (</span><span class="si">{</span><span class="n">memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB), applying optimizations...&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizations</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">opt</span><span class="p">[</span><span class="s1">&#39;condition&#39;</span><span class="p">]():</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Applying optimization: </span><span class="si">{</span><span class="n">opt</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">opt</span><span class="p">[</span><span class="s1">&#39;optimization&#39;</span><span class="p">]()</span>
+
+                    <span class="c1"># Check if optimization helped</span>
+                    <span class="n">new_memory_mb</span><span class="p">,</span> <span class="n">still_high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_memory_usage</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">still_high</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimization successful: </span><span class="si">{</span><span class="n">new_memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+                        <span class="k">break</span>
+
+<span class="c1"># Example usage</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_auto_optimizer</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up automatic memory optimization.&quot;&quot;&quot;</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">AutoMemoryOptimizer</span><span class="p">(</span><span class="n">memory_limit_mb</span><span class="o">=</span><span class="mi">6000</span><span class="p">)</span>
+
+    <span class="c1"># Register optimizations</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">register_optimization</span><span class="p">(</span>
+        <span class="n">condition_func</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">optimization_func</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">(),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Clear computation cache&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">register_optimization</span><span class="p">(</span>
+        <span class="n">condition_func</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">memory_pool</span><span class="p">,</span> <span class="s1">&#39;used_bytes&#39;</span><span class="p">),</span>
+        <span class="n">optimization_func</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">memory_pool</span><span class="o">.</span><span class="n">free_all_blocks</span><span class="p">(),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Clear memory pool&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">optimizer</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices-summary">
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Best Practices Summary</a><a class="headerlink" href="#best-practices-summary" title="Link to this heading">¶</a></h2>
+<section id="general-guidelines">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">General Guidelines</a><a class="headerlink" href="#general-guidelines" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Profile First:</strong> Always profile before optimizing</p></li>
+<li><p><strong>Use Appropriate Data Types:</strong> Don’t over-allocate precision</p></li>
+<li><p><strong>Minimize Allocations:</strong> Reuse memory when possible</p></li>
+<li><p><strong>Optimize Access Patterns:</strong> Consider cache locality</p></li>
+<li><p><strong>Monitor Memory Usage:</strong> Track memory consumption in production</p></li>
+</ol>
+</section>
+<section id="memory-optimization-checklist">
+<h3><a class="toc-backref" href="#id30" role="doc-backlink">Memory Optimization Checklist</a><a class="headerlink" href="#memory-optimization-checklist" title="Link to this heading">¶</a></h3>
+<p><strong>Data Structures:</strong>
+- [ ] Use Structure of Arrays (SoA) layout
+- [ ] Choose appropriate data types
+- [ ] Align data for SIMD operations
+- [ ] Consider memory pooling</p>
+<p><strong>Algorithms:</strong>
+- [ ] Implement cache-friendly access patterns
+- [ ] Use spatial data structures for neighbor searches
+- [ ] Consider lazy evaluation for expensive computations
+- [ ] Implement chunking for large operations</p>
+<p><strong>GPU Memory:</strong>
+- [ ] Minimize CPU-GPU transfers
+- [ ] Use memory coalescing
+- [ ] Implement proper memory pools
+- [ ] Monitor GPU memory usage</p>
+<p><strong>Monitoring:</strong>
+- [ ] Profile memory usage regularly
+- [ ] Track memory leaks
+- [ ] Monitor cache hit rates
+- [ ] Benchmark memory access patterns</p>
+</section>
+</section>
+<section id="tools-and-resources">
+<h2><a class="toc-backref" href="#id31" role="doc-backlink">Tools and Resources</a><a class="headerlink" href="#tools-and-resources" title="Link to this heading">¶</a></h2>
+<p><strong>Profiling Tools:</strong>
+- <code class="docutils literal notranslate"><span class="pre">memory_profiler</span></code>: Line-by-line memory profiling
+- <code class="docutils literal notranslate"><span class="pre">tracemalloc</span></code>: Built-in memory tracking
+- <code class="docutils literal notranslate"><span class="pre">pympler</span></code>: Advanced memory analysis
+- <code class="docutils literal notranslate"><span class="pre">objgraph</span></code>: Object reference tracking</p>
+<p><strong>GPU Tools:</strong>
+- <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code>: GPU memory monitoring
+- <code class="docutils literal notranslate"><span class="pre">nvprof</span></code>: CUDA profiling
+- <code class="docutils literal notranslate"><span class="pre">compute-sanitizer</span></code>: Memory error detection</p>
+<p><strong>System Tools:</strong>
+- <code class="docutils literal notranslate"><span class="pre">htop/top</span></code>: System memory monitoring
+- <code class="docutils literal notranslate"><span class="pre">valgrind</span></code>: Memory error detection (C/C++)
+- <code class="docutils literal notranslate"><span class="pre">perf</span></code>: Linux performance analysis</p>
+<p>By following this comprehensive memory optimization guide, you can significantly improve the memory efficiency of ProteinMD simulations, enabling larger systems and better performance.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#quick-start-for-developers">Quick Start for Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#core-documentation">Core Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developer_guide.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#contributing-workflow">Contributing Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#key-development-areas">Key Development Areas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="cuda_development.html" title="previous chapter">CUDA Development Guide</a></li>
+      <li>Next: <a href="profiling.html" title="next chapter">Profiling Guide</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/memory_optimization.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

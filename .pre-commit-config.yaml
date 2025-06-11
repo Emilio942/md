@@ -1,0 +1,111 @@
+# Pre-commit hooks configuration for automated code quality checks
+# Run: pip install pre-commit && pre-commit install
+
+repos:
+  # Built-in hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.md$
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: debug-statements
+      - id: check-docstring-first
+
+  # Black code formatting
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: ['--line-length=88']
+
+  # isort import sorting
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ['--profile=black', '--line-length=88']
+
+  # flake8 linting
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        additional_dependencies: [
+          flake8-docstrings,
+          flake8-bugbear,
+          flake8-comprehensions,
+          flake8-simplify,
+        ]
+
+  # mypy type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.3.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests]
+        args: [--ignore-missing-imports]
+
+  # bandit security linting
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-r, proteinMD/, --skip, B101,B601]
+
+  # Remove unused imports
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.1.1
+    hooks:
+      - id: autoflake
+        args: [
+          --remove-all-unused-imports,
+          --remove-unused-variables,
+          --in-place,
+        ]
+
+  # Upgrade Python syntax
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.7.0
+    hooks:
+      - id: pyupgrade
+        args: [--py38-plus]
+
+  # Check requirements.txt
+  - repo: https://github.com/PyCQA/pip-audit
+    rev: v2.5.6
+    hooks:
+      - id: pip-audit
+        args: [--require-hashes, --disable-pip]
+
+  # Jupyter notebook cleanup
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.7.0
+    hooks:
+      - id: nbqa-black
+      - id: nbqa-isort
+      - id: nbqa-flake8
+
+# Configuration for specific hooks
+default_language_version:
+  python: python3
+
+# Exclude certain files/directories
+exclude: |
+  (?x)^(
+      \.git/|
+      \.venv/|
+      \.pytest_cache/|
+      \.mypy_cache/|
+      __pycache__/|
+      build/|
+      dist/|
+      .*\.egg-info/
+  )$

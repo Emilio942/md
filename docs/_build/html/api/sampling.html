@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Sampling Methods API Reference &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Visualization Tools API Reference" href="visualization.html" />
+    <link rel="prev" title="Analysis Tools" href="analysis.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="sampling-methods-api-reference">
+<h1>Sampling Methods API Reference<a class="headerlink" href="#sampling-methods-api-reference" title="Link to this heading">¶</a></h1>
+<p>The sampling module provides various enhanced sampling methods for efficient exploration
+of protein conformational space and calculation of thermodynamic properties.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The sampling module includes:</p>
+<ul class="simple">
+<li><p><strong>Monte Carlo Methods</strong> - Metropolis Monte Carlo and parallel tempering</p></li>
+<li><p><strong>Enhanced Sampling</strong> - Umbrella sampling, metadynamics, and replica exchange</p></li>
+<li><p><strong>Free Energy Methods</strong> - Thermodynamic integration and free energy perturbation</p></li>
+<li><p><strong>Advanced Techniques</strong> - Accelerated MD, steered MD, and adaptive sampling</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
+<p>Basic umbrella sampling simulation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">UmbrellaSampling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+
+<span class="c1"># Setup umbrella sampling</span>
+<span class="n">umbrella</span> <span class="o">=</span> <span class="n">UmbrellaSampling</span><span class="p">(</span>
+    <span class="n">reaction_coordinate</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">,</span>
+    <span class="n">atoms</span><span class="o">=</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)],</span>
+    <span class="n">windows</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">force_constant</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+    <span class="n">window_range</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Run sampling</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">umbrella</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">100000</span><span class="p">)</span>
+
+<span class="c1"># Analyze results</span>
+<span class="n">pmf</span> <span class="o">=</span> <span class="n">umbrella</span><span class="o">.</span><span class="n">calculate_pmf</span><span class="p">()</span>
+<span class="n">umbrella</span><span class="o">.</span><span class="n">plot_pmf</span><span class="p">(</span><span class="s1">&#39;pmf.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="monte-carlo-methods">
+<h2>Monte Carlo Methods<a class="headerlink" href="#monte-carlo-methods" title="Link to this heading">¶</a></h2>
+<section id="metropolismc">
+<h3>MetropolisMC<a class="headerlink" href="#metropolismc" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Basic Monte Carlo sampling</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetropolisMC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protein</span>
+
+<span class="c1"># Setup MC simulation</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">mc</span> <span class="o">=</span> <span class="n">MetropolisMC</span><span class="p">(</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">max_displacement</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">move_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;translation&#39;</span><span class="p">,</span> <span class="s1">&#39;rotation&#39;</span><span class="p">,</span> <span class="s1">&#39;torsion&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Configure move probabilities</span>
+<span class="n">mc</span><span class="o">.</span><span class="n">set_move_probabilities</span><span class="p">({</span>
+    <span class="s1">&#39;translation&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+    <span class="s1">&#39;rotation&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+    <span class="s1">&#39;torsion&#39;</span><span class="p">:</span> <span class="mf">0.4</span>
+<span class="p">})</span>
+
+<span class="c1"># Run MC simulation</span>
+<span class="n">mc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50000</span><span class="p">)</span>
+
+<span class="c1"># Analyze acceptance rates</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Overall acceptance: </span><span class="si">{</span><span class="n">mc</span><span class="o">.</span><span class="n">acceptance_rate</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Move statistics: </span><span class="si">{</span><span class="n">mc</span><span class="o">.</span><span class="n">move_statistics</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="paralleltempering">
+<h3>ParallelTempering<a class="headerlink" href="#paralleltempering" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Replica exchange molecular dynamics</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParallelTempering</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Setup temperature ladder</span>
+<span class="n">temperatures</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+
+<span class="n">pt</span> <span class="o">=</span> <span class="n">ParallelTempering</span><span class="p">(</span>
+    <span class="n">temperatures</span><span class="o">=</span><span class="n">temperatures</span><span class="p">,</span>
+    <span class="n">exchange_frequency</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="n">replica_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup replicas</span>
+<span class="n">pt</span><span class="o">.</span><span class="n">setup_replicas</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">,</span> <span class="n">forcefield</span><span class="o">=</span><span class="s1">&#39;amber14sb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Run parallel tempering</span>
+<span class="n">pt</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span> <span class="n">output_frequency</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Analyze exchange statistics</span>
+<span class="n">exchange_matrix</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_exchange_matrix</span><span class="p">()</span>
+<span class="n">pt</span><span class="o">.</span><span class="n">plot_temperature_walk</span><span class="p">(</span><span class="s1">&#39;temp_walk.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="enhanced-sampling">
+<h2>Enhanced Sampling<a class="headerlink" href="#enhanced-sampling" title="Link to this heading">¶</a></h2>
+<section id="umbrellasampling">
+<h3>UmbrellaSampling<a class="headerlink" href="#umbrellasampling" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.sampling.</span></span><span class="sig-name descname"><span class="pre">UmbrellaSampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_system_or_cv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows_or_temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'umbrella_sampling'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main class for managing umbrella sampling simulations.</p>
+<p>This class coordinates multiple umbrella sampling windows and provides
+tools for analysis and convergence monitoring.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_system_or_cv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">windows_or_temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'umbrella_sampling'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize umbrella sampling manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation_system_or_cv</strong> (<em>CollectiveVariable</em><em> or </em><em>simulation system</em>) – Either a collective variable (new API) or simulation system (test API)</p></li>
+<li><p><strong>windows_or_temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Either windows list (test API) or temperature (new API)</p></li>
+<li><p><strong>output_directory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Directory for output files</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.setup_windows">
+<span class="sig-name descname"><span class="pre">setup_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cv_range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_constant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equilibration_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.setup_windows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.setup_windows" title="Link to this definition">¶</a></dt>
+<dd><p>Set up umbrella sampling windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cv_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a>) – (min_value, max_value) for the collective variable</p></li>
+<li><p><strong>n_windows</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of umbrella windows</p></li>
+<li><p><strong>force_constant</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Force constant for harmonic restraints (kJ/mol/unit²)</p></li>
+<li><p><strong>simulation_steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of simulation steps per window</p></li>
+<li><p><strong>equilibration_steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of equilibration steps per window</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.run_window_simulation">
+<span class="sig-name descname"><span class="pre">run_window_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces_calculator</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">simulation_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.run_window_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.run_window_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Run simulation for a single umbrella window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – ID of the window to simulate</p></li>
+<li><p><strong>positions</strong> (<em>np.ndarray</em>) – Initial positions</p></li>
+<li><p><strong>forces_calculator</strong> (<em>callable</em>) – Function to calculate forces: forces, energy = func(positions, restraints)</p></li>
+<li><p><strong>**simulation_kwargs</strong> – Additional arguments for the simulation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Simulation results including CV trajectory</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.run_all_windows_parallel">
+<span class="sig-name descname"><span class="pre">run_all_windows_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces_calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">simulation_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.run_all_windows_parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.run_all_windows_parallel" title="Link to this definition">¶</a></dt>
+<dd><p>Run all umbrella windows in parallel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_positions</strong> (<em>np.ndarray</em>) – Initial atomic positions</p></li>
+<li><p><strong>forces_calculator</strong> (<em>callable</em>) – Function to calculate forces</p></li>
+<li><p><strong>max_workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of parallel workers</p></li>
+<li><p><strong>**simulation_kwargs</strong> – Additional simulation parameters</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.analyze_results">
+<span class="sig-name descname"><span class="pre">analyze_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bin_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.analyze_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.analyze_results" title="Link to this definition">¶</a></dt>
+<dd><p>Analyze umbrella sampling results using WHAM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bin_width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Bin width for WHAM analysis</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Configured WHAM analysis object with results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>WHAMAnalysis</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.get_pmf">
+<span class="sig-name descname"><span class="pre">get_pmf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.get_pmf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.get_pmf" title="Link to this definition">¶</a></dt>
+<dd><p>Get the calculated potential of mean force.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(cv_values, pmf_values) arrays</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.save_summary">
+<span class="sig-name descname"><span class="pre">save_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.save_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.save_summary" title="Link to this definition">¶</a></dt>
+<dd><p>Save umbrella sampling summary.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.calculate_restraint_force">
+<span class="sig-name descname"><span class="pre">calculate_restraint_force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.calculate_restraint_force"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.calculate_restraint_force" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate restraint force for a given coordinate value in a window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Index of the umbrella window</p></li>
+<li><p><strong>coordinate_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Current value of the collective variable</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Restraint force magnitude</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.run_all_windows">
+<span class="sig-name descname"><span class="pre">run_all_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps_per_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.run_all_windows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.run_all_windows" title="Link to this definition">¶</a></dt>
+<dd><p>Run simulation for all umbrella windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>steps_per_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of simulation steps per window</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of simulation results for each window</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.calculate_coordinate">
+<span class="sig-name descname"><span class="pre">calculate_coordinate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.calculate_coordinate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.calculate_coordinate" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate collective variable value from positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>positions</strong> (<em>np.ndarray</em>) – Atomic positions</p></li>
+<li><p><strong>atom_indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a>) – Indices of atoms involved in the coordinate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Collective variable value</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.check_convergence">
+<span class="sig-name descname"><span class="pre">check_convergence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.check_convergence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.check_convergence" title="Link to this definition">¶</a></dt>
+<dd><p>Check convergence of umbrella sampling data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordinates</strong> (<em>np.ndarray</em>) – Time series of coordinate values</p></li>
+<li><p><strong>window_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Index of the umbrella window</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if converged, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.analyze_convergence">
+<span class="sig-name descname"><span class="pre">analyze_convergence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coordinates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.analyze_convergence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.analyze_convergence" title="Link to this definition">¶</a></dt>
+<dd><p>Analyze convergence properties of coordinate time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>coordinates</strong> (<em>np.ndarray</em>) – Time series of coordinate values</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Convergence analysis results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.UmbrellaSampling.run_window">
+<span class="sig-name descname"><span class="pre">run_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/umbrella_sampling.html#UmbrellaSampling.run_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.UmbrellaSampling.run_window" title="Link to this definition">¶</a></dt>
+<dd><p>Run simulation for a single umbrella window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Index of the window to run</p></li>
+<li><p><strong>n_steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of simulation steps</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Simulation result for the window</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p><strong>Example: Free energy along reaction coordinate</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">UmbrellaSampling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReactionCoordinate</span>
+
+<span class="c1"># Define reaction coordinate</span>
+<span class="n">rc</span> <span class="o">=</span> <span class="n">ReactionCoordinate</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span>
+    <span class="n">atom1</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">),</span>  <span class="c1"># Residue 0, CA atom</span>
+    <span class="n">atom2</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">)</span>  <span class="c1"># Residue 10, CA atom</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup umbrella sampling</span>
+<span class="n">umbrella</span> <span class="o">=</span> <span class="n">UmbrellaSampling</span><span class="p">(</span>
+    <span class="n">reaction_coordinate</span><span class="o">=</span><span class="n">rc</span><span class="p">,</span>
+    <span class="n">windows</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+    <span class="n">force_constant</span><span class="o">=</span><span class="mf">500.0</span><span class="p">,</span>  <span class="c1"># kcal/mol/Å²</span>
+    <span class="n">window_range</span><span class="o">=</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">),</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Generate window centers</span>
+<span class="n">umbrella</span><span class="o">.</span><span class="n">generate_windows</span><span class="p">()</span>
+
+<span class="c1"># Run all windows</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">window</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">umbrella</span><span class="o">.</span><span class="n">windows</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running window </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">umbrella</span><span class="o">.</span><span class="n">windows</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">window</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">500000</span><span class="p">)</span>
+
+<span class="c1"># Calculate PMF using WHAM</span>
+<span class="n">pmf</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">umbrella</span><span class="o">.</span><span class="n">calculate_pmf</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;wham&#39;</span><span class="p">)</span>
+
+<span class="c1"># Save results</span>
+<span class="n">umbrella</span><span class="o">.</span><span class="n">save_pmf</span><span class="p">(</span><span class="s1">&#39;pmf_data.txt&#39;</span><span class="p">)</span>
+<span class="n">umbrella</span><span class="o">.</span><span class="n">plot_pmf</span><span class="p">(</span><span class="s1">&#39;pmf.png&#39;</span><span class="p">,</span> <span class="n">show_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="metadynamics">
+<h3>Metadynamics<a class="headerlink" href="#metadynamics" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Well-tempered metadynamics</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metadynamics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">CollectiveVariable</span>
+
+<span class="c1"># Define collective variables</span>
+<span class="n">cv1</span> <span class="o">=</span> <span class="n">CollectiveVariable</span><span class="o">.</span><span class="n">dihedral</span><span class="p">(</span>
+    <span class="n">atoms</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;PHE&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;PHE&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">),</span>
+           <span class="p">(</span><span class="s1">&#39;PHE&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;GLY&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;phi_5&#39;</span>
+<span class="p">)</span>
+
+<span class="n">cv2</span> <span class="o">=</span> <span class="n">CollectiveVariable</span><span class="o">.</span><span class="n">dihedral</span><span class="p">(</span>
+    <span class="n">atoms</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;PHE&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;GLY&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">),</span>
+           <span class="p">(</span><span class="s1">&#39;GLY&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;GLY&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;psi_5&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup metadynamics</span>
+<span class="n">metad</span> <span class="o">=</span> <span class="n">Metadynamics</span><span class="p">(</span>
+    <span class="n">collective_variables</span><span class="o">=</span><span class="p">[</span><span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">],</span>
+    <span class="n">gaussian_height</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># kcal/mol</span>
+    <span class="n">gaussian_width</span><span class="o">=</span><span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span>  <span class="c1"># radians</span>
+    <span class="n">deposition_frequency</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">well_tempered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">bias_factor</span><span class="o">=</span><span class="mf">10.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">metad</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">2000000</span><span class="p">)</span>
+
+<span class="c1"># Reconstruct free energy surface</span>
+<span class="n">fes</span> <span class="o">=</span> <span class="n">metad</span><span class="o">.</span><span class="n">calculate_fes</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">)</span>
+<span class="n">metad</span><span class="o">.</span><span class="n">plot_fes</span><span class="p">(</span><span class="s1">&#39;fes_2d.png&#39;</span><span class="p">,</span> <span class="n">contour_levels</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="replicaexchangemd">
+<h3>ReplicaExchangeMD<a class="headerlink" href="#replicaexchangemd" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.sampling.ReplicaExchangeMD">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.sampling.</span></span><span class="sig-name descname"><span class="pre">ReplicaExchangeMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperatures</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_velocities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exchange_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'remd_output'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_threading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/replica_exchange.html#ReplicaExchangeMD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.ReplicaExchangeMD" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main class for Replica Exchange Molecular Dynamics simulations.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.ReplicaExchangeMD.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperatures</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_velocities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exchange_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'remd_output'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_threading</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/replica_exchange.html#ReplicaExchangeMD.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.ReplicaExchangeMD.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize REMD simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>temperatures</strong> (<em>np.ndarray</em>) – Temperature ladder for replicas (K)</p></li>
+<li><p><strong>initial_positions</strong> (<em>np.ndarray</em>) – Initial atomic positions</p></li>
+<li><p><strong>initial_velocities</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Initial velocities (will be generated if None)</p></li>
+<li><p><strong>exchange_frequency</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Steps between exchange attempts</p></li>
+<li><p><strong>output_directory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Directory for output files</p></li>
+<li><p><strong>n_workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of parallel workers</p></li>
+<li><p><strong>use_threading</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Use threading instead of multiprocessing</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.ReplicaExchangeMD.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps_per_cycle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">simulation_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/replica_exchange.html#ReplicaExchangeMD.run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.ReplicaExchangeMD.run_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Run the complete REMD simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation_function</strong> (<em>callable</em>) – Function to run MD simulation for each replica</p></li>
+<li><p><strong>total_steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Total number of MD steps</p></li>
+<li><p><strong>steps_per_cycle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – MD steps per REMD cycle</p></li>
+<li><p><strong>save_frequency</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Steps between saving trajectories</p></li>
+<li><p><strong>**simulation_kwargs</strong> – Additional arguments for simulation function</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p><strong>Example: Hamiltonian replica exchange</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReplicaExchangeMD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForceField</span>
+
+<span class="c1"># Create force field variants</span>
+<span class="n">ff_base</span> <span class="o">=</span> <span class="n">ForceField</span><span class="p">(</span><span class="s1">&#39;amber14sb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Scale non-bonded interactions</span>
+<span class="n">replicas</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">scale</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">]):</span>
+    <span class="n">ff</span> <span class="o">=</span> <span class="n">ff_base</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">ff</span><span class="o">.</span><span class="n">scale_nonbonded</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
+    <span class="n">replicas</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;replica_</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span> <span class="n">ff</span><span class="p">))</span>
+
+<span class="c1"># Setup replica exchange</span>
+<span class="n">rex</span> <span class="o">=</span> <span class="n">ReplicaExchangeMD</span><span class="p">(</span>
+    <span class="n">replicas</span><span class="o">=</span><span class="n">replicas</span><span class="p">,</span>
+    <span class="n">exchange_frequency</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">rex</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">5000000</span><span class="p">)</span>
+
+<span class="c1"># Analyze mixing</span>
+<span class="n">mixing_stats</span> <span class="o">=</span> <span class="n">rex</span><span class="o">.</span><span class="n">analyze_mixing</span><span class="p">()</span>
+<span class="n">rex</span><span class="o">.</span><span class="n">plot_replica_traces</span><span class="p">(</span><span class="s1">&#39;replica_traces.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="free-energy-methods">
+<h2>Free Energy Methods<a class="headerlink" href="#free-energy-methods" title="Link to this heading">¶</a></h2>
+<section id="thermodynamicintegration">
+<h3>ThermodynamicIntegration<a class="headerlink" href="#thermodynamicintegration" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Solvation free energy calculation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicIntegration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">WaterBox</span>
+
+<span class="c1"># Setup solvation TI</span>
+<span class="n">ti</span> <span class="o">=</span> <span class="n">ThermodynamicIntegration</span><span class="p">(</span>
+    <span class="n">lambda_values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span>
+    <span class="n">perturbation_type</span><span class="o">=</span><span class="s1">&#39;solvation&#39;</span><span class="p">,</span>
+    <span class="n">soft_core</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Define initial and final states</span>
+<span class="n">ti</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="s1">&#39;ligand_vacuum.pdb&#39;</span><span class="p">)</span>
+<span class="n">ti</span><span class="o">.</span><span class="n">set_final_state</span><span class="p">(</span><span class="s1">&#39;ligand_solvated.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add water box for final state</span>
+<span class="n">water_box</span> <span class="o">=</span> <span class="n">WaterBox</span><span class="p">(</span>
+    <span class="n">box_size</span><span class="o">=</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span>
+    <span class="n">model</span><span class="o">=</span><span class="s1">&#39;tip3p&#39;</span><span class="p">,</span>
+    <span class="n">ion_concentration</span><span class="o">=</span><span class="mf">0.15</span>
+<span class="p">)</span>
+
+<span class="c1"># Run TI windows</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">run_all_windows</span><span class="p">(</span>
+    <span class="n">steps_per_window</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span>
+    <span class="n">equilibration_steps</span><span class="o">=</span><span class="mi">100000</span>
+<span class="p">)</span>
+
+<span class="c1"># Calculate free energy</span>
+<span class="n">delta_g</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">integrate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solvation free energy: </span><span class="si">{</span><span class="n">delta_g</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">error</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kcal/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="freeenergyperturbation">
+<h3>FreeEnergyPerturbation<a class="headerlink" href="#freeenergyperturbation" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Mutation free energy</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreeEnergyPerturbation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mutation</span>
+
+<span class="c1"># Define mutation</span>
+<span class="n">mutation</span> <span class="o">=</span> <span class="n">Mutation</span><span class="p">(</span>
+    <span class="n">residue_id</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+    <span class="n">from_residue</span><span class="o">=</span><span class="s1">&#39;ALA&#39;</span><span class="p">,</span>
+    <span class="n">to_residue</span><span class="o">=</span><span class="s1">&#39;VAL&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup FEP calculation</span>
+<span class="n">fep</span> <span class="o">=</span> <span class="n">FreeEnergyPerturbation</span><span class="p">(</span>
+    <span class="n">mutation</span><span class="o">=</span><span class="n">mutation</span><span class="p">,</span>
+    <span class="n">lambda_schedule</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+    <span class="n">soft_core_parameters</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># Run forward and backward transformations</span>
+<span class="n">forward_results</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">run_forward</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">2000000</span><span class="p">)</span>
+<span class="n">backward_results</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">run_backward</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">2000000</span><span class="p">)</span>
+
+<span class="c1"># Calculate free energy with BAR</span>
+<span class="n">delta_g_bar</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">calculate_bar</span><span class="p">()</span>
+<span class="n">delta_g_ti</span> <span class="o">=</span> <span class="n">fep</span><span class="o">.</span><span class="n">calculate_ti</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ΔG (BAR): </span><span class="si">{</span><span class="n">delta_g_bar</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kcal/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ΔG (TI):  </span><span class="si">{</span><span class="n">delta_g_ti</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kcal/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-sampling-techniques">
+<h2>Advanced Sampling Techniques<a class="headerlink" href="#advanced-sampling-techniques" title="Link to this heading">¶</a></h2>
+<section id="acceleratedmd">
+<h3>AcceleratedMD<a class="headerlink" href="#acceleratedmd" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Dual-boost accelerated MD</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">AcceleratedMD</span>
+
+<span class="c1"># Setup dual-boost aMD</span>
+<span class="n">amd</span> <span class="o">=</span> <span class="n">AcceleratedMD</span><span class="p">(</span>
+    <span class="n">boost_type</span><span class="o">=</span><span class="s1">&#39;dual&#39;</span><span class="p">,</span>
+    <span class="n">dihedral_boost</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;threshold&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>  <span class="c1"># Automatically determine</span>
+        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.2</span>
+    <span class="p">},</span>
+    <span class="n">total_boost</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;threshold&#39;</span><span class="p">:</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="mf">0.2</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># Run accelerated simulation</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">amd</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">simulation</span><span class="p">)</span>
+
+<span class="c1"># Production run</span>
+<span class="n">amd</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">10000000</span><span class="p">,</span> <span class="n">output_frequency</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Reweight trajectories</span>
+<span class="n">unbiased_weights</span> <span class="o">=</span> <span class="n">amd</span><span class="o">.</span><span class="n">calculate_reweighting</span><span class="p">()</span>
+
+<span class="c1"># Analyze enhanced sampling</span>
+<span class="n">acceleration_factor</span> <span class="o">=</span> <span class="n">amd</span><span class="o">.</span><span class="n">get_acceleration_factor</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average acceleration: </span><span class="si">{</span><span class="n">acceleration_factor</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="steeredmd">
+<h3>SteeredMD<a class="headerlink" href="#steeredmd" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.sampling.SteeredMD">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.sampling.</span></span><span class="sig-name descname"><span class="pre">SteeredMD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/steered_md.html#SteeredMD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.SteeredMD" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main class for steered molecular dynamics simulations.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.SteeredMD.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/steered_md.html#SteeredMD.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.SteeredMD.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize steered MD simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation_system</strong> – The MD simulation system</p></li>
+<li><p><strong>parameters</strong> (<em>SMDParameters</em>) – SMD parameters</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.SteeredMD.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/steered_md.html#SteeredMD.run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.SteeredMD.run_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Run steered molecular dynamics simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n_steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em> | </em><em>None</em>) – Number of steps to run (uses parameter default if None)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing simulation results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.SteeredMD.get_results">
+<span class="sig-name descname"><span class="pre">get_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/steered_md.html#SteeredMD.get_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.SteeredMD.get_results" title="Link to this definition">¶</a></dt>
+<dd><p>Get simulation results.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.SteeredMD.calculate_jarzynski_free_energy">
+<span class="sig-name descname"><span class="pre">calculate_jarzynski_free_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/steered_md.html#SteeredMD.calculate_jarzynski_free_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.SteeredMD.calculate_jarzynski_free_energy" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate free energy difference using Jarzynski equality.</p>
+<p>ΔG = -kT ln⟨exp(-W/kT)⟩</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Temperature in Kelvin</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Free energy difference in kJ/mol</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.SteeredMD.plot_force_curves">
+<span class="sig-name descname"><span class="pre">plot_force_curves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/steered_md.html#SteeredMD.plot_force_curves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.SteeredMD.plot_force_curves" title="Link to this definition">¶</a></dt>
+<dd><p>Plot force curves and work profiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>save_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Path to save the plot</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Matplotlib figure object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.3)"><em>Figure</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.sampling.SteeredMD.save_results">
+<span class="sig-name descname"><span class="pre">save_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/sampling/steered_md.html#SteeredMD.save_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.sampling.SteeredMD.save_results" title="Link to this definition">¶</a></dt>
+<dd><p>Save simulation results to files.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p><strong>Example: Protein unfolding simulation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">SteeredMD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReactionCoordinate</span>
+
+<span class="c1"># Define pulling coordinate</span>
+<span class="n">pulling_coord</span> <span class="o">=</span> <span class="n">ReactionCoordinate</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span>
+    <span class="n">atom1</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">),</span>    <span class="c1"># N-terminus</span>
+    <span class="n">atom2</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">)</span>    <span class="c1"># C-terminus</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup steered MD</span>
+<span class="n">smd</span> <span class="o">=</span> <span class="n">SteeredMD</span><span class="p">(</span>
+    <span class="n">coordinate</span><span class="o">=</span><span class="n">pulling_coord</span><span class="p">,</span>
+    <span class="n">force_constant</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>  <span class="c1"># kcal/mol/Å²</span>
+    <span class="n">pulling_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>    <span class="c1"># Å/ps</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;increase&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Run pulling simulation</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="s1">&#39;folded_protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">smd</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">5000000</span><span class="p">)</span>
+
+<span class="c1"># Analyze work and force</span>
+<span class="n">work_profile</span> <span class="o">=</span> <span class="n">smd</span><span class="o">.</span><span class="n">get_work_profile</span><span class="p">()</span>
+<span class="n">force_profile</span> <span class="o">=</span> <span class="n">smd</span><span class="o">.</span><span class="n">get_force_profile</span><span class="p">()</span>
+
+<span class="c1"># Plot results</span>
+<span class="n">smd</span><span class="o">.</span><span class="n">plot_pulling_profile</span><span class="p">(</span><span class="s1">&#39;pulling_profile.png&#39;</span><span class="p">)</span>
+
+<span class="c1"># Estimate unfolding force</span>
+<span class="n">max_force</span> <span class="o">=</span> <span class="n">smd</span><span class="o">.</span><span class="n">get_maximum_force</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Maximum unfolding force: </span><span class="si">{</span><span class="n">max_force</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> pN&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="adaptivesampling">
+<h3>AdaptiveSampling<a class="headerlink" href="#adaptivesampling" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Adaptive sampling workflow</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaptiveSampling</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConformationalClustering</span>
+
+<span class="c1"># Setup adaptive sampling</span>
+<span class="n">adaptive</span> <span class="o">=</span> <span class="n">AdaptiveSampling</span><span class="p">(</span>
+    <span class="n">initial_structure</span><span class="o">=</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">,</span>
+    <span class="n">simulation_length</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span>  <span class="c1"># steps per round</span>
+    <span class="n">n_rounds</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">selection_method</span><span class="o">=</span><span class="s1">&#39;least_sampled&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Define conformational space clustering</span>
+<span class="n">clustering</span> <span class="o">=</span> <span class="n">ConformationalClustering</span><span class="p">(</span>
+    <span class="n">method</span><span class="o">=</span><span class="s1">&#39;kmeans&#39;</span><span class="p">,</span>
+    <span class="n">n_clusters</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;backbone_dihedrals&#39;</span><span class="p">,</span> <span class="s1">&#39;distances&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">adaptive</span><span class="o">.</span><span class="n">set_clustering</span><span class="p">(</span><span class="n">clustering</span><span class="p">)</span>
+
+<span class="c1"># Run adaptive sampling rounds</span>
+<span class="k">for</span> <span class="n">round_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">adaptive</span><span class="o">.</span><span class="n">n_rounds</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Round </span><span class="si">{</span><span class="n">round_num</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Run simulations from selected conformations</span>
+    <span class="n">adaptive</span><span class="o">.</span><span class="n">run_round</span><span class="p">()</span>
+
+    <span class="c1"># Update clustering and selection</span>
+    <span class="n">adaptive</span><span class="o">.</span><span class="n">update_sampling_map</span><span class="p">()</span>
+
+    <span class="c1"># Select new starting conformations</span>
+    <span class="n">selected_frames</span> <span class="o">=</span> <span class="n">adaptive</span><span class="o">.</span><span class="n">select_next_round</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Selected </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">selected_frames</span><span class="p">)</span><span class="si">}</span><span class="s2"> new starting points&quot;</span><span class="p">)</span>
+
+<span class="c1"># Analyze final conformational landscape</span>
+<span class="n">final_clustering</span> <span class="o">=</span> <span class="n">adaptive</span><span class="o">.</span><span class="n">get_final_clustering</span><span class="p">()</span>
+<span class="n">adaptive</span><span class="o">.</span><span class="n">plot_sampling_map</span><span class="p">(</span><span class="s1">&#39;sampling_map.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="utilities-and-analysis">
+<h2>Utilities and Analysis<a class="headerlink" href="#utilities-and-analysis" title="Link to this heading">¶</a></h2>
+<section id="samplinganalyzer">
+<h3>SamplingAnalyzer<a class="headerlink" href="#samplinganalyzer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Comprehensive sampling analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">SamplingAnalyzer</span>
+
+<span class="c1"># Load trajectory from sampling simulation</span>
+<span class="n">analyzer</span> <span class="o">=</span> <span class="n">SamplingAnalyzer</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Analyze convergence</span>
+<span class="n">convergence</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">analyze_convergence</span><span class="p">(</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rmsd&#39;</span><span class="p">,</span> <span class="s1">&#39;radius_of_gyration&#39;</span><span class="p">,</span> <span class="s1">&#39;energy&#39;</span><span class="p">],</span>
+    <span class="n">block_size</span><span class="o">=</span><span class="mi">10000</span>
+<span class="p">)</span>
+
+<span class="c1"># Calculate sampling efficiency</span>
+<span class="n">efficiency</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">calculate_efficiency</span><span class="p">(</span>
+    <span class="n">reference_trajectory</span><span class="o">=</span><span class="s1">&#39;reference.dcd&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Assess conformational coverage</span>
+<span class="n">coverage</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">assess_coverage</span><span class="p">(</span>
+    <span class="n">reference_ensemble</span><span class="o">=</span><span class="s1">&#39;reference_ensemble.pdb&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Generate comprehensive report</span>
+<span class="n">analyzer</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span><span class="s1">&#39;sampling_report.html&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="constants-and-configuration">
+<h2>Constants and Configuration<a class="headerlink" href="#constants-and-configuration" title="Link to this heading">¶</a></h2>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="core.html"><span class="doc">Core Simulation Engine</span></a> - Core simulation engine</p></li>
+<li><p><a class="reference internal" href="analysis.html"><span class="doc">Analysis Tools</span></a> - Analysis tools for sampling results</p></li>
+<li><p><a class="reference internal" href="../user_guide/tutorials.html"><span class="doc">Tutorials</span></a> - Step-by-step sampling tutorials</p></li>
+<li><p><a class="reference internal" href="../advanced/performance.html"><span class="doc">Performance Optimization</span></a> - Performance optimization for sampling</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Frenkel, D. &amp; Smit, B. Understanding Molecular Simulation (Academic Press, 2001)</p></li>
+<li><p>Chipot, C. &amp; Pohorille, A. Free Energy Calculations (Springer, 2007)</p></li>
+<li><p>Laio, A. &amp; Parrinello, M. Escaping free-energy minima. PNAS 99, 12562-12566 (2002)</p></li>
+<li><p>Sugita, Y. &amp; Okamoto, Y. Replica-exchange molecular dynamics method. Chem. Phys. Lett. 314, 141-151 (1999)</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Sampling Methods API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monte-carlo-methods">Monte Carlo Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#metropolismc">MetropolisMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#paralleltempering">ParallelTempering</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#enhanced-sampling">Enhanced Sampling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#umbrellasampling">UmbrellaSampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#metadynamics">Metadynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#replicaexchangemd">ReplicaExchangeMD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#free-energy-methods">Free Energy Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#thermodynamicintegration">ThermodynamicIntegration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#freeenergyperturbation">FreeEnergyPerturbation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-sampling-techniques">Advanced Sampling Techniques</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#acceleratedmd">AcceleratedMD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#steeredmd">SteeredMD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adaptivesampling">AdaptiveSampling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utilities-and-analysis">Utilities and Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#samplinganalyzer">SamplingAnalyzer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#constants-and-configuration">Constants and Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/scientific_background.html">Scientific Background and Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="analysis.html" title="previous chapter">Analysis Tools</a></li>
+      <li>Next: <a href="visualization.html" title="next chapter">Visualization Tools API Reference</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/api/sampling.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

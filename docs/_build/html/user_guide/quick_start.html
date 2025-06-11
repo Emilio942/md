@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Quick Start &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h1>
+<p>Get up and running with ProteinMD in just a few minutes. This guide will walk you through your first molecular dynamics simulation.</p>
+<section id="your-first-simulation-in-5-minutes">
+<h2>Your First Simulation in 5 Minutes<a class="headerlink" href="#your-first-simulation-in-5-minutes" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p><strong>Install ProteinMD</strong> (if not already done):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Download a sample protein</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download ubiquitin (PDB: 1UBQ) as an example</span>
+<span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">files</span><span class="o">.</span><span class="n">rcsb</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">download</span><span class="o">/</span><span class="mi">1</span><span class="n">UBQ</span><span class="o">.</span><span class="n">pdb</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Run a basic simulation</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+
+<span class="c1"># Create and run simulation</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s1">&#39;1UBQ.pdb&#39;</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>  <span class="c1"># 20 ps simulation</span>
+
+<span class="c1"># Analyze results</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">plot_energy</span><span class="p">(</span><span class="s1">&#39;energy.png&#39;</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">save_trajectory</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>That’s it! You’ve just run your first molecular dynamics simulation.</p>
+</section>
+<section id="basic-example-step-by-step">
+<h2>Basic Example - Step by Step<a class="headerlink" href="#basic-example-step-by-step" title="Link to this heading">¶</a></h2>
+<p>Let’s break down a complete simulation workflow:</p>
+<section id="loading-a-protein-structure">
+<h3>Loading a Protein Structure<a class="headerlink" href="#loading-a-protein-structure" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDBParser</span><span class="p">,</span> <span class="n">Protein</span>
+
+<span class="c1"># Parse PDB file</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Basic structure information</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Protein has </span><span class="si">{</span><span class="n">protein</span><span class="o">.</span><span class="n">n_atoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Protein has </span><span class="si">{</span><span class="n">protein</span><span class="o">.</span><span class="n">n_residues</span><span class="si">}</span><span class="s2"> residues&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chains: </span><span class="si">{</span><span class="n">protein</span><span class="o">.</span><span class="n">chain_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="setting-up-the-force-field">
+<h3>Setting Up the Force Field<a class="headerlink" href="#setting-up-the-force-field" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+
+<span class="c1"># Load AMBER ff14SB force field</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+
+<span class="c1"># Apply to protein</span>
+<span class="n">forcefield</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Verify parameters are assigned</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Force field applied: </span><span class="si">{</span><span class="n">forcefield</span><span class="o">.</span><span class="n">is_complete</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="adding-solvent-environment">
+<h3>Adding Solvent Environment<a class="headerlink" href="#adding-solvent-environment" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">WaterBox</span><span class="p">,</span> <span class="n">TIP3P</span>
+
+<span class="c1"># Create water box</span>
+<span class="n">water_model</span> <span class="o">=</span> <span class="n">TIP3P</span><span class="p">()</span>
+<span class="n">water_box</span> <span class="o">=</span> <span class="n">WaterBox</span><span class="p">(</span>
+    <span class="n">protein</span><span class="o">=</span><span class="n">protein</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">water_model</span><span class="p">,</span>
+    <span class="n">padding</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># 10 Å padding</span>
+    <span class="n">ion_concentration</span><span class="o">=</span><span class="mf">0.15</span>  <span class="c1"># 150 mM NaCl</span>
+<span class="p">)</span>
+
+<span class="c1"># Solvate the protein</span>
+<span class="n">solvated_system</span> <span class="o">=</span> <span class="n">water_box</span><span class="o">.</span><span class="n">solvate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solvated system has </span><span class="si">{</span><span class="n">solvated_system</span><span class="o">.</span><span class="n">n_atoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="running-the-simulation">
+<h3>Running the Simulation<a class="headerlink" href="#running-the-simulation" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+
+<span class="c1"># Create simulation</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">solvated_system</span><span class="p">,</span>
+    <span class="n">forcefield</span><span class="o">=</span><span class="n">forcefield</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>  <span class="c1"># 300 K</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>       <span class="c1"># 1 atm</span>
+    <span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span>      <span class="c1"># 2 fs</span>
+<span class="p">)</span>
+
+<span class="c1"># Energy minimization</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Equilibration (NVT)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">equilibrate_nvt</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span>    <span class="c1"># 100 ps</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Equilibration (NPT)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">equilibrate_npt</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span>    <span class="c1"># 100 ps</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Production run</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">500000</span><span class="p">,</span>   <span class="c1"># 1 ns</span>
+    <span class="n">output_frequency</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="n">save_trajectory</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="analyzing-results">
+<h3>Analyzing Results<a class="headerlink" href="#analyzing-results" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">RMSD</span><span class="p">,</span> <span class="n">RMSF</span><span class="p">,</span> <span class="n">SecondaryStructure</span>
+
+<span class="c1"># Load trajectory</span>
+<span class="n">trajectory</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_trajectory</span><span class="p">()</span>
+
+<span class="c1"># Calculate RMSD</span>
+<span class="n">rmsd_analyzer</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">(</span><span class="n">reference_frame</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">rmsd_data</span> <span class="o">=</span> <span class="n">rmsd_analyzer</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+
+<span class="c1"># Calculate RMSF</span>
+<span class="n">rmsf_analyzer</span> <span class="o">=</span> <span class="n">RMSF</span><span class="p">()</span>
+<span class="n">rmsf_data</span> <span class="o">=</span> <span class="n">rmsf_analyzer</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+
+<span class="c1"># Secondary structure analysis</span>
+<span class="n">ss_analyzer</span> <span class="o">=</span> <span class="n">SecondaryStructure</span><span class="p">()</span>
+<span class="n">ss_data</span> <span class="o">=</span> <span class="n">ss_analyzer</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+
+<span class="c1"># Plot results</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="c1"># RMSD plot</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rmsd_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">rmsd_data</span><span class="p">[</span><span class="s1">&#39;rmsd&#39;</span><span class="p">])</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (ps)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;RMSD (Å)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Backbone RMSD&#39;</span><span class="p">)</span>
+
+<span class="c1"># RMSF plot</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rmsf_data</span><span class="p">[</span><span class="s1">&#39;residue&#39;</span><span class="p">],</span> <span class="n">rmsf_data</span><span class="p">[</span><span class="s1">&#39;rmsf&#39;</span><span class="p">])</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Residue&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;RMSF (Å)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Residue Flexibility&#39;</span><span class="p">)</span>
+
+<span class="c1"># Energy plot</span>
+<span class="n">energy_data</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_energy_data</span><span class="p">()</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">energy_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">energy_data</span><span class="p">[</span><span class="s1">&#39;potential&#39;</span><span class="p">])</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (ps)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Energy (kcal/mol)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Potential Energy&#39;</span><span class="p">)</span>
+
+<span class="c1"># Secondary structure plot</span>
+<span class="n">ss_analyzer</span><span class="o">.</span><span class="n">plot_timeline</span><span class="p">(</span><span class="n">ss_data</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Secondary Structure&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;analysis_summary.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="command-line-interface">
+<h2>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h2>
+<p>ProteinMD also provides a powerful command-line interface:</p>
+<section id="basic-cli-usage">
+<h3>Basic CLI Usage<a class="headerlink" href="#basic-cli-usage" title="Link to this heading">¶</a></h3>
+<p>Run a simulation from the command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic simulation</span>
+<span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">steps</span> <span class="mi">100000</span> <span class="o">--</span><span class="n">output</span> <span class="n">results</span><span class="o">/</span>
+
+<span class="c1"># With custom parameters</span>
+<span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">forcefield</span> <span class="n">amber14sb</span> \
+    <span class="o">--</span><span class="n">water</span> <span class="n">tip3p</span> \
+    <span class="o">--</span><span class="n">temperature</span> <span class="mi">310</span> \
+    <span class="o">--</span><span class="n">steps</span> <span class="mi">1000000</span> \
+    <span class="o">--</span><span class="n">output</span> <span class="n">high_temp_sim</span><span class="o">/</span>
+</pre></div>
+</div>
+</section>
+<section id="analysis-from-cli">
+<h3>Analysis from CLI<a class="headerlink" href="#analysis-from-cli" title="Link to this heading">¶</a></h3>
+<p>Analyze existing trajectories:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calculate RMSD</span>
+<span class="n">proteinmd</span> <span class="n">analyze</span> <span class="n">rmsd</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">topology</span><span class="o">.</span><span class="n">pdb</span>
+
+<span class="c1"># Multiple analyses</span>
+<span class="n">proteinmd</span> <span class="n">analyze</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">topology</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">rmsd</span> <span class="o">--</span><span class="n">rmsf</span> <span class="o">--</span><span class="n">secondary</span><span class="o">-</span><span class="n">structure</span> \
+    <span class="o">--</span><span class="n">output</span> <span class="n">analysis_results</span><span class="o">/</span>
+</pre></div>
+</div>
+</section>
+<section id="batch-processing">
+<h3>Batch Processing<a class="headerlink" href="#batch-processing" title="Link to this heading">¶</a></h3>
+<p>Process multiple structures:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simulate all PDB files in directory</span>
+<span class="n">proteinmd</span> <span class="n">batch</span> <span class="n">simulate</span> <span class="n">input_pdbs</span><span class="o">/</span> <span class="o">--</span><span class="n">output</span> <span class="n">batch_results</span><span class="o">/</span>
+
+<span class="c1"># Custom workflow</span>
+<span class="n">proteinmd</span> <span class="n">workflow</span> <span class="n">protein_folding</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="nb">input</span> <span class="n">structures</span><span class="o">/</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="interactive-tutorials">
+<h2>Interactive Tutorials<a class="headerlink" href="#interactive-tutorials" title="Link to this heading">¶</a></h2>
+<section id="jupyter-notebook-examples">
+<h3>Jupyter Notebook Examples<a class="headerlink" href="#jupyter-notebook-examples" title="Link to this heading">¶</a></h3>
+<p>Start with interactive examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download tutorial notebooks</span>
+<span class="n">proteinmd</span> <span class="n">examples</span> <span class="o">--</span><span class="n">download</span>
+
+<span class="c1"># Start Jupyter</span>
+<span class="n">jupyter</span> <span class="n">notebook</span> <span class="n">proteinmd_tutorials</span><span class="o">/</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><strong>Tutorial 1: Basic MD Simulation</strong></dt><dd><ul class="simple">
+<li><p>Load protein structure</p></li>
+<li><p>Setup force field and solvent</p></li>
+<li><p>Run MD simulation</p></li>
+<li><p>Basic analysis</p></li>
+</ul>
+</dd>
+<dt><strong>Tutorial 2: Enhanced Sampling</strong></dt><dd><ul class="simple">
+<li><p>Umbrella sampling</p></li>
+<li><p>Replica exchange</p></li>
+<li><p>Free energy calculations</p></li>
+</ul>
+</dd>
+<dt><strong>Tutorial 3: Protein Folding Study</strong></dt><dd><ul class="simple">
+<li><p>Temperature replica exchange</p></li>
+<li><p>Folding pathway analysis</p></li>
+<li><p>Free energy landscapes</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="common-workflows">
+<h2>Common Workflows<a class="headerlink" href="#common-workflows" title="Link to this heading">¶</a></h2>
+<section id="protein-stability-study">
+<h3>Protein Stability Study<a class="headerlink" href="#protein-stability-study" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># Load wild-type and mutant proteins</span>
+<span class="n">wt_protein</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;wildtype.pdb&#39;</span><span class="p">)</span>
+<span class="n">mut_protein</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;mutant.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Setup simulations</span>
+<span class="n">wt_sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="o">.</span><span class="n">from_structure</span><span class="p">(</span><span class="n">wt_protein</span><span class="p">)</span>
+<span class="n">mut_sim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="o">.</span><span class="n">from_structure</span><span class="p">(</span><span class="n">mut_protein</span><span class="p">)</span>
+
+<span class="c1"># Run parallel simulations</span>
+<span class="n">wt_sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)</span>  <span class="c1"># 2 ns</span>
+<span class="n">mut_sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)</span>
+
+<span class="c1"># Compare stability</span>
+<span class="n">wt_rmsd</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">wt_sim</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span>
+<span class="n">mut_rmsd</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">mut_sim</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span>
+
+<span class="c1"># Plot comparison</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wt_rmsd</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">wt_rmsd</span><span class="p">[</span><span class="s1">&#39;rmsd&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Wild-type&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mut_rmsd</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">mut_rmsd</span><span class="p">[</span><span class="s1">&#39;rmsd&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mutant&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time (ps)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;RMSD (Å)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Protein Stability Comparison&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;stability_comparison.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ligand-binding-study">
+<h3>Ligand Binding Study<a class="headerlink" href="#ligand-binding-study" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Complex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">BindingAnalysis</span>
+
+<span class="c1"># Load protein-ligand complex</span>
+<span class="n">complex_structure</span> <span class="o">=</span> <span class="n">Complex</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s1">&#39;protein_ligand.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Setup simulation with flexible ligand</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">complex_structure</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_flexible_residues</span><span class="p">([</span><span class="s1">&#39;ligand&#39;</span><span class="p">])</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">2000000</span><span class="p">)</span>  <span class="c1"># 4 ns</span>
+
+<span class="c1"># Analyze binding</span>
+<span class="n">binding_analyzer</span> <span class="o">=</span> <span class="n">BindingAnalysis</span><span class="p">(</span>
+    <span class="n">protein_selection</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span><span class="p">,</span>
+    <span class="n">ligand_selection</span><span class="o">=</span><span class="s1">&#39;resname LIG&#39;</span>
+<span class="p">)</span>
+
+<span class="n">binding_data</span> <span class="o">=</span> <span class="n">binding_analyzer</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span>
+
+<span class="c1"># Plot binding pose stability</span>
+<span class="n">binding_analyzer</span><span class="o">.</span><span class="n">plot_rmsd</span><span class="p">(</span><span class="s1">&#39;ligand_rmsd.png&#39;</span><span class="p">)</span>
+<span class="n">binding_analyzer</span><span class="o">.</span><span class="n">plot_contacts</span><span class="p">(</span><span class="s1">&#39;protein_ligand_contacts.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="membrane-protein-simulation">
+<h3>Membrane Protein Simulation<a class="headerlink" href="#membrane-protein-simulation" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">LipidBilayer</span><span class="p">,</span> <span class="n">POPC</span>
+
+<span class="c1"># Load membrane protein</span>
+<span class="n">membrane_protein</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;membrane_protein.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Setup lipid bilayer</span>
+<span class="n">lipid_model</span> <span class="o">=</span> <span class="n">POPC</span><span class="p">()</span>
+<span class="n">bilayer</span> <span class="o">=</span> <span class="n">LipidBilayer</span><span class="p">(</span>
+    <span class="n">protein</span><span class="o">=</span><span class="n">membrane_protein</span><span class="p">,</span>
+    <span class="n">lipid_type</span><span class="o">=</span><span class="n">lipid_model</span><span class="p">,</span>
+    <span class="n">lipid_ratio</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;POPC&#39;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span> <span class="s1">&#39;POPE&#39;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">},</span>
+    <span class="n">water_thickness</span><span class="o">=</span><span class="mf">2.0</span>  <span class="c1"># 20 Å water layer</span>
+<span class="p">)</span>
+
+<span class="c1"># Insert protein into membrane</span>
+<span class="n">membrane_system</span> <span class="o">=</span> <span class="n">bilayer</span><span class="o">.</span><span class="n">insert_protein</span><span class="p">()</span>
+
+<span class="c1"># Run membrane simulation</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">membrane_system</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_membrane_constraints</span><span class="p">()</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">5000000</span><span class="p">)</span>  <span class="c1"># 10 ns</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-tips">
+<h2>Performance Tips<a class="headerlink" href="#performance-tips" title="Link to this heading">¶</a></h2>
+<section id="gpu-acceleration">
+<h3>GPU Acceleration<a class="headerlink" href="#gpu-acceleration" title="Link to this heading">¶</a></h3>
+<p>Enable GPU for faster simulations:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check GPU availability</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_gpu_support</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU available: </span><span class="si">{</span><span class="n">check_gpu_support</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use GPU platform</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s1">&#39;CUDA&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="parallel-simulations">
+<h3>Parallel Simulations<a class="headerlink" href="#parallel-simulations" title="Link to this heading">¶</a></h3>
+<p>Run multiple simulations in parallel:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParallelRunner</span>
+
+<span class="c1"># Setup multiple simulations</span>
+<span class="n">simulations</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">Simulation</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;replica_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">.pdb&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1"># Run in parallel</span>
+<span class="n">runner</span> <span class="o">=</span> <span class="n">ParallelRunner</span><span class="p">(</span><span class="n">n_processes</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run_simulations</span><span class="p">(</span><span class="n">simulations</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-optimization">
+<h3>Memory Optimization<a class="headerlink" href="#memory-optimization" title="Link to this heading">¶</a></h3>
+<p>For large systems:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use memory-efficient options</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">large_system</span><span class="p">,</span>
+    <span class="n">trajectory_format</span><span class="o">=</span><span class="s1">&#39;xtc&#39;</span><span class="p">,</span>  <span class="c1"># Compressed format</span>
+    <span class="n">save_frequency</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>     <span class="c1"># Save less frequently</span>
+    <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;single&#39;</span>        <span class="c1"># Use single precision</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<p>Now that you’ve run your first simulation, explore more advanced features:</p>
+<p><strong>Learning Path:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Tutorials</strong> (<a class="reference internal" href="tutorials.html"><span class="doc">Tutorials</span></a>) - Detailed step-by-step guides</p></li>
+<li><p><strong>CLI Reference</strong> (<a class="reference internal" href="cli_reference.html"><span class="doc">CLI Reference</span></a>) - Master the command-line tools</p></li>
+<li><p><strong>API Documentation</strong> (<a class="reference internal" href="../api/core.html"><span class="doc">Core Simulation Engine</span></a>) - Explore all functionality</p></li>
+<li><p><strong>Examples</strong> (<a class="reference internal" href="examples.html"><span class="doc">Examples</span></a>) - Real-world simulation examples</p></li>
+</ol>
+<p><strong>Advanced Topics:</strong></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../advanced/performance.html"><span class="doc">Performance Optimization</span></a> - Optimization for large systems</p></li>
+<li><p><a class="reference internal" href="../advanced/extending.html"><span class="doc">Extending ProteinMD</span></a> - Add custom force fields</p></li>
+<li><p><a class="reference internal" href="../api/sampling.html"><span class="doc">Sampling Methods API Reference</span></a> - Enhanced sampling methods</p></li>
+<li><p><a class="reference internal" href="../api/visualization.html"><span class="doc">Visualization Tools API Reference</span></a> - Advanced visualization</p></li>
+</ul>
+<p><strong>Community:</strong></p>
+<ul class="simple">
+<li><p>Join the discussion forum for questions</p></li>
+<li><p>Follow tutorials on YouTube</p></li>
+<li><p>Check out example simulations on GitHub</p></li>
+</ul>
+</section>
+<section id="common-issues">
+<h2>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>Simulation Crashes</strong></dt><dd><ul class="simple">
+<li><p>Check force field assignment is complete</p></li>
+<li><p>Verify structure has no clashes</p></li>
+<li><p>Use energy minimization before MD</p></li>
+</ul>
+</dd>
+<dt><strong>Poor Performance</strong></dt><dd><ul class="simple">
+<li><p>Enable GPU acceleration if available</p></li>
+<li><p>Reduce output frequency for large systems</p></li>
+<li><p>Use appropriate precision settings</p></li>
+</ul>
+</dd>
+<dt><strong>Analysis Errors</strong></dt><dd><ul class="simple">
+<li><p>Ensure trajectory and topology match</p></li>
+<li><p>Check frame numbers are valid</p></li>
+<li><p>Verify selection strings are correct</p></li>
+</ul>
+</dd>
+</dl>
+<p>Need help? See <a class="reference internal" href="../advanced/troubleshooting.html"><span class="doc">Troubleshooting Guide</span></a> for detailed solutions.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#your-first-simulation-in-5-minutes">Your First Simulation in 5 Minutes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-example-step-by-step">Basic Example - Step by Step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-interface">Command Line Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interactive-tutorials">Interactive Tutorials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-workflows">Common Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-tips">Performance Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-issues">Common Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="installation.html" title="previous chapter">Installation</a></li>
+      <li>Next: <a href="tutorials.html" title="next chapter">Tutorials</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/user_guide/quick_start.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

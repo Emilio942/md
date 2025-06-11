@@ -1,0 +1,30 @@
+simulation:
+  timestep: 0.002
+  temperature: 300.0
+  n_steps: 50000
+  output_frequency: 100
+  trajectory_output: "trajectory.npz"
+
+forcefield:
+  type: amber_ff14sb
+  water_model: tip3p
+  cutoff: 1.2
+
+environment:
+  solvent: explicit
+  box_padding: 1.0
+  periodic_boundary: true
+
+analysis:
+  rmsd: true
+  ramachandran: true
+  radius_of_gyration: true
+  secondary_structure: true
+  hydrogen_bonds: true
+  output_dir: "analysis_results"
+
+visualization:
+  enabled: true
+  realtime: false
+  animation_output: "animation.gif"
+  plots_output: "plots"

@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Contributing to ProteinMD &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Testing Framework" href="testing.html" />
+    <link rel="prev" title="Software Architecture" href="architecture.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="contributing-to-proteinmd">
+<h1>Contributing to ProteinMD<a class="headerlink" href="#contributing-to-proteinmd" title="Link to this heading">¶</a></h1>
+<p>Thank you for your interest in contributing to ProteinMD! This guide will help you get started.</p>
+<nav class="contents local" id="contributing-topics">
+<p class="topic-title">Contributing Topics</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#getting-started" id="id1">Getting Started</a></p>
+<ul>
+<li><p><a class="reference internal" href="#development-environment-setup" id="id2">Development Environment Setup</a></p></li>
+<li><p><a class="reference internal" href="#development-workflow" id="id3">Development Workflow</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#code-guidelines" id="id4">Code Guidelines</a></p>
+<ul>
+<li><p><a class="reference internal" href="#coding-standards" id="id5">Coding Standards</a></p></li>
+<li><p><a class="reference internal" href="#documentation-standards" id="id6">Documentation Standards</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#testing-guidelines" id="id7">Testing Guidelines</a></p>
+<ul>
+<li><p><a class="reference internal" href="#test-structure" id="id8">Test Structure</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#pull-request-process" id="id9">Pull Request Process</a></p>
+<ul>
+<li><p><a class="reference internal" href="#before-submitting" id="id10">Before Submitting</a></p></li>
+<li><p><a class="reference internal" href="#pull-request-template" id="id11">Pull Request Template</a></p></li>
+<li><p><a class="reference internal" href="#review-process" id="id12">Review Process</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#types-of-contributions" id="id13">Types of Contributions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#bug-reports" id="id14">Bug Reports</a></p></li>
+<li><p><a class="reference internal" href="#feature-requests" id="id15">Feature Requests</a></p></li>
+<li><p><a class="reference internal" href="#documentation-improvements" id="id16">Documentation Improvements</a></p></li>
+<li><p><a class="reference internal" href="#new-features" id="id17">New Features</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#community-guidelines" id="id18">Community Guidelines</a></p>
+<ul>
+<li><p><a class="reference internal" href="#code-of-conduct" id="id19">Code of Conduct</a></p></li>
+<li><p><a class="reference internal" href="#communication-channels" id="id20">Communication Channels</a></p></li>
+<li><p><a class="reference internal" href="#recognition" id="id21">Recognition</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#getting-help" id="id22">Getting Help</a></p></li>
+<li><p><a class="reference internal" href="#see-also" id="id23">See Also</a></p></li>
+</ul>
+</nav>
+<section id="getting-started">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Getting Started</a><a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
+<section id="development-environment-setup">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Development Environment Setup</a><a class="headerlink" href="#development-environment-setup" title="Link to this heading">¶</a></h3>
+<p><strong>1. Fork and Clone Repository</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fork repository on GitHub</span>
+<span class="c1"># Then clone your fork</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/yourusername/proteinmd.git
+<span class="nb">cd</span><span class="w"> </span>proteinmd
+
+<span class="c1"># Add upstream remote</span>
+git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>https://github.com/proteinmd/proteinmd.git
+</pre></div>
+</div>
+<p><strong>2. Create Development Environment</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create conda environment</span>
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>proteinmd-dev<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
+conda<span class="w"> </span>activate<span class="w"> </span>proteinmd-dev
+
+<span class="c1"># Install dependencies</span>
+conda<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib<span class="w"> </span>pytest
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>openmm<span class="w"> </span>mdanalysis
+
+<span class="c1"># Install in development mode</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+
+<span class="c1"># Install development dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
+</pre></div>
+</div>
+<p><strong>3. Verify Installation</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run tests to verify installation</span>
+pytest<span class="w"> </span>tests/<span class="w"> </span>-v
+
+<span class="c1"># Check import</span>
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import proteinmd; print(proteinmd.__version__)&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="development-workflow">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Development Workflow</a><a class="headerlink" href="#development-workflow" title="Link to this heading">¶</a></h3>
+<p><strong>Branch Strategy</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/new-analysis-method
+
+<span class="c1"># Make changes and commit</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add new analysis method for protein flexibility&quot;</span>
+
+<span class="c1"># Push to your fork</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/new-analysis-method
+
+<span class="c1"># Create pull request on GitHub</span>
+</pre></div>
+</div>
+<p><strong>Keeping Fork Updated</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fetch upstream changes</span>
+git<span class="w"> </span>fetch<span class="w"> </span>upstream
+
+<span class="c1"># Update main branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>merge<span class="w"> </span>upstream/main
+
+<span class="c1"># Update your feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>feature/new-analysis-method
+git<span class="w"> </span>rebase<span class="w"> </span>main
+</pre></div>
+</div>
+</section>
+</section>
+<section id="code-guidelines">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Code Guidelines</a><a class="headerlink" href="#code-guidelines" title="Link to this heading">¶</a></h2>
+<section id="coding-standards">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Coding Standards</a><a class="headerlink" href="#coding-standards" title="Link to this heading">¶</a></h3>
+<p><strong>Python Style Guide</strong></p>
+<p>We follow PEP 8 with some modifications:</p>
+<ul class="simple">
+<li><p>Line length: 88 characters (Black formatter default)</p></li>
+<li><p>Use type hints for all public functions</p></li>
+<li><p>Docstrings in NumPy format</p></li>
+<li><p>Import organization: standard library, third-party, local imports</p></li>
+</ul>
+<p><strong>Example Code Style</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseClass</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AnalysisMethod</span><span class="p">(</span><span class="n">BaseClass</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for analysis methods.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the analysis method.</span>
+<span class="sd">    parameters : dict, optional</span>
+<span class="sd">        Analysis parameters.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    results : dict</span>
+<span class="sd">        Analysis results storage.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; method = AnalysisMethod(&quot;rmsd&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; results = method.calculate(trajectory)</span>
+<span class="sd">    &gt;&gt;&gt; print(results[&quot;mean&quot;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">trajectory</span><span class="p">:</span> <span class="s2">&quot;Trajectory&quot;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate analysis for trajectory.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        trajectory : Trajectory</span>
+<span class="sd">            Input trajectory for analysis.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Additional parameters.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Analysis results.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If trajectory is empty.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trajectory cannot be empty&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Implementation here</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_perform_calculation</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_perform_calculation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">trajectory</span><span class="p">:</span> <span class="s2">&quot;Trajectory&quot;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform the actual calculation (to be implemented by subclasses).&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Subclasses must implement this method&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Formatting Tools</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Format code with Black</span>
+black<span class="w"> </span>proteinmd/<span class="w"> </span>tests/
+
+<span class="c1"># Sort imports with isort</span>
+isort<span class="w"> </span>proteinmd/<span class="w"> </span>tests/
+
+<span class="c1"># Check with flake8</span>
+flake8<span class="w"> </span>proteinmd/<span class="w"> </span>tests/
+
+<span class="c1"># Type checking with mypy</span>
+mypy<span class="w"> </span>proteinmd/
+</pre></div>
+</div>
+</section>
+<section id="documentation-standards">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Documentation Standards</a><a class="headerlink" href="#documentation-standards" title="Link to this heading">¶</a></h3>
+<p><strong>Docstring Format</strong></p>
+<p>Use NumPy-style docstrings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">calculate_rmsd</span><span class="p">(</span>
+    <span class="n">coords1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">coords2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">align</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate root mean square deviation between two coordinate sets.</span>
+
+<span class="sd">    This function computes the RMSD between two sets of coordinates,</span>
+<span class="sd">    optionally after optimal alignment.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coords1 : np.ndarray, shape (n_atoms, 3)</span>
+<span class="sd">        First coordinate set.</span>
+<span class="sd">    coords2 : np.ndarray, shape (n_atoms, 3)</span>
+<span class="sd">        Second coordinate set.</span>
+<span class="sd">    align : bool, default=True</span>
+<span class="sd">        Whether to optimally align structures before RMSD calculation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        RMSD value in nanometers.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If coordinate arrays have different shapes.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; coords1 = np.random.rand(100, 3)</span>
+<span class="sd">    &gt;&gt;&gt; coords2 = np.random.rand(100, 3)</span>
+<span class="sd">    &gt;&gt;&gt; rmsd = calculate_rmsd(coords1, coords2)</span>
+<span class="sd">    &gt;&gt;&gt; print(f&quot;RMSD: {rmsd:.3f} nm&quot;)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The RMSD is calculated as:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        RMSD = \\sqrt{\\frac{1}{N} \\sum_{i=1}^{N} |r_i - r_i&#39;|^2}</span>
+
+<span class="sd">    where N is the number of atoms.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Kabsch, W. (1976). A solution for the best rotation to relate</span>
+<span class="sd">           two sets of vectors. Acta Crystallographica, 32(5), 922-923.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing-guidelines">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Testing Guidelines</a><a class="headerlink" href="#testing-guidelines" title="Link to this heading">¶</a></h2>
+<section id="test-structure">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Test Structure</a><a class="headerlink" href="#test-structure" title="Link to this heading">¶</a></h3>
+<p><strong>Test Organization</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>tests/
+├── unit/                 # Unit tests
+│   ├── test_core/
+│   ├── test_structure/
+│   ├── test_forcefield/
+│   └── test_analysis/
+├── integration/          # Integration tests
+│   ├── test_workflows/
+│   └── test_pipelines/
+├── regression/           # Regression tests
+│   └── test_numerical/
+├── performance/          # Performance tests
+│   └── test_benchmarks/
+└── data/                 # Test data
+    ├── structures/
+    ├── trajectories/
+    └── parameters/
+</pre></div>
+</div>
+<p><strong>Writing Tests</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestCase</span><span class="p">,</span> <span class="n">create_test_system</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">RMSD</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestRMSD</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test RMSD calculation functionality.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up test fixtures.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords1</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rmsd_calc</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_rmsd_calculation_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test basic RMSD calculation.&quot;&quot;&quot;</span>
+        <span class="n">rmsd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords2</span><span class="p">)</span>
+
+        <span class="c1"># RMSD should be positive</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertGreater</span><span class="p">(</span><span class="n">rmsd</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="c1"># RMSD of identical structures should be zero</span>
+        <span class="n">rmsd_identical</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">rmsd_identical</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_rmsd_with_alignment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test RMSD calculation with alignment.&quot;&quot;&quot;</span>
+        <span class="c1"># Rotate second structure</span>
+        <span class="n">rotation_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_rotation_matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+        <span class="n">coords2_rotated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords2</span> <span class="o">@</span> <span class="n">rotation_matrix</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c1"># RMSD without alignment should be large</span>
+        <span class="n">rmsd_no_align</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coords1</span><span class="p">,</span> <span class="n">coords2_rotated</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="c1"># RMSD with alignment should be smaller</span>
+        <span class="n">rmsd_aligned</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coords1</span><span class="p">,</span> <span class="n">coords2_rotated</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">rmsd_aligned</span><span class="p">,</span> <span class="n">rmsd_no_align</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_rmsd_input_validation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test input validation.&quot;&quot;&quot;</span>
+        <span class="c1"># Different shapes should raise ValueError</span>
+        <span class="n">coords_wrong_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords1</span><span class="p">,</span> <span class="n">coords_wrong_shape</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_rmsd_edge_cases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test edge cases.&quot;&quot;&quot;</span>
+        <span class="c1"># Single atom</span>
+        <span class="n">single_atom1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]])</span>
+        <span class="n">single_atom2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]])</span>
+
+        <span class="n">rmsd_single</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">single_atom1</span><span class="p">,</span> <span class="n">single_atom2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">rmsd_single</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">places</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;n_atoms&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_rmsd_performance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test RMSD calculation performance for different sizes.&quot;&quot;&quot;</span>
+        <span class="n">coords1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">coords2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">rmsd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rmsd_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">coords1</span><span class="p">,</span> <span class="n">coords2</span><span class="p">)</span>
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="c1"># Should complete in reasonable time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertLess</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># 1 second max</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">rmsd</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Test Fixtures and Data</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># conftest.py - pytest fixtures</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProteinStructure</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">small_protein</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixture providing small test protein.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ProteinStructure</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;tests/data/structures/1ubq.pdb&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">water_box</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixture providing water box system.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">WaterModel</span>
+
+    <span class="n">water_model</span> <span class="o">=</span> <span class="n">WaterModel</span><span class="p">(</span><span class="s2">&quot;TIP3P&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">water_model</span><span class="o">.</span><span class="n">create_box</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">n_molecules</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_trajectory</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixture providing test trajectory.&quot;&quot;&quot;</span>
+    <span class="c1"># Generate synthetic trajectory</span>
+    <span class="n">n_frames</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="mi">50</span>
+
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_frames</span><span class="p">):</span>
+        <span class="c1"># Add some realistic motion</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">i</span>
+        <span class="n">coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">coordinates</span>
+</pre></div>
+</div>
+<p><strong>Running Tests</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests</span>
+pytest
+
+<span class="c1"># Run specific test file</span>
+pytest<span class="w"> </span>tests/unit/test_analysis/test_rmsd.py
+
+<span class="c1"># Run with coverage</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>proteinmd<span class="w"> </span>--cov-report<span class="o">=</span>html
+
+<span class="c1"># Run performance tests</span>
+pytest<span class="w"> </span>tests/performance/<span class="w"> </span>-m<span class="w"> </span>performance
+
+<span class="c1"># Run only fast tests</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not slow&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="pull-request-process">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Pull Request Process</a><a class="headerlink" href="#pull-request-process" title="Link to this heading">¶</a></h2>
+<section id="before-submitting">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Before Submitting</a><a class="headerlink" href="#before-submitting" title="Link to this heading">¶</a></h3>
+<p><strong>Pre-submission Checklist</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Update from upstream</span>
+git<span class="w"> </span>fetch<span class="w"> </span>upstream
+git<span class="w"> </span>rebase<span class="w"> </span>upstream/main
+
+<span class="c1"># 2. Run tests</span>
+pytest<span class="w"> </span>tests/<span class="w"> </span>-x<span class="w">  </span><span class="c1"># Stop on first failure</span>
+
+<span class="c1"># 3. Check code quality</span>
+black<span class="w"> </span>--check<span class="w"> </span>proteinmd/<span class="w"> </span>tests/
+flake8<span class="w"> </span>proteinmd/<span class="w"> </span>tests/
+mypy<span class="w"> </span>proteinmd/
+
+<span class="c1"># 4. Update documentation</span>
+<span class="nb">cd</span><span class="w"> </span>docs/
+make<span class="w"> </span>html
+
+<span class="c1"># 5. Add changelog entry</span>
+<span class="c1"># Edit CHANGELOG.md</span>
+</pre></div>
+</div>
+<p><strong>Commit Message Format</strong></p>
+<p>Use conventional commit format:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>type(scope): brief description
+
+Longer description explaining the change in more detail.
+
+- Key changes
+- Breaking changes (if any)
+
+Fixes #123
+Closes #456
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>feat(analysis): add dynamic cross-correlation analysis
+
+Implement dynamic cross-correlation matrix calculation for analyzing
+correlated motions between residues in protein trajectories.
+
+- Add DynamicCrossCorrelation class with calculate() method
+- Support for different distance metrics
+- Include visualization utilities
+- Add comprehensive tests and documentation
+
+Closes #78
+</pre></div>
+</div>
+</section>
+<section id="pull-request-template">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Pull Request Template</a><a class="headerlink" href="#pull-request-template" title="Link to this heading">¶</a></h3>
+<p><strong>PR Description Template</strong></p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">## Description</span>
+Brief description of the changes in this PR.
+
+<span class="gu">## Type of Change</span>
+<span class="k">- [ ]</span> Bug fix (non-breaking change which fixes an issue)
+<span class="k">- [ ]</span> New feature (non-breaking change which adds functionality)
+<span class="k">- [ ]</span> Breaking change (fix or feature that would cause existing functionality to not work as expected)
+<span class="k">- [ ]</span> Documentation update
+
+<span class="gu">## Changes Made</span>
+<span class="k">-</span><span class="w"> </span>List key changes
+<span class="k">-</span><span class="w"> </span>Include any breaking changes
+
+<span class="gu">## Testing</span>
+<span class="k">- [ ]</span> Added tests for new functionality
+<span class="k">- [ ]</span> All tests pass
+<span class="k">- [ ]</span> Tested on different platforms (if applicable)
+
+<span class="gu">## Documentation</span>
+<span class="k">- [ ]</span> Updated docstrings
+<span class="k">- [ ]</span> Updated user documentation
+<span class="k">- [ ]</span> Updated API documentation
+
+<span class="gu">## Performance Impact</span>
+Describe any performance implications of the changes.
+
+<span class="gu">## Related Issues</span>
+Fixes <span class="ni">#issue_number</span>
+
+<span class="gu">## Screenshots (if applicable)</span>
+Add screenshots to help explain your changes.
+</pre></div>
+</div>
+</section>
+<section id="review-process">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Review Process</a><a class="headerlink" href="#review-process" title="Link to this heading">¶</a></h3>
+<p><strong>Code Review Guidelines</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Automated Checks</strong>: All CI checks must pass</p></li>
+<li><p><strong>Code Quality</strong>: Follow coding standards and best practices</p></li>
+<li><p><strong>Tests</strong>: Adequate test coverage for new functionality</p></li>
+<li><p><strong>Documentation</strong>: Clear documentation for user-facing changes</p></li>
+<li><p><strong>Performance</strong>: No significant performance regressions</p></li>
+</ol>
+<p><strong>Review Criteria</strong></p>
+<ul class="simple">
+<li><p><strong>Correctness</strong>: Does the code do what it’s supposed to do?</p></li>
+<li><p><strong>Clarity</strong>: Is the code easy to understand and maintain?</p></li>
+<li><p><strong>Completeness</strong>: Are edge cases handled appropriately?</p></li>
+<li><p><strong>Consistency</strong>: Does it follow project conventions?</p></li>
+<li><p><strong>Performance</strong>: Are there any performance concerns?</p></li>
+</ul>
+</section>
+</section>
+<section id="types-of-contributions">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Types of Contributions</a><a class="headerlink" href="#types-of-contributions" title="Link to this heading">¶</a></h2>
+<section id="bug-reports">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Bug Reports</a><a class="headerlink" href="#bug-reports" title="Link to this heading">¶</a></h3>
+<p><strong>Bug Report Template</strong></p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">## Bug Description</span>
+A clear and concise description of what the bug is.
+
+<span class="gu">## To Reproduce</span>
+Steps to reproduce the behavior:
+<span class="k">1.</span> Go to &#39;...&#39;
+<span class="k">2.</span> Click on &#39;....&#39;
+<span class="k">3.</span> Scroll down to &#39;....&#39;
+<span class="k">4.</span> See error
+
+<span class="gu">## Expected Behavior</span>
+A clear and concise description of what you expected to happen.
+
+<span class="gu">## Actual Behavior</span>
+What actually happened.
+
+<span class="gu">## Environment</span>
+<span class="k">-</span><span class="w"> </span>OS: [e.g. Ubuntu 20.04]
+<span class="k">-</span><span class="w"> </span>Python version: [e.g. 3.9.7]
+<span class="k">-</span><span class="w"> </span>ProteinMD version: [e.g. 1.0.0]
+<span class="k">-</span><span class="w"> </span>Backend: [e.g. OpenMM 7.7.0]
+
+<span class="gu">## Error Messages</span>
+<span class="sb">```</span>
+<span class="sb">Full error message and stack trace</span>
+<span class="sb">```</span>
+
+<span class="gu">## Additional Context</span>
+Add any other context about the problem here.
+</pre></div>
+</div>
+</section>
+<section id="feature-requests">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Feature Requests</a><a class="headerlink" href="#feature-requests" title="Link to this heading">¶</a></h3>
+<p><strong>Feature Request Template</strong></p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">## Feature Summary</span>
+Brief description of the feature you&#39;d like to see.
+
+<span class="gu">## Motivation</span>
+Why would this feature be useful? What problem does it solve?
+
+<span class="gu">## Proposed Implementation</span>
+How do you envision this feature working?
+
+<span class="gu">## Alternatives Considered</span>
+What alternatives have you considered?
+
+<span class="gu">## Additional Context</span>
+Any other context or examples that would help.
+</pre></div>
+</div>
+</section>
+<section id="documentation-improvements">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Documentation Improvements</a><a class="headerlink" href="#documentation-improvements" title="Link to this heading">¶</a></h3>
+<p><strong>Documentation Contributions</strong></p>
+<ul class="simple">
+<li><p>Fix typos and grammatical errors</p></li>
+<li><p>Improve clarity of explanations</p></li>
+<li><p>Add examples and tutorials</p></li>
+<li><p>Update API documentation</p></li>
+<li><p>Translate documentation (future)</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build documentation locally</span>
+<span class="nb">cd</span><span class="w"> </span>docs/
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+make<span class="w"> </span>html
+
+<span class="c1"># View documentation</span>
+open<span class="w"> </span>_build/html/index.html
+</pre></div>
+</div>
+</section>
+<section id="new-features">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">New Features</a><a class="headerlink" href="#new-features" title="Link to this heading">¶</a></h3>
+<p><strong>Feature Development Process</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Discuss</strong>: Open an issue to discuss the feature</p></li>
+<li><p><strong>Design</strong>: Create design document for complex features</p></li>
+<li><p><strong>Implement</strong>: Develop the feature following guidelines</p></li>
+<li><p><strong>Test</strong>: Add comprehensive tests</p></li>
+<li><p><strong>Document</strong>: Update documentation</p></li>
+<li><p><strong>Review</strong>: Submit PR for review</p></li>
+</ol>
+<p><strong>Example: Adding New Analysis Method</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Create base structure</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NewAnalysisMethod</span><span class="p">(</span><span class="n">AnalysisMethod</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;New analysis method for [purpose].&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter1</span><span class="o">=</span><span class="n">default_value</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;new_analysis&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter1</span> <span class="o">=</span> <span class="n">parameter1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate analysis.&quot;&quot;&quot;</span>
+        <span class="c1"># Implementation</span>
+        <span class="k">pass</span>
+
+<span class="c1"># 2. Add to module __init__.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.new_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">NewAnalysisMethod</span>
+<span class="n">__all__</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NewAnalysisMethod&quot;</span><span class="p">)</span>
+
+<span class="c1"># 3. Add tests</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TestNewAnalysisMethod</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="c1"># Test implementation</span>
+    <span class="k">pass</span>
+
+<span class="c1"># 4. Add documentation</span>
+<span class="c1"># Update docs/api/analysis.rst</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="community-guidelines">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Community Guidelines</a><a class="headerlink" href="#community-guidelines" title="Link to this heading">¶</a></h2>
+<section id="code-of-conduct">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Code of Conduct</a><a class="headerlink" href="#code-of-conduct" title="Link to this heading">¶</a></h3>
+<p>We are committed to providing a welcoming and inclusive environment for all contributors.</p>
+<p><strong>Our Standards</strong></p>
+<ul class="simple">
+<li><p>Using welcoming and inclusive language</p></li>
+<li><p>Being respectful of differing viewpoints and experiences</p></li>
+<li><p>Gracefully accepting constructive criticism</p></li>
+<li><p>Focusing on what is best for the community</p></li>
+<li><p>Showing empathy towards other community members</p></li>
+</ul>
+<p><strong>Unacceptable Behavior</strong></p>
+<ul class="simple">
+<li><p>Harassment, discrimination, or offensive comments</p></li>
+<li><p>Personal attacks or trolling</p></li>
+<li><p>Publishing private information without permission</p></li>
+<li><p>Other conduct which could reasonably be considered inappropriate</p></li>
+</ul>
+</section>
+<section id="communication-channels">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Communication Channels</a><a class="headerlink" href="#communication-channels" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>GitHub Issues</strong>: Bug reports, feature requests</p></li>
+<li><p><strong>GitHub Discussions</strong>: General questions and discussions</p></li>
+<li><p><strong>Pull Requests</strong>: Code contributions</p></li>
+<li><p><strong>Documentation</strong>: User guides and API reference</p></li>
+</ul>
+</section>
+<section id="recognition">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Recognition</a><a class="headerlink" href="#recognition" title="Link to this heading">¶</a></h3>
+<p><strong>Contributors</strong></p>
+<p>All contributors are recognized in:</p>
+<ul class="simple">
+<li><p>AUTHORS file</p></li>
+<li><p>Release notes</p></li>
+<li><p>Documentation credits</p></li>
+</ul>
+<p><strong>Types of Recognition</strong></p>
+<ul class="simple">
+<li><p>Code contributions</p></li>
+<li><p>Documentation improvements</p></li>
+<li><p>Bug reports and testing</p></li>
+<li><p>Community support and mentoring</p></li>
+</ul>
+</section>
+</section>
+<section id="getting-help">
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Getting Help</a><a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<p><strong>For New Contributors</strong></p>
+<ul class="simple">
+<li><p>Read this contributing guide</p></li>
+<li><p>Look for “good first issue” labels</p></li>
+<li><p>Ask questions in GitHub Discussions</p></li>
+<li><p>Join community meetings (if available)</p></li>
+</ul>
+<p><strong>For Development Issues</strong></p>
+<ul class="simple">
+<li><p>Check existing issues and discussions</p></li>
+<li><p>Provide minimal reproducible examples</p></li>
+<li><p>Include environment details</p></li>
+<li><p>Be patient and respectful</p></li>
+</ul>
+</section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="testing.html"><span class="doc">Testing Framework</span></a> - Testing framework details</p></li>
+<li><p><a class="reference internal" href="documentation.html"><span class="doc">Documentation Guidelines</span></a> - Documentation guidelines</p></li>
+<li><p><a class="reference internal" href="architecture.html"><span class="doc">Software Architecture</span></a> - Software architecture</p></li>
+<li><p><a class="reference internal" href="../user_guide/installation.html"><span class="doc">Installation</span></a> - Installation guide</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing to ProteinMD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code-guidelines">Code Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-guidelines">Testing Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pull-request-process">Pull Request Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#types-of-contributions">Types of Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#community-guidelines">Community Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="architecture.html" title="previous chapter">Software Architecture</a></li>
+      <li>Next: <a href="testing.html" title="next chapter">Testing Framework</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/contributing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

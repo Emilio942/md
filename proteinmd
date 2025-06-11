@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""
+ProteinMD Command Line Interface Entry Point
+
+This script provides the main entry point for the ProteinMD CLI.
+It can be installed as a system command or run directly.
+"""
+
+import sys
+from pathlib import Path
+
+# Add proteinMD to path
+proteinmd_path = Path(__file__).parent
+sys.path.insert(0, str(proteinmd_path))
+
+try:
+    from proteinMD.cli import main
+    
+    if __name__ == "__main__":
+        sys.exit(main())
+        
+except ImportError as e:
+    print(f"Error importing ProteinMD CLI: {e}")
+    print("Please ensure ProteinMD is properly installed.")
+    sys.exit(1)
+except Exception as e:
+    print(f"Unexpected error: {e}")
+    sys.exit(1)

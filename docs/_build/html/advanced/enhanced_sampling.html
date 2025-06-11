@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Enhanced Sampling Methods &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Thermodynamics and Free Energy" href="thermodynamics.html" />
+    <link rel="prev" title="Ensemble Theory" href="ensemble_theory.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="enhanced-sampling-methods">
+<h1>Enhanced Sampling Methods<a class="headerlink" href="#enhanced-sampling-methods" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>Standard molecular dynamics simulations are often limited by the time scales accessible to current computational resources. Enhanced sampling methods overcome these limitations by modifying the sampling protocol to access rare events and compute thermodynamic properties more efficiently.</p>
+<p><strong>Key Challenges in MD Sampling:</strong></p>
+<ul class="simple">
+<li><p>Energy barriers separate conformational states</p></li>
+<li><p>Rare events occur on time scales longer than accessible simulation time</p></li>
+<li><p>Conformational transitions may be slow compared to vibrational motion</p></li>
+<li><p>Standard MD provides poor sampling of high free energy regions</p></li>
+</ul>
+<p><strong>Enhanced Sampling Strategies:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Temperature-based methods</strong>: Use high temperature to overcome barriers</p></li>
+<li><p><strong>Biased sampling</strong>: Add potentials to enhance transitions</p></li>
+<li><p><strong>Parallel methods</strong>: Run multiple simulations simultaneously</p></li>
+<li><p><strong>Reaction coordinate methods</strong>: Focus sampling along specific pathways</p></li>
+</ol>
+</section>
+<section id="replica-exchange-methods">
+<h2>Replica Exchange Methods<a class="headerlink" href="#replica-exchange-methods" title="Link to this heading">¶</a></h2>
+<section id="replica-exchange-molecular-dynamics-remd">
+<h3>Replica Exchange Molecular Dynamics (REMD)<a class="headerlink" href="#replica-exchange-molecular-dynamics-remd" title="Link to this heading">¶</a></h3>
+<p><strong>Basic Principle:</strong></p>
+<p>Run multiple replicas at different temperatures and periodically attempt to exchange configurations between adjacent temperature levels.</p>
+<p><strong>Exchange Criterion:</strong></p>
+<div class="math notranslate nohighlight">
+\[P_{i \leftrightarrow j} = \min\left(1, \exp\left[(\beta_i - \beta_j)(U_j - U_i)\right]\right)\]</div>
+<p><strong>Algorithm:</strong></p>
+<ol class="arabic simple">
+<li><p>Run MD at each temperature for fixed time</p></li>
+<li><p>Calculate exchange probability for adjacent pairs</p></li>
+<li><p>Accept/reject exchange based on Metropolis criterion</p></li>
+<li><p>Continue MD simulation at (possibly new) temperatures</p></li>
+</ol>
+<p><strong>Temperature Selection:</strong></p>
+<p>Optimal overlap requires acceptance ratio of 20-40%:</p>
+<div class="math notranslate nohighlight">
+\[T_{i+1} = T_i \left(\frac{f+1}{f}\right)^{1/\sqrt{N_f}}\]</div>
+<p>where f is target acceptance ratio and N_f is number of degrees of freedom.</p>
+<p><strong>Benefits:</strong>
+- Overcomes kinetic trapping
+- Enhanced conformational sampling
+- Parallel implementation
+- Can compute temperature-dependent properties</p>
+<p><strong>Limitations:</strong>
+- Computational cost scales with number of replicas
+- Limited to relatively small systems
+- Requires overlap between temperature distributions</p>
+</section>
+<section id="hamiltonian-replica-exchange">
+<h3>Hamiltonian Replica Exchange<a class="headerlink" href="#hamiltonian-replica-exchange" title="Link to this heading">¶</a></h3>
+<p><strong>Concept:</strong></p>
+<p>Exchange between different Hamiltonians rather than temperatures.</p>
+<p><strong>Applications:</strong>
+- λ-dynamics for free energy calculations
+- Different force field parameters
+- Biased vs unbiased potentials</p>
+<p><strong>Exchange Probability:</strong></p>
+<div class="math notranslate nohighlight">
+\[P = \min\left(1, \exp\left[-\beta(U_j^{(i)} - U_i^{(i)} + U_i^{(j)} - U_j^{(j)})\right]\right)\]</div>
+</section>
+</section>
+<section id="metadynamics">
+<h2>Metadynamics<a class="headerlink" href="#metadynamics" title="Link to this heading">¶</a></h2>
+<section id="basic-metadynamics">
+<h3>Basic Metadynamics<a class="headerlink" href="#basic-metadynamics" title="Link to this heading">¶</a></h3>
+<p><strong>Principle:</strong></p>
+<p>Add history-dependent bias potential to discourage revisiting previously sampled regions of collective variable space.</p>
+<p><strong>Bias Potential:</strong></p>
+<div class="math notranslate nohighlight">
+\[V_G(\mathbf{s}, t) = \sum_{t'=\tau_G,2\tau_G,...}^{t'&lt;t} w \exp\left(-\sum_{\alpha=1}^d \frac{(s_\alpha - s_\alpha(t'))^2}{2\sigma_\alpha^2}\right)\]</div>
+<p>where:
+- s(t) are collective variables
+- w is Gaussian height
+- σ_α is Gaussian width
+- τ_G is deposition frequency</p>
+<p><strong>Free Energy Recovery:</strong></p>
+<p>In the long time limit:</p>
+<p><strong>Implementation Steps:</strong></p>
+<ol class="arabic simple">
+<li><p>Choose appropriate collective variables</p></li>
+<li><p>Define Gaussian parameters (height, width, frequency)</p></li>
+<li><p>Add bias during MD simulation</p></li>
+<li><p>Monitor convergence of free energy profile</p></li>
+</ol>
+</section>
+<section id="well-tempered-metadynamics">
+<h3>Well-Tempered Metadynamics<a class="headerlink" href="#well-tempered-metadynamics" title="Link to this heading">¶</a></h3>
+<p><strong>Adaptive Gaussian Height:</strong></p>
+<div class="math notranslate nohighlight">
+\[w(t) = w_0 \exp\left(-\frac{V_G(\mathbf{s}(t), t)}{k_B \Delta T}\right)\]</div>
+<p>where ΔT is a bias temperature parameter.</p>
+<p><strong>Benefits:</strong>
+- Faster convergence
+- Better error estimates
+- More stable long-time behavior
+- Reduced overfilling of wells</p>
+</section>
+<section id="collective-variables">
+<h3>Collective Variables<a class="headerlink" href="#collective-variables" title="Link to this heading">¶</a></h3>
+<p><strong>Requirements for Good CVs:</strong>
+- Distinguish between relevant metastable states
+- Include slow degrees of freedom
+- Be differentiable
+- Have reasonable computational cost</p>
+<p><strong>Common Collective Variables:</strong>
+- Distances and angles
+- Coordination numbers
+- Root-mean-square deviation (RMSD)
+- Radius of gyration
+- Secondary structure content</p>
+<p><strong>Path Collective Variables:</strong></p>
+<p>For complex transitions, use progress along predefined path:</p>
+<div class="math notranslate nohighlight">
+\[s = \frac{\sum_{i=1}^N i \exp(-\lambda |R - R_i|)}{\sum_{i=1}^N \exp(-\lambda |R - R_i|)}\]</div>
+</section>
+</section>
+<section id="umbrella-sampling">
+<h2>Umbrella Sampling<a class="headerlink" href="#umbrella-sampling" title="Link to this heading">¶</a></h2>
+<section id="basic-theory">
+<h3>Basic Theory<a class="headerlink" href="#basic-theory" title="Link to this heading">¶</a></h3>
+<p><strong>Biasing Potential:</strong></p>
+<p>Add harmonic restraints to sample specific regions of reaction coordinate:</p>
+<p><strong>Biased Distribution:</strong></p>
+<p><strong>WHAM Equations:</strong></p>
+<p>Weighted Histogram Analysis Method recovers unbiased distribution:</p>
+<div class="math notranslate nohighlight">
+\[\rho(\xi) = \frac{\sum_i N_i \rho_i(\xi)}{\sum_i N_i \exp(-\beta[F_i - w_i(\xi)])}\]</div>
+<p><strong>Implementation:</strong></p>
+<ol class="arabic simple">
+<li><p>Choose umbrella windows along reaction coordinate</p></li>
+<li><p>Run independent simulations with harmonic restraints</p></li>
+<li><p>Collect histograms from each window</p></li>
+<li><p>Apply WHAM to obtain unbiased free energy profile</p></li>
+</ol>
+</section>
+<section id="adaptive-umbrella-sampling">
+<h3>Adaptive Umbrella Sampling<a class="headerlink" href="#adaptive-umbrella-sampling" title="Link to this heading">¶</a></h3>
+<p><strong>Adaptive Biasing Force (ABF):</strong></p>
+<p>Continuously update bias to flatten free energy profile:</p>
+<p><strong>Benefits:</strong>
+- Single simulation instead of many windows
+- Automatic adaptation to system
+- Real-time free energy estimation</p>
+</section>
+</section>
+<section id="thermodynamic-integration">
+<h2>Thermodynamic Integration<a class="headerlink" href="#thermodynamic-integration" title="Link to this heading">¶</a></h2>
+<section id="free-energy-perturbation">
+<h3>Free Energy Perturbation<a class="headerlink" href="#free-energy-perturbation" title="Link to this heading">¶</a></h3>
+<p><strong>Basic Equation:</strong></p>
+<p><strong>Limitations:</strong>
+- Requires overlap between initial and final states
+- Poor convergence for large perturbations
+- Exponential averaging causes numerical problems</p>
+<p><strong>Bidirectional FEP:</strong></p>
+</section>
+<section id="thermodynamic-integration-ti">
+<h3>Thermodynamic Integration (TI)<a class="headerlink" href="#thermodynamic-integration-ti" title="Link to this heading">¶</a></h3>
+<p><strong>λ-Coupling:</strong></p>
+<p>Introduce parameter λ to smoothly connect initial and final states:</p>
+<p><strong>TI Equation:</strong></p>
+<p><strong>Practical Implementation:</strong></p>
+<ol class="arabic simple">
+<li><p>Choose λ values (typically 10-20 points)</p></li>
+<li><p>Run simulation at each λ value</p></li>
+<li><p>Calculate ⟨∂U/∂λ⟩ at each point</p></li>
+<li><p>Integrate numerically (trapezoid rule, Simpson’s rule)</p></li>
+</ol>
+<p><strong>Soft-Core Potentials:</strong></p>
+<p>For particle insertion/deletion, use soft-core to avoid singularities:</p>
+</section>
+</section>
+<section id="steered-molecular-dynamics">
+<h2>Steered Molecular Dynamics<a class="headerlink" href="#steered-molecular-dynamics" title="Link to this heading">¶</a></h2>
+<section id="constant-velocity-smd">
+<h3>Constant Velocity SMD<a class="headerlink" href="#constant-velocity-smd" title="Link to this heading">¶</a></h3>
+<p><strong>External Force:</strong></p>
+<p>Apply time-dependent force to pull system along reaction coordinate:</p>
+<p>where v is pulling velocity and k is spring constant.</p>
+<p><strong>Work Calculation:</strong></p>
+<p><strong>Jarzynski Equality:</strong></p>
+</section>
+<section id="constant-force-smd">
+<h3>Constant Force SMD<a class="headerlink" href="#constant-force-smd" title="Link to this heading">¶</a></h3>
+<p><strong>Application of Constant Force:</strong></p>
+<p>where F_0 is constant force magnitude and n̂ is direction.</p>
+<p><strong>Applications:</strong>
+- Protein unfolding studies
+- Ligand unbinding pathways
+- Mechanical properties of materials</p>
+</section>
+</section>
+<section id="accelerated-molecular-dynamics">
+<h2>Accelerated Molecular Dynamics<a class="headerlink" href="#accelerated-molecular-dynamics" title="Link to this heading">¶</a></h2>
+<section id="hyperdynamics">
+<h3>Hyperdynamics<a class="headerlink" href="#hyperdynamics" title="Link to this heading">¶</a></h3>
+<p><strong>Boost Potential:</strong></p>
+<p>Add potential in regions where no transition occurs:</p>
+<p><strong>Time Acceleration:</strong></p>
+<p><strong>Benefits:</strong>
+- Accelerates rare events
+- Preserves transition pathways
+- Rigorously connects to real time</p>
+<p><strong>Limitations:</strong>
+- Requires knowledge of energy barriers
+- Limited to specific types of systems
+- Complex implementation</p>
+</section>
+<section id="gaussian-accelerated-md-gamd">
+<h3>Gaussian Accelerated MD (GaMD)<a class="headerlink" href="#gaussian-accelerated-md-gamd" title="Link to this heading">¶</a></h3>
+<p><strong>Adaptive Boost Potential:</strong></p>
+<p><strong>Benefits:</strong>
+- No predefined reaction coordinates
+- Automatic parameter selection
+- Enhanced sampling without bias
+- Reweighting to recover canonical distribution</p>
+</section>
+</section>
+<section id="practical-implementation">
+<h2>Practical Implementation<a class="headerlink" href="#practical-implementation" title="Link to this heading">¶</a></h2>
+<section id="method-selection-guidelines">
+<h3>Method Selection Guidelines<a class="headerlink" href="#method-selection-guidelines" title="Link to this heading">¶</a></h3>
+<p><strong>System Size:</strong>
+- Small systems (&lt; 10,000 atoms): REMD
+- Medium systems: Metadynamics, umbrella sampling
+- Large systems: Steered MD, accelerated MD</p>
+<p><strong>Type of Problem:</strong>
+- Conformational transitions: REMD, metadynamics
+- Binding free energies: FEP, TI, umbrella sampling
+- Mechanical properties: Steered MD
+- General acceleration: Accelerated MD</p>
+<p><strong>Available Computing Resources:</strong>
+- Limited resources: Single-replica methods (metadynamics, ABF)
+- Parallel resources: Multi-replica methods (REMD, umbrella sampling)</p>
+</section>
+<section id="convergence-assessment">
+<h3>Convergence Assessment<a class="headerlink" href="#convergence-assessment" title="Link to this heading">¶</a></h3>
+<p><strong>Metadynamics:</strong>
+- Monitor free energy profile evolution
+- Check for plateau in basin depths
+- Verify barrier heights stabilize</p>
+<p><strong>REMD:</strong>
+- Monitor acceptance ratios (target: 20-40%)
+- Check replica mixing efficiency
+- Verify temperature random walk</p>
+<p><strong>Umbrella Sampling:</strong>
+- Ensure adequate overlap between windows
+- Check histogram quality in each window
+- Verify WHAM convergence</p>
+<p><strong>Common Convergence Checks:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">assess_metadynamics_convergence</span><span class="p">(</span><span class="n">fes_history</span><span class="p">,</span> <span class="n">time_window</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if metadynamics free energy surface has converged&quot;&quot;&quot;</span>
+    <span class="n">recent_fes</span> <span class="o">=</span> <span class="n">fes_history</span><span class="p">[</span><span class="o">-</span><span class="n">time_window</span><span class="p">:]</span>
+    <span class="n">early_fes</span> <span class="o">=</span> <span class="n">fes_history</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">time_window</span><span class="p">:</span><span class="o">-</span><span class="n">time_window</span><span class="p">]</span>
+
+    <span class="n">difference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">recent_fes</span> <span class="o">-</span> <span class="n">early_fes</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">difference</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">recent_fes</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-analysis">
+<h2>Error Analysis<a class="headerlink" href="#error-analysis" title="Link to this heading">¶</a></h2>
+<section id="statistical-errors">
+<h3>Statistical Errors<a class="headerlink" href="#statistical-errors" title="Link to this heading">¶</a></h3>
+<p><strong>Block Analysis:</strong></p>
+<p>Divide simulation into blocks and analyze block-to-block fluctuations:</p>
+<div class="math notranslate nohighlight">
+\[\sigma_A^2 = \frac{1}{N-1} \sum_{i=1}^N (A_i - \langle A \rangle)^2\]</div>
+<p><strong>Bootstrap Resampling:</strong></p>
+<p>Generate error estimates by resampling trajectory data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_error</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">n_bootstrap</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimate error using bootstrap resampling&quot;&quot;&quot;</span>
+    <span class="n">bootstrap_means</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">n_data</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_bootstrap</span><span class="p">):</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_data</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">bootstrap_means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sample</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">bootstrap_means</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="systematic-errors">
+<h3>Systematic Errors<a class="headerlink" href="#systematic-errors" title="Link to this heading">¶</a></h3>
+<p><strong>Finite Sampling:</strong>
+- Insufficient simulation time
+- Poor reaction coordinate choice
+- Inadequate overlap in multi-window methods</p>
+<p><strong>Method-Specific Biases:</strong>
+- Metadynamics: filling vs unfilling rates
+- REMD: temperature distribution effects
+- Steered MD: pulling velocity dependence</p>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="general-guidelines">
+<h3>General Guidelines<a class="headerlink" href="#general-guidelines" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Validate on Simple Systems:</strong> Test methods on systems with known results</p></li>
+<li><p><strong>Monitor Convergence:</strong> Continuously assess convergence during simulation</p></li>
+<li><p><strong>Compare Methods:</strong> Use multiple approaches when possible</p></li>
+<li><p><strong>Check Consistency:</strong> Verify results are independent of technical parameters</p></li>
+<li><p><strong>Report Details:</strong> Document all parameters and protocols used</p></li>
+</ol>
+</section>
+<section id="method-specific-recommendations">
+<h3>Method-Specific Recommendations<a class="headerlink" href="#method-specific-recommendations" title="Link to this heading">¶</a></h3>
+<p><strong>Metadynamics:</strong>
+- Start with wide Gaussians and decrease gradually
+- Use well-tempered variant for better convergence
+- Validate collective variables on short simulations</p>
+<p><strong>Replica Exchange:</strong>
+- Test temperature distribution with short runs
+- Ensure adequate replica mixing
+- Monitor acceptance ratios throughout simulation</p>
+<p><strong>Umbrella Sampling:</strong>
+- Verify adequate overlap between adjacent windows
+- Use pulling simulations to generate initial configurations
+- Check for hysteresis in pulling vs releasing</p>
+<p><strong>Free Energy Calculations:</strong>
+- Always compute both forward and backward perturbations
+- Use soft-core potentials for particle insertion/deletion
+- Validate with experimental data when available</p>
+</section>
+</section>
+<section id="common-pitfalls">
+<h2>Common Pitfalls<a class="headerlink" href="#common-pitfalls" title="Link to this heading">¶</a></h2>
+<p><strong>Poor Collective Variable Choice:</strong>
+- Solution: Test CVs with short unbiased simulations
+- Validate that CVs distinguish relevant states</p>
+<p><strong>Insufficient Sampling:</strong>
+- Solution: Run longer simulations
+- Use convergence metrics appropriate for method</p>
+<p><strong>Technical Parameter Sensitivity:</strong>
+- Solution: Test parameter dependence
+- Use recommended values from literature</p>
+<p><strong>Overfitting to Simulation Details:</strong>
+- Solution: Test multiple protocols
+- Compare with experimental data</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>Enhanced sampling methods are essential tools for accessing long time scales and rare events in molecular simulations. Key principles:</p>
+<ol class="arabic simple">
+<li><p><strong>Method Selection</strong>: Choose based on system size, problem type, and resources</p></li>
+<li><p><strong>Validation</strong>: Always validate on known systems before applying to new problems</p></li>
+<li><p><strong>Convergence</strong>: Carefully assess convergence using appropriate metrics</p></li>
+<li><p><strong>Error Analysis</strong>: Quantify both statistical and systematic errors</p></li>
+<li><p><strong>Integration</strong>: Combine with experimental data when possible</p></li>
+</ol>
+<p><strong>Current Best Practices:</strong>
+- Well-tempered metadynamics for general conformational sampling
+- REMD for systems with accessible temperature denaturation
+- Umbrella sampling for well-defined reaction coordinates
+- TI/FEP for quantitative free energy differences</p>
+<p>The choice and proper implementation of enhanced sampling methods can dramatically improve the quality and scope of MD simulations, enabling studies of complex biological processes that would otherwise be inaccessible.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="scientific_background.html">Scientific Background and Theory</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="scientific_background.html">Scientific Background and Theory</a><ul>
+      <li>Previous: <a href="ensemble_theory.html" title="previous chapter">Ensemble Theory</a></li>
+      <li>Next: <a href="thermodynamics.html" title="next chapter">Thermodynamics and Free Energy</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/enhanced_sampling.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

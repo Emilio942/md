@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>CUDA Development Guide &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Memory Optimization Guide" href="memory_optimization.html" />
+    <link rel="prev" title="Release Process" href="release_process.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="cuda-development-guide">
+<h1>CUDA Development Guide<a class="headerlink" href="#cuda-development-guide" title="Link to this heading">¶</a></h1>
+<p>This guide covers CUDA development practices for ProteinMD, including GPU kernel optimization, memory management, and integration with the main codebase.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p>
+<ul>
+<li><p><a class="reference internal" href="#cuda-architecture-in-proteinmd" id="id2">CUDA Architecture in ProteinMD</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#development-environment-setup" id="id3">Development Environment Setup</a></p>
+<ul>
+<li><p><a class="reference internal" href="#prerequisites" id="id4">Prerequisites</a></p></li>
+<li><p><a class="reference internal" href="#development-tools" id="id5">Development Tools</a></p></li>
+<li><p><a class="reference internal" href="#project-structure" id="id6">Project Structure</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#cuda-kernel-development" id="id7">CUDA Kernel Development</a></p>
+<ul>
+<li><p><a class="reference internal" href="#force-calculation-kernels" id="id8">Force Calculation Kernels</a></p></li>
+<li><p><a class="reference internal" href="#integration-kernels" id="id9">Integration Kernels</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#memory-management" id="id10">Memory Management</a></p>
+<ul>
+<li><p><a class="reference internal" href="#device-memory-pool" id="id11">Device Memory Pool</a></p></li>
+<li><p><a class="reference internal" href="#unified-memory-management" id="id12">Unified Memory Management</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#kernel-launch-optimization" id="id13">Kernel Launch Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#block-and-grid-configuration" id="id14">Block and Grid Configuration</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-optimization" id="id15">Performance Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#memory-coalescing" id="id16">Memory Coalescing</a></p></li>
+<li><p><a class="reference internal" href="#shared-memory-usage" id="id17">Shared Memory Usage</a></p></li>
+<li><p><a class="reference internal" href="#warp-level-optimizations" id="id18">Warp-Level Optimizations</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#multi-gpu-support" id="id19">Multi-GPU Support</a></p>
+<ul>
+<li><p><a class="reference internal" href="#device-management" id="id20">Device Management</a></p></li>
+<li><p><a class="reference internal" href="#domain-decomposition" id="id21">Domain Decomposition</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#error-handling-and-debugging" id="id22">Error Handling and Debugging</a></p>
+<ul>
+<li><p><a class="reference internal" href="#cuda-error-checking" id="id23">CUDA Error Checking</a></p></li>
+<li><p><a class="reference internal" href="#memory-debugging" id="id24">Memory Debugging</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#testing-and-validation" id="id25">Testing and Validation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#kernel-unit-tests" id="id26">Kernel Unit Tests</a></p></li>
+<li><p><a class="reference internal" href="#performance-benchmarks" id="id27">Performance Benchmarks</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices" id="id28">Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#development-guidelines" id="id29">Development Guidelines</a></p></li>
+<li><p><a class="reference internal" href="#common-pitfalls" id="id30">Common Pitfalls</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#integration-with-proteinmd" id="id31">Integration with ProteinMD</a></p>
+<ul>
+<li><p><a class="reference internal" href="#python-cuda-interface" id="id32">Python-CUDA Interface</a></p></li>
+<li><p><a class="reference internal" href="#build-system-integration" id="id33">Build System Integration</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>ProteinMD leverages CUDA for high-performance molecular dynamics simulations. This guide provides comprehensive information for developing and optimizing CUDA code within the ProteinMD framework.</p>
+<section id="cuda-architecture-in-proteinmd">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">CUDA Architecture in ProteinMD</a><a class="headerlink" href="#cuda-architecture-in-proteinmd" title="Link to this heading">¶</a></h3>
+<p><strong>Design Principles:</strong></p>
+<ul class="simple">
+<li><p><strong>Hybrid CPU/GPU approach:</strong> Critical path computations on GPU, coordination on CPU</p></li>
+<li><p><strong>Memory efficiency:</strong> Minimize host-device transfers</p></li>
+<li><p><strong>Kernel specialization:</strong> Separate kernels for different force types</p></li>
+<li><p><strong>Scalability:</strong> Support for multi-GPU systems</p></li>
+</ul>
+<p><strong>Key Components:</strong></p>
+<ul class="simple">
+<li><p>Force calculation kernels</p></li>
+<li><p>Integration kernels</p></li>
+<li><p>Energy computation kernels</p></li>
+<li><p>Neighbor list construction</p></li>
+<li><p>Boundary condition handling</p></li>
+</ul>
+</section>
+</section>
+<section id="development-environment-setup">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Development Environment Setup</a><a class="headerlink" href="#development-environment-setup" title="Link to this heading">¶</a></h2>
+<section id="prerequisites">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Prerequisites</a><a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># CUDA Toolkit (11.0 or later)</span>
+wget<span class="w"> </span>https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
+sudo<span class="w"> </span>mv<span class="w"> </span>cuda-ubuntu2004.pin<span class="w"> </span>/etc/apt/preferences.d/cuda-repository-pin-600
+wget<span class="w"> </span>https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda-repo-ubuntu2004-11-8-local_11.8.0-520.61.05-1_amd64.deb
+sudo<span class="w"> </span>dpkg<span class="w"> </span>-i<span class="w"> </span>cuda-repo-ubuntu2004-11-8-local_11.8.0-520.61.05-1_amd64.deb
+sudo<span class="w"> </span>cp<span class="w"> </span>/var/cuda-repo-ubuntu2004-11-8-local/cuda-*-keyring.gpg<span class="w"> </span>/usr/share/keyrings/
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update
+sudo<span class="w"> </span>apt-get<span class="w"> </span>-y<span class="w"> </span>install<span class="w"> </span>cuda
+</pre></div>
+</div>
+</section>
+<section id="development-tools">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Development Tools</a><a class="headerlink" href="#development-tools" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install CuPy for Python-CUDA integration</span>
+pip<span class="w"> </span>install<span class="w"> </span>cupy-cuda11x
+
+<span class="c1"># Install additional tools</span>
+pip<span class="w"> </span>install<span class="w"> </span>pycuda
+pip<span class="w"> </span>install<span class="w"> </span>numba<span class="o">[</span>cuda<span class="o">]</span>
+
+<span class="c1"># Profiling tools</span>
+pip<span class="w"> </span>install<span class="w"> </span>py-nvml-monitor
+</pre></div>
+</div>
+</section>
+<section id="project-structure">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Project Structure</a><a class="headerlink" href="#project-structure" title="Link to this heading">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>proteinmd/
+├── cuda/
+│   ├── __init__.py
+│   ├── kernels/
+│   │   ├── forces.cu
+│   │   ├── integration.cu
+│   │   ├── energy.cu
+│   │   └── neighbor_list.cu
+│   ├── device/
+│   │   ├── memory_pool.py
+│   │   ├── context_manager.py
+│   │   └── device_info.py
+│   ├── utils/
+│   │   ├── kernel_launcher.py
+│   │   ├── error_handling.py
+│   │   └── profiling.py
+│   └── tests/
+│       ├── test_kernels.py
+│       └── test_performance.py
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cuda-kernel-development">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">CUDA Kernel Development</a><a class="headerlink" href="#cuda-kernel-development" title="Link to this heading">¶</a></h2>
+<section id="force-calculation-kernels">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Force Calculation Kernels</a><a class="headerlink" href="#force-calculation-kernels" title="Link to this heading">¶</a></h3>
+<p><strong>Lennard-Jones Forces:</strong></p>
+<div class="highlight-cuda notranslate"><div class="highlight"><pre><span></span><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">lennard_jones_forces</span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">positions</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">charges</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">neighbor_list</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">neighbor_count</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">forces</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">energy</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n_atoms</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">cutoff_sq</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">epsilon</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">sigma</span>
+<span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">idx</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">n_atoms</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">fx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="n">fy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="n">fz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">pe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">xi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">yi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">zi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">];</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">MAX_NEIGHBORS</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">neighbor_count</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">count</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">neighbor_list</span><span class="p">[</span><span class="n">start</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="p">];</span>
+
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xi</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="p">];</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">yi</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span>
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">dz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zi</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">];</span>
+
+<span class="w">        </span><span class="kt">float</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dz</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dz</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">r2</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">cutoff_sq</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">float</span><span class="w"> </span><span class="n">inv_r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0f</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">r2</span><span class="p">;</span>
+<span class="w">            </span><span class="kt">float</span><span class="w"> </span><span class="n">inv_r6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inv_r2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_r2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_r2</span><span class="p">;</span>
+<span class="w">            </span><span class="kt">float</span><span class="w"> </span><span class="n">inv_r12</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">inv_r6</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_r6</span><span class="p">;</span>
+
+<span class="w">            </span><span class="c1">// Lennard-Jones potential</span>
+<span class="w">            </span><span class="kt">float</span><span class="w"> </span><span class="n">sigma_r6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sigma</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sigma</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sigma</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sigma</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sigma</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sigma</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_r6</span><span class="p">;</span>
+<span class="w">            </span><span class="kt">float</span><span class="w"> </span><span class="n">sigma_r12</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sigma_r6</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sigma_r6</span><span class="p">;</span>
+
+<span class="w">            </span><span class="n">pe</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mf">4.0f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">epsilon</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">sigma_r12</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sigma_r6</span><span class="p">);</span>
+
+<span class="w">            </span><span class="c1">// Force calculation</span>
+<span class="w">            </span><span class="kt">float</span><span class="w"> </span><span class="n">force_magnitude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">24.0f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">epsilon</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_r2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">2.0f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sigma_r12</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sigma_r6</span><span class="p">);</span>
+
+<span class="w">            </span><span class="n">fx</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">force_magnitude</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dx</span><span class="p">;</span>
+<span class="w">            </span><span class="n">fy</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">force_magnitude</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dy</span><span class="p">;</span>
+<span class="w">            </span><span class="n">fz</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">force_magnitude</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dz</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fx</span><span class="p">;</span>
+<span class="w">    </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fy</span><span class="p">;</span>
+<span class="w">    </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fz</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">energy</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pe</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.5f</span><span class="p">;</span><span class="w"> </span><span class="c1">// Avoid double counting</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Bonded Forces:</strong></p>
+<div class="highlight-cuda notranslate"><div class="highlight"><pre><span></span><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">bond_forces</span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">positions</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int2</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">bonds</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">bond_params</span><span class="p">,</span><span class="w"> </span><span class="c1">// k, r0</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">forces</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">energy</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n_bonds</span>
+<span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">idx</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">n_bonds</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">int2</span><span class="w"> </span><span class="n">bond</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bonds</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bond</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bond</span><span class="p">.</span><span class="n">y</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bond_params</span><span class="p">[</span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">r0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bond_params</span><span class="p">[</span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">dz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">];</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sqrtf</span><span class="p">(</span><span class="n">dx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dz</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dz</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">dr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Bond energy: 0.5 * k * (r - r0)^2</span>
+<span class="w">    </span><span class="n">energy</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dr</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dr</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Force magnitude: -k * (r - r0) / r</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">force_mag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">k</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dr</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">r</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">fx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">force_mag</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dx</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">fy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">force_mag</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dy</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">fz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">force_mag</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dz</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Apply forces atomically</span>
+<span class="w">    </span><span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">fx</span><span class="p">);</span>
+<span class="w">    </span><span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">fy</span><span class="p">);</span>
+<span class="w">    </span><span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">fz</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="p">],</span><span class="w"> </span><span class="o">-</span><span class="n">fx</span><span class="p">);</span>
+<span class="w">    </span><span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="o">-</span><span class="n">fy</span><span class="p">);</span>
+<span class="w">    </span><span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="o">-</span><span class="n">fz</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="integration-kernels">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Integration Kernels</a><a class="headerlink" href="#integration-kernels" title="Link to this heading">¶</a></h3>
+<p><strong>Velocity Verlet Integration:</strong></p>
+<div class="highlight-cuda notranslate"><div class="highlight"><pre><span></span><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">velocity_verlet_step1</span><span class="p">(</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">positions</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">velocities</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">forces</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">masses</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">dt</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n_atoms</span>
+<span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">idx</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">n_atoms</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">inv_mass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0f</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">masses</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">dt_half</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Update positions: x(t+dt) = x(t) + v(t)*dt + 0.5*a(t)*dt^2</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">ax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_mass</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">ay</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_mass</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">az</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_mass</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="p">;</span>
+<span class="w">    </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ay</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="p">;</span>
+<span class="w">    </span><span class="n">positions</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">az</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Update velocities: v(t+dt/2) = v(t) + 0.5*a(t)*dt</span>
+<span class="w">    </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">ax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="p">;</span>
+<span class="w">    </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">ay</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="p">;</span>
+<span class="w">    </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">az</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">velocity_verlet_step2</span><span class="p">(</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">velocities</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">forces</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="kt">__restrict__</span><span class="w"> </span><span class="n">masses</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">dt</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n_atoms</span>
+<span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">idx</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">n_atoms</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">inv_mass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0f</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">masses</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">dt_half</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5f</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Complete velocity update: v(t+dt) = v(t+dt/2) + 0.5*a(t+dt)*dt</span>
+<span class="w">    </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_mass</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="p">;</span>
+<span class="w">    </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_mass</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="p">;</span>
+<span class="w">    </span><span class="n">velocities</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">forces</span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inv_mass</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt_half</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="memory-management">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Memory Management</a><a class="headerlink" href="#memory-management" title="Link to this heading">¶</a></h2>
+<section id="device-memory-pool">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Device Memory Pool</a><a class="headerlink" href="#device-memory-pool" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CudaMemoryPool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Efficient CUDA memory management for ProteinMD.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_size_mb</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mempool</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_default_memory_pool</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_size</span> <span class="o">=</span> <span class="n">initial_size_mb</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allocate_initial_pool</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_allocate_initial_pool</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pre-allocate memory pool.&quot;&quot;&quot;</span>
+        <span class="c1"># Allocate and immediately free to establish pool</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_size</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">temp</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">allocate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Allocate device memory.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_memory_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get current memory usage.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;used_bytes&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mempool</span><span class="o">.</span><span class="n">used_bytes</span><span class="p">(),</span>
+            <span class="s1">&#39;total_bytes&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mempool</span><span class="o">.</span><span class="n">total_bytes</span><span class="p">(),</span>
+            <span class="s1">&#39;n_free_blocks&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mempool</span><span class="o">.</span><span class="n">n_free_blocks</span><span class="p">()</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear memory cache.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mempool</span><span class="o">.</span><span class="n">free_all_blocks</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="unified-memory-management">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Unified Memory Management</a><a class="headerlink" href="#unified-memory-management" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">UnifiedArray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper for unified memory arrays.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_host_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_location</span> <span class="o">=</span> <span class="s1">&#39;cpu&#39;</span>  <span class="c1"># &#39;cpu&#39; or &#39;gpu&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_gpu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transfer data to GPU.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_location</span> <span class="o">==</span> <span class="s1">&#39;cpu&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_device_data</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_host_data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_location</span> <span class="o">=</span> <span class="s1">&#39;gpu&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_device_data</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_location</span> <span class="o">=</span> <span class="s1">&#39;gpu&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_cpu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transfer data to CPU.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_location</span> <span class="o">==</span> <span class="s1">&#39;gpu&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_host_data</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_location</span> <span class="o">=</span> <span class="s1">&#39;cpu&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_host_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_location</span> <span class="o">=</span> <span class="s1">&#39;cpu&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host_data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get data in current location.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_location</span> <span class="o">==</span> <span class="s1">&#39;gpu&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device_data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_host_data</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="kernel-launch-optimization">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Kernel Launch Optimization</a><a class="headerlink" href="#kernel-launch-optimization" title="Link to this heading">¶</a></h2>
+<section id="block-and-grid-configuration">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Block and Grid Configuration</a><a class="headerlink" href="#block-and-grid-configuration" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">calculate_launch_config</span><span class="p">(</span><span class="n">n_elements</span><span class="p">,</span> <span class="n">max_threads_per_block</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate optimal CUDA launch configuration.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">n_elements</span> <span class="o">&lt;=</span> <span class="n">max_threads_per_block</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_elements</span><span class="p">)</span>
+
+    <span class="c1"># Calculate grid and block dimensions</span>
+    <span class="n">threads_per_block</span> <span class="o">=</span> <span class="n">max_threads_per_block</span>
+    <span class="n">blocks_per_grid</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_elements</span> <span class="o">+</span> <span class="n">threads_per_block</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">threads_per_block</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">blocks_per_grid</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">KernelLauncher</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages CUDA kernel launches with optimized configurations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">launch_force_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Launch force calculation kernel with optimal configuration.&quot;&quot;&quot;</span>
+        <span class="n">blocks</span><span class="p">,</span> <span class="n">threads</span> <span class="o">=</span> <span class="n">calculate_launch_config</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">:</span>
+            <span class="n">kernel</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">blocks</span><span class="p">,),</span> <span class="p">(</span><span class="n">threads</span><span class="p">,),</span>
+                <span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+                <span class="n">stream</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">synchronize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronize stream.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-optimization">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Performance Optimization</a><a class="headerlink" href="#performance-optimization" title="Link to this heading">¶</a></h2>
+<section id="memory-coalescing">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Memory Coalescing</a><a class="headerlink" href="#memory-coalescing" title="Link to this heading">¶</a></h3>
+<div class="highlight-cuda notranslate"><div class="highlight"><pre><span></span><span class="c1">// Good: Coalesced memory access</span>
+<span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">coalesced_copy</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">output</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">idx</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">output</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span><span class="w">  </span><span class="c1">// Sequential access pattern</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Bad: Non-coalesced memory access</span>
+<span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">non_coalesced_copy</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">output</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">stride</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">idx</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">output</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">input</span><span class="p">[</span><span class="n">idx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">stride</span><span class="p">];</span><span class="w">  </span><span class="c1">// Strided access pattern</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="shared-memory-usage">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Shared Memory Usage</a><a class="headerlink" href="#shared-memory-usage" title="Link to this heading">¶</a></h3>
+<div class="highlight-cuda notranslate"><div class="highlight"><pre><span></span><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">force_reduction_shared</span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">forces</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">total_force</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n_atoms</span>
+<span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">extern</span><span class="w"> </span><span class="kt">__shared__</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">shared_forces</span><span class="p">[];</span>
+
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">tid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Load data into shared memory</span>
+<span class="w">    </span><span class="n">shared_forces</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">idx</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n_atoms</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">forces</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
+<span class="w">    </span><span class="nf">__syncthreads</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Reduction in shared memory</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">stride</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="n">stride</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">stride</span><span class="w"> </span><span class="o">&gt;&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">stride</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">shared_forces</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">shared_forces</span><span class="p">[</span><span class="n">tid</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">stride</span><span class="p">];</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nf">__syncthreads</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Write result</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tid</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">atomicAdd</span><span class="p">(</span><span class="n">total_force</span><span class="p">,</span><span class="w"> </span><span class="n">shared_forces</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="warp-level-optimizations">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Warp-Level Optimizations</a><a class="headerlink" href="#warp-level-optimizations" title="Link to this heading">¶</a></h3>
+<div class="highlight-cuda notranslate"><div class="highlight"><pre><span></span><span class="kt">__device__</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">warp_reduce_sum</span><span class="p">(</span><span class="kt">float</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">warpSize</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">val</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">__shfl_down_sync</span><span class="p">(</span><span class="mh">0xFFFFFFFF</span><span class="p">,</span><span class="w"> </span><span class="n">val</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">val</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">fast_energy_reduction</span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">energies</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">total_energy</span><span class="p">,</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n_atoms</span>
+<span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">energy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">idx</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n_atoms</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">energies</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Warp-level reduction</span>
+<span class="w">    </span><span class="n">energy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">warp_reduce_sum</span><span class="p">(</span><span class="n">energy</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Block-level reduction using shared memory</span>
+<span class="w">    </span><span class="kt">__shared__</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">warp_sums</span><span class="p">[</span><span class="mi">32</span><span class="p">];</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">warp_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">warpSize</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">lane_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="nb">warpSize</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lane_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">warp_sums</span><span class="p">[</span><span class="n">warp_id</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">energy</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nf">__syncthreads</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Final reduction</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">warp_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">energy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">lane_id</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nb">warpSize</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="n">warp_sums</span><span class="p">[</span><span class="n">lane_id</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">;</span>
+<span class="w">        </span><span class="n">energy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">warp_reduce_sum</span><span class="p">(</span><span class="n">energy</span><span class="p">);</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lane_id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">atomicAdd</span><span class="p">(</span><span class="n">total_energy</span><span class="p">,</span><span class="w"> </span><span class="n">energy</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="multi-gpu-support">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Multi-GPU Support</a><a class="headerlink" href="#multi-gpu-support" title="Link to this heading">¶</a></h2>
+<section id="device-management">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Device Management</a><a class="headerlink" href="#device-management" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MultiGPUManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages multiple GPU devices for ProteinMD.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_devices</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">getDeviceCount</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">devices</span> <span class="o">=</span> <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_devices</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">streams</span> <span class="o">=</span> <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_devices</span><span class="p">)]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">distribute_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Distribute atoms across GPUs.&quot;&quot;&quot;</span>
+        <span class="n">atoms_per_gpu</span> <span class="o">=</span> <span class="n">n_atoms</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_devices</span>
+        <span class="n">distribution</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_devices</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">atoms_per_gpu</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_devices</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">n_atoms</span>  <span class="c1"># Last GPU takes remaining atoms</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">atoms_per_gpu</span>
+            <span class="n">distribution</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">distribution</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">synchronize_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Synchronize all GPU streams.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="domain-decomposition">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Domain Decomposition</a><a class="headerlink" href="#domain-decomposition" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DomainDecomposition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements spatial domain decomposition for multi-GPU.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box_size</span><span class="p">,</span> <span class="n">n_gpus</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_size</span> <span class="o">=</span> <span class="n">box_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_gpus</span> <span class="o">=</span> <span class="n">n_gpus</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">domains</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_domains</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_domains</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create spatial domains for each GPU.&quot;&quot;&quot;</span>
+        <span class="c1"># Simple 1D decomposition along z-axis</span>
+        <span class="n">z_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_size</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_gpus</span>
+        <span class="n">domains</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_gpus</span><span class="p">):</span>
+            <span class="n">z_min</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">z_size</span>
+            <span class="n">z_max</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">z_size</span>
+            <span class="n">domains</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;x_range&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="s1">&#39;y_range&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="s1">&#39;z_range&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">z_min</span><span class="p">,</span> <span class="n">z_max</span><span class="p">),</span>
+                <span class="s1">&#39;device_id&#39;</span><span class="p">:</span> <span class="n">i</span>
+            <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">domains</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Assign atoms to domains based on position.&quot;&quot;&quot;</span>
+        <span class="n">assignments</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">positions</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">domain</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domains</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">domain</span><span class="p">[</span><span class="s1">&#39;z_range&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">domain</span><span class="p">[</span><span class="s1">&#39;z_range&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">assignments</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-handling-and-debugging">
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Error Handling and Debugging</a><a class="headerlink" href="#error-handling-and-debugging" title="Link to this heading">¶</a></h2>
+<section id="cuda-error-checking">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">CUDA Error Checking</a><a class="headerlink" href="#cuda-error-checking" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CudaErrorHandler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Comprehensive CUDA error handling.&quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_cuda_error</span><span class="p">(</span><span class="n">operation_name</span><span class="o">=</span><span class="s2">&quot;CUDA operation&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check for CUDA errors and provide detailed information.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">deviceSynchronize</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">CUDARuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">error_info</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;operation&#39;</span><span class="p">:</span> <span class="n">operation_name</span><span class="p">,</span>
+                <span class="s1">&#39;error_code&#39;</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+                <span class="s1">&#39;error_message&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+                <span class="s1">&#39;device_id&#39;</span><span class="p">:</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">()</span><span class="o">.</span><span class="n">id</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Get device properties</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">()</span>
+            <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;device_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span>
+            <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;compute_capability&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">compute_capability</span>
+
+            <span class="c1"># Get memory information</span>
+            <span class="n">free_bytes</span><span class="p">,</span> <span class="n">total_bytes</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">memGetInfo</span><span class="p">()</span>
+            <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;free_memory_mb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">free_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">error_info</span><span class="p">[</span><span class="s1">&#39;total_memory_mb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CUDA error in </span><span class="si">{</span><span class="n">operation_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">error_info</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-debugging">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Memory Debugging</a><a class="headerlink" href="#memory-debugging" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">debug_gpu_memory_usage</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Debug GPU memory usage patterns.&quot;&quot;&quot;</span>
+    <span class="n">mempool</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_default_memory_pool</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GPU Memory Debug Information:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Used bytes: </span><span class="si">{</span><span class="n">mempool</span><span class="o">.</span><span class="n">used_bytes</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total bytes: </span><span class="si">{</span><span class="n">mempool</span><span class="o">.</span><span class="n">total_bytes</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Free blocks: </span><span class="si">{</span><span class="n">mempool</span><span class="o">.</span><span class="n">n_free_blocks</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Device memory info</span>
+    <span class="n">free_bytes</span><span class="p">,</span> <span class="n">total_bytes</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">memGetInfo</span><span class="p">()</span>
+    <span class="n">used_bytes</span> <span class="o">=</span> <span class="n">total_bytes</span> <span class="o">-</span> <span class="n">free_bytes</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device memory used: </span><span class="si">{</span><span class="n">used_bytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device memory free: </span><span class="si">{</span><span class="n">free_bytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device memory total: </span><span class="si">{</span><span class="n">total_bytes</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing-and-validation">
+<h2><a class="toc-backref" href="#id25" role="doc-backlink">Testing and Validation</a><a class="headerlink" href="#testing-and-validation" title="Link to this heading">¶</a></h2>
+<section id="kernel-unit-tests">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Kernel Unit Tests</a><a class="headerlink" href="#kernel-unit-tests" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestCudaKernels</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unit tests for CUDA kernels.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up test environment.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_lennard_jones_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test Lennard-Jones force calculation.&quot;&quot;&quot;</span>
+        <span class="c1"># Create test data</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">forces</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># Launch kernel</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">:</span>
+            <span class="n">lennard_jones_kernel</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">RawKernel</span><span class="p">(</span>
+                <span class="n">lennard_jones_code</span><span class="p">,</span> <span class="s1">&#39;lennard_jones_forces&#39;</span>
+            <span class="p">)</span>
+
+            <span class="n">blocks</span><span class="p">,</span> <span class="n">threads</span> <span class="o">=</span> <span class="n">calculate_launch_config</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">)</span>
+            <span class="n">lennard_jones_kernel</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">blocks</span><span class="p">,),</span> <span class="p">(</span><span class="n">threads</span><span class="p">,),</span>
+                <span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">,</span> <span class="mf">2.5</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                <span class="n">stream</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stream</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+        <span class="c1"># Validate results</span>
+        <span class="n">forces_cpu</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">forces</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forces_cpu</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">forces_cpu</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_force_conservation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test Newton&#39;s third law in force calculations.&quot;&quot;&quot;</span>
+        <span class="c1"># Implementation of conservation test</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-benchmarks">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Performance Benchmarks</a><a class="headerlink" href="#performance-benchmarks" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CudaPerformanceBenchmark</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Benchmark CUDA kernel performance.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">benchmark_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">n_runs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Benchmark kernel execution time.&quot;&quot;&quot;</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_runs</span><span class="p">):</span>
+            <span class="n">start_event</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+            <span class="n">end_event</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+
+            <span class="n">start_event</span><span class="o">.</span><span class="n">record</span><span class="p">()</span>
+            <span class="n">kernel_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">end_event</span><span class="o">.</span><span class="n">record</span><span class="p">()</span>
+            <span class="n">end_event</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_elapsed_time</span><span class="p">(</span><span class="n">start_event</span><span class="p">,</span> <span class="n">end_event</span><span class="p">)</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;mean_time_ms&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;std_time_ms&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;min_time_ms&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;max_time_ms&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="development-guidelines">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Development Guidelines</a><a class="headerlink" href="#development-guidelines" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Memory Management</strong>
+- Use memory pools for frequent allocations
+- Minimize host-device transfers
+- Prefer unified memory for development</p></li>
+<li><p><strong>Kernel Design</strong>
+- Keep kernels simple and focused
+- Optimize for memory coalescing
+- Use shared memory effectively</p></li>
+<li><p><strong>Error Handling</strong>
+- Always check CUDA errors
+- Provide informative error messages
+- Use defensive programming</p></li>
+<li><p><strong>Testing</strong>
+- Unit test individual kernels
+- Validate against CPU implementations
+- Performance regression testing</p></li>
+</ol>
+</section>
+<section id="common-pitfalls">
+<h3><a class="toc-backref" href="#id30" role="doc-backlink">Common Pitfalls</a><a class="headerlink" href="#common-pitfalls" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Memory Issues</strong>
+- Memory leaks from improper cleanup
+- Out-of-bounds memory access
+- Unaligned memory access</p></li>
+<li><p><strong>Synchronization Problems</strong>
+- Race conditions in shared memory
+- Missing __syncthreads() calls
+- Incorrect atomic operations</p></li>
+<li><p><strong>Performance Issues</strong>
+- Poor memory access patterns
+- Inefficient thread divergence
+- Suboptimal block sizes</p></li>
+</ol>
+</section>
+</section>
+<section id="integration-with-proteinmd">
+<h2><a class="toc-backref" href="#id31" role="doc-backlink">Integration with ProteinMD</a><a class="headerlink" href="#integration-with-proteinmd" title="Link to this heading">¶</a></h2>
+<section id="python-cuda-interface">
+<h3><a class="toc-backref" href="#id32" role="doc-backlink">Python-CUDA Interface</a><a class="headerlink" href="#python-cuda-interface" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CudaAccelerator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main interface for CUDA acceleration in ProteinMD.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_pool</span> <span class="o">=</span> <span class="n">CudaMemoryPool</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_launcher</span> <span class="o">=</span> <span class="n">KernelLauncher</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate forces using CUDA acceleration.&quot;&quot;&quot;</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_pool</span><span class="o">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">simulation_state</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_pool</span><span class="o">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">simulation_state</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># Transfer data to GPU</span>
+        <span class="n">positions</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">simulation_state</span><span class="o">.</span><span class="n">positions</span>
+
+        <span class="c1"># Launch force kernels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_launcher</span><span class="o">.</span><span class="n">launch_force_kernel</span><span class="p">(</span>
+            <span class="n">lennard_jones_kernel</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span>
+            <span class="n">simulation_state</span><span class="o">.</span><span class="n">n_atoms</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Transfer results back</span>
+        <span class="n">simulation_state</span><span class="o">.</span><span class="n">forces</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">forces</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="build-system-integration">
+<h3><a class="toc-backref" href="#id33" role="doc-backlink">Build System Integration</a><a class="headerlink" href="#build-system-integration" title="Link to this heading">¶</a></h3>
+<p>Add to <cite>setup.py</cite>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">setuptools</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup</span><span class="p">,</span> <span class="n">Extension</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pybind11.setup_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pybind11Extension</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pybind11</span>
+
+<span class="n">cuda_extension</span> <span class="o">=</span> <span class="n">Pybind11Extension</span><span class="p">(</span>
+    <span class="s2">&quot;proteinmd._cuda&quot;</span><span class="p">,</span>
+    <span class="p">[</span><span class="s2">&quot;src/cuda/python_bindings.cpp&quot;</span><span class="p">],</span>
+    <span class="n">include_dirs</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">pybind11</span><span class="o">.</span><span class="n">get_cmake_dir</span><span class="p">(),</span>
+        <span class="s2">&quot;/usr/local/cuda/include&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">libraries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cudart&quot;</span><span class="p">,</span> <span class="s2">&quot;cublas&quot;</span><span class="p">],</span>
+    <span class="n">library_dirs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/usr/local/cuda/lib64&quot;</span><span class="p">],</span>
+    <span class="n">language</span><span class="o">=</span><span class="s2">&quot;c++&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="n">ext_modules</span><span class="o">=</span><span class="p">[</span><span class="n">cuda_extension</span><span class="p">],</span>
+    <span class="c1"># ... other setup options</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>This comprehensive CUDA development guide provides the foundation for high-performance GPU acceleration in ProteinMD. Follow these practices to develop efficient, maintainable CUDA code that integrates seamlessly with the main codebase.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#quick-start-for-developers">Quick Start for Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#core-documentation">Core Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developer_guide.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#contributing-workflow">Contributing Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#key-development-areas">Key Development Areas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="release_process.html" title="previous chapter">Release Process</a></li>
+      <li>Next: <a href="memory_optimization.html" title="next chapter">Memory Optimization Guide</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/cuda_development.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

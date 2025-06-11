@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Scientific Background and Theory &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Molecular Dynamics Fundamentals" href="md_fundamentals.html" />
+    <link rel="prev" title="Command Line Interface" href="../api/cli.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="scientific-background-and-theory">
+<h1>Scientific Background and Theory<a class="headerlink" href="#scientific-background-and-theory" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Theoretical Foundations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#classical-mechanics-foundation">Classical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#the-born-oppenheimer-approximation">The Born-Oppenheimer Approximation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#ergodic-hypothesis">Ergodic Hypothesis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#time-and-length-scales">Time and Length Scales</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#periodic-boundary-conditions">Periodic Boundary Conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#temperature-and-pressure-control">Temperature and Pressure Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#simulation-workflow">Simulation Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#example-simple-md-algorithm">Example: Simple MD Algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#physical-observables">Physical Observables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#limitations-and-assumptions">Limitations and Assumptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#classical-statistical-mechanics">Classical Statistical Mechanics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#statistical-ensembles">Statistical Ensembles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#thermodynamic-relations">Thermodynamic Relations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#fluctuations-and-response-functions">Fluctuations and Response Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#time-correlation-functions">Time Correlation Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#linear-response-theory">Linear Response Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#free-energy-calculations">Free Energy Calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#ergodicity-and-sampling">Ergodicity and Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#temperature-coupling">Temperature Coupling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#pressure-coupling">Pressure Coupling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#error-analysis">Error Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#practical-guidelines">Practical Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#fundamental-principles">Fundamental Principles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#general-force-field-form">General Force Field Form</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#bonded-interactions">Bonded Interactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#non-bonded-interactions">Non-bonded Interactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#long-range-interactions">Long-range Interactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#force-field-families">Force Field Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#water-models">Water Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#force-field-development">Force Field Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#common-issues-and-limitations">Common Issues and Limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#force-field-selection-guidelines">Force Field Selection Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#future-directions">Future Directions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#the-finite-difference-approach">The Finite Difference Approach</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#simple-integration-schemes">Simple Integration Schemes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#the-verlet-algorithm-family">The Verlet Algorithm Family</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#advanced-integration-schemes">Advanced Integration Schemes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#constraint-algorithms">Constraint Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#symplectic-integrators">Symplectic Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#integration-in-different-ensembles">Integration in Different Ensembles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#time-step-selection">Time Step Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#error-analysis">Error Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#implementation-considerations">Implementation Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#statistical-ensembles-in-md">Statistical Ensembles in MD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#temperature-control-algorithms">Temperature Control Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#pressure-control-algorithms">Pressure Control Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#enhanced-sampling-methods">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#integration-with-thermostats-barostats">Integration with Thermostats/Barostats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#practical-implementation">Practical Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#common-pitfalls-and-solutions">Common Pitfalls and Solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#validation-and-quality-control">Validation and Quality Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#replica-exchange-methods">Replica Exchange Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#metadynamics">Metadynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#umbrella-sampling">Umbrella Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#thermodynamic-integration">Thermodynamic Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#steered-molecular-dynamics">Steered Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#accelerated-molecular-dynamics">Accelerated Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#practical-implementation">Practical Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#error-analysis">Error Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#common-pitfalls">Common Pitfalls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#fundamental-thermodynamic-relations">Fundamental Thermodynamic Relations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#free-energy-methods">Free Energy Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#alchemical-transformations">Alchemical Transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#binding-free-energy-calculations">Binding Free Energy Calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#solvation-free-energies">Solvation Free Energies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#advanced-free-energy-methods">Advanced Free Energy Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#non-equilibrium-methods">Non-Equilibrium Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#error-analysis-and-validation">Error Analysis and Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#common-applications">Common Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html#general-simulation-guidelines">General Simulation Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html#system-specific-best-practices">System-Specific Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html#common-pitfalls-and-troubleshooting">Common Pitfalls and Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html#performance-optimization">Performance Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html#validation-and-quality-control">Validation and Quality Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html#reporting-standards">Reporting Standards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html#future-considerations">Future Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#foundational-texts-and-reviews">Foundational Texts and Reviews</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#force-fields-and-parameterization">Force Fields and Parameterization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#integration-algorithms">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#enhanced-sampling-methods">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#statistical-mechanics-and-ensemble-theory">Statistical Mechanics and Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#biomolecular-applications">Biomolecular Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#free-energy-calculations">Free Energy Calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#software-and-implementation">Software and Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#analysis-methods">Analysis Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#machine-learning-applications">Machine Learning Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#quantum-mechanics-molecular-mechanics">Quantum Mechanics/Molecular Mechanics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#specialized-topics">Specialized Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#historical-and-foundational-papers">Historical and Foundational Papers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#modern-developments-and-future-directions">Modern Developments and Future Directions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html#specialized-journals-and-resources">Specialized Journals and Resources</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>This section provides a comprehensive overview of the theoretical foundations underlying molecular dynamics (MD) simulations. Understanding these concepts is essential for proper interpretation of simulation results and selection of appropriate simulation parameters.</p>
+<p><strong>Target Audience:</strong></p>
+<ul class="simple">
+<li><p>Graduate students new to MD simulations</p></li>
+<li><p>Researchers transitioning to computational methods</p></li>
+<li><p>Software developers implementing MD algorithms</p></li>
+<li><p>Experimentalists interpreting MD results</p></li>
+</ul>
+<p><strong>Prerequisites:</strong></p>
+<ul class="simple">
+<li><p>Basic physics (mechanics, thermodynamics)</p></li>
+<li><p>Elementary statistical mechanics</p></li>
+<li><p>Calculus and linear algebra</p></li>
+<li><p>Basic programming concepts</p></li>
+</ul>
+</section>
+<section id="core-topics-covered">
+<h2>Core Topics Covered<a class="headerlink" href="#core-topics-covered" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>Mathematical Foundations</strong></dt><dd><ul class="simple">
+<li><p>Classical mechanics formulation</p></li>
+<li><p>Newton’s equations of motion</p></li>
+<li><p>Hamiltonian and Lagrangian mechanics</p></li>
+<li><p>Statistical mechanics principles</p></li>
+</ul>
+</dd>
+<dt><strong>Force Field Theory</strong></dt><dd><ul class="simple">
+<li><p>Empirical potential energy functions</p></li>
+<li><p>Parameter derivation and validation</p></li>
+<li><p>Force field families (AMBER, CHARMM, GROMOS)</p></li>
+<li><p>Non-bonded interactions and cutoffs</p></li>
+</ul>
+</dd>
+<dt><strong>Computational Methods</strong></dt><dd><ul class="simple">
+<li><p>Numerical integration algorithms</p></li>
+<li><p>Boundary conditions and constraints</p></li>
+<li><p>Temperature and pressure control</p></li>
+<li><p>Enhanced sampling techniques</p></li>
+</ul>
+</dd>
+<dt><strong>Analysis and Interpretation</strong></dt><dd><ul class="simple">
+<li><p>Ensemble averages and fluctuations</p></li>
+<li><p>Time correlation functions</p></li>
+<li><p>Free energy calculations</p></li>
+<li><p>Validation against experimental data</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="organization">
+<h2>Organization<a class="headerlink" href="#organization" title="Link to this heading">¶</a></h2>
+<p>Each section builds upon previous concepts, starting with fundamental principles and progressing to advanced topics. Mathematical derivations are provided where helpful, with emphasis on physical intuition and practical implementation considerations.</p>
+<p>The documentation includes:</p>
+<ul class="simple">
+<li><p><strong>Theoretical derivations</strong> with step-by-step explanations</p></li>
+<li><p><strong>Practical examples</strong> using ProteinMD</p></li>
+<li><p><strong>Best practice recommendations</strong> for different system types</p></li>
+<li><p><strong>Common pitfalls</strong> and how to avoid them</p></li>
+<li><p><strong>Literature references</strong> for deeper study</p></li>
+</ul>
+<p><strong>Navigation Tips:</strong></p>
+<ul class="simple">
+<li><p>Use the table of contents to jump to specific topics</p></li>
+<li><p>Mathematical equations are numbered for easy reference</p></li>
+<li><p>Code examples can be copied and modified for your use</p></li>
+<li><p>Cross-references link related concepts throughout the documentation</p></li>
+</ul>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
+<p>For newcomers to MD simulation, we recommend starting with <a class="reference internal" href="md_fundamentals.html"><span class="doc">Molecular Dynamics Fundamentals</span></a> to establish the basic framework, then proceeding to <a class="reference internal" href="force_fields.html"><span class="doc">Force Fields and Potential Functions</span></a> to understand how molecular interactions are modeled.</p>
+<p>Experienced users may want to focus on specific topics like <a class="reference internal" href="enhanced_sampling.html"><span class="doc">Enhanced Sampling Methods</span></a> or <a class="reference internal" href="best_practices.html"><span class="doc">Best Practices for Molecular Dynamics Simulations</span></a> for their particular research needs.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Scientific Background and Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../api/cli.html" title="previous chapter">Command Line Interface</a></li>
+      <li>Next: <a href="md_fundamentals.html" title="next chapter">Molecular Dynamics Fundamentals</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/scientific_background.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

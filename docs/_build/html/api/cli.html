@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Command Line Interface &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Performance Optimization" href="../advanced/performance.html" />
+    <link rel="prev" title="Utilities API Reference" href="utils.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="command-line-interface">
+<h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Link to this heading">¶</a></h1>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.cli</span></code> module provides a comprehensive command-line interface for ProteinMD, enabling automated workflows, batch processing, and integration with computational pipelines.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The CLI module includes:</p>
+<ul class="simple">
+<li><p><strong>Complete Simulation Workflows</strong>: End-to-end MD simulation pipelines</p></li>
+<li><p><strong>Analysis Pipeline Automation</strong>: Automated post-simulation analysis</p></li>
+<li><p><strong>Batch Processing</strong>: Process multiple structures efficiently</p></li>
+<li><p><strong>Template-based Configuration</strong>: Predefined workflows for common tasks</p></li>
+<li><p><strong>Progress Monitoring</strong>: Real-time simulation progress and reporting</p></li>
+<li><p><strong>Error Handling</strong>: Robust error handling and logging</p></li>
+<li><p><strong>Script Integration</strong>: Return codes for automated workflows</p></li>
+</ul>
+</section>
+<section id="quick-example">
+<h2>Quick Example<a class="headerlink" href="#quick-example" title="Link to this heading">¶</a></h2>
+<p>Basic CLI usage:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run basic simulation</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb
+
+<span class="c1"># Use workflow template</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span>--template<span class="w"> </span>protein_folding
+
+<span class="c1"># Custom configuration</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span>--config<span class="w"> </span>my_config.json<span class="w"> </span>--output-dir<span class="w"> </span>results/
+
+<span class="c1"># Batch processing</span>
+proteinmd<span class="w"> </span>batch-process<span class="w"> </span>./structures/<span class="w"> </span>--template<span class="w"> </span>equilibration
+</pre></div>
+</div>
+</section>
+<section id="main-cli-class">
+<h2>Main CLI Class<a class="headerlink" href="#main-cli-class" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.cli.ProteinMDCLI">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.cli.</span></span><span class="sig-name descname"><span class="pre">ProteinMDCLI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.ProteinMDCLI" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main CLI class for ProteinMD operations.</p>
+<p><strong>Examples</strong></p>
+<p>Programmatic CLI usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.cli</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProteinMDCLI</span>
+
+<span class="c1"># Initialize CLI</span>
+<span class="n">cli</span> <span class="o">=</span> <span class="n">ProteinMDCLI</span><span class="p">(</span><span class="n">workspace</span><span class="o">=</span><span class="s2">&quot;/path/to/workspace&quot;</span><span class="p">)</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">exit_code</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span>
+    <span class="n">input_file</span><span class="o">=</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">,</span>
+    <span class="n">config_file</span><span class="o">=</span><span class="s2">&quot;config.json&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;results/&quot;</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">exit_code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation completed successfully!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Advanced CLI configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configure CLI with custom settings</span>
+<span class="n">cli</span> <span class="o">=</span> <span class="n">ProteinMDCLI</span><span class="p">()</span>
+<span class="n">cli</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+    <span class="s1">&#39;simulation&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;n_steps&#39;</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+        <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="mf">310.0</span><span class="p">,</span>
+        <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="mf">0.002</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;analysis&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;rmsd&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;ramachandran&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;secondary_structure&#39;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;visualization&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;enabled&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;realtime&#39;</span><span class="p">:</span> <span class="kc">False</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1"># Run with custom configuration</span>
+<span class="n">cli</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;custom_results/&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.cli.ProteinMDCLI.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.ProteinMDCLI.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize the CLI.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.cli.ProteinMDCLI.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.ProteinMDCLI.run_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Run a complete molecular dynamics simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Input PDB file path</p></li>
+<li><p><strong>config_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Configuration file (JSON/YAML)</p></li>
+<li><p><strong>template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Workflow template name</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Output directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code (0 = success, 1 = error)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.cli.ProteinMDCLI.run_analysis">
+<span class="sig-name descname"><span class="pre">run_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectory_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.run_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.ProteinMDCLI.run_analysis" title="Link to this definition">¶</a></dt>
+<dd><p>Run analysis on existing trajectory data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajectory_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Trajectory file path</p></li>
+<li><p><strong>structure_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Reference structure file</p></li>
+<li><p><strong>analysis_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Analysis configuration file</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Output directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code (0 = success, 1 = error)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.cli.ProteinMDCLI.create_template">
+<span class="sig-name descname"><span class="pre">create_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.create_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.ProteinMDCLI.create_template" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new workflow template.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Template name</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Template description</p></li>
+<li><p><strong>config_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Configuration file to use as template</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code (0 = success, 1 = error)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.cli.ProteinMDCLI.list_templates">
+<span class="sig-name descname"><span class="pre">list_templates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.list_templates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.ProteinMDCLI.list_templates" title="Link to this definition">¶</a></dt>
+<dd><p>List available workflow templates.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.cli.ProteinMDCLI.batch_process">
+<span class="sig-name descname"><span class="pre">batch_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*.pdb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.batch_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.ProteinMDCLI.batch_process" title="Link to this definition">¶</a></dt>
+<dd><p>Process multiple PDB files in batch mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Directory containing input files</p></li>
+<li><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – File pattern to match</p></li>
+<li><p><strong>config_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Configuration file</p></li>
+<li><p><strong>template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Workflow template</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Output directory</p></li>
+<li><p><strong>parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Enable parallel processing</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code (0 = success, 1 = error)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.cli.ProteinMDCLI.validate_setup">
+<span class="sig-name descname"><span class="pre">validate_setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.validate_setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.ProteinMDCLI.validate_setup" title="Link to this definition">¶</a></dt>
+<dd><p>Validate ProteinMD installation and dependencies.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="simulation-commands">
+<h2>Simulation Commands<a class="headerlink" href="#simulation-commands" title="Link to this heading">¶</a></h2>
+<section id="run-simulation">
+<h3>Run Simulation<a class="headerlink" href="#run-simulation" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-prename descclassname"><span class="pre">ProteinMDCLI.</span></span><span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.run_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>Run a complete molecular dynamics simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Input PDB file path</p></li>
+<li><p><strong>config_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Configuration file (JSON/YAML)</p></li>
+<li><p><strong>template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Workflow template name</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Output directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code (0 = success, 1 = error)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+<p><strong>Command Line Usage</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic simulation</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb
+
+<span class="c1"># With configuration file</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span>--config<span class="w"> </span>simulation.json
+
+<span class="c1"># With workflow template</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span>--template<span class="w"> </span>protein_folding
+
+<span class="c1"># Specify output directory</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span>--output-dir<span class="w"> </span>results/
+
+<span class="c1"># Combine options</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--template<span class="w"> </span>equilibration<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--config<span class="w"> </span>custom.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output-dir<span class="w"> </span>equilibration_results/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--verbose
+</pre></div>
+</div>
+<p><strong>Python Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run simulation programmatically</span>
+<span class="n">cli</span> <span class="o">=</span> <span class="n">ProteinMDCLI</span><span class="p">()</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span>
+    <span class="n">input_file</span><span class="o">=</span><span class="s2">&quot;1ubq.pdb&quot;</span><span class="p">,</span>
+    <span class="n">template</span><span class="o">=</span><span class="s2">&quot;protein_folding&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;1ubq_results/&quot;</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation successful!&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation failed!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="analysis-commands">
+<h2>Analysis Commands<a class="headerlink" href="#analysis-commands" title="Link to this heading">¶</a></h2>
+<section id="run-analysis">
+<h3>Run Analysis<a class="headerlink" href="#run-analysis" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-prename descclassname"><span class="pre">ProteinMDCLI.</span></span><span class="sig-name descname"><span class="pre">run_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectory_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">analysis_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.run_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd><p>Run analysis on existing trajectory data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajectory_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Trajectory file path</p></li>
+<li><p><strong>structure_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Reference structure file</p></li>
+<li><p><strong>analysis_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Analysis configuration file</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Output directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code (0 = success, 1 = error)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+<p><strong>Command Line Usage</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Analyze trajectory</span>
+proteinmd<span class="w"> </span>analyze<span class="w"> </span>trajectory.npz<span class="w"> </span>protein.pdb
+
+<span class="c1"># With custom analysis configuration</span>
+proteinmd<span class="w"> </span>analyze<span class="w"> </span>trajectory.npz<span class="w"> </span>protein.pdb<span class="w"> </span>--config<span class="w"> </span>analysis.json
+
+<span class="c1"># Specify output directory</span>
+proteinmd<span class="w"> </span>analyze<span class="w"> </span>trajectory.npz<span class="w"> </span>protein.pdb<span class="w"> </span>--output-dir<span class="w"> </span>analysis_results/
+</pre></div>
+</div>
+<p><strong>Python Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run analysis only</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">run_analysis</span><span class="p">(</span>
+    <span class="n">trajectory_file</span><span class="o">=</span><span class="s2">&quot;simulation.npz&quot;</span><span class="p">,</span>
+    <span class="n">structure_file</span><span class="o">=</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;analysis/&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="batch-processing">
+<h2>Batch Processing<a class="headerlink" href="#batch-processing" title="Link to this heading">¶</a></h2>
+<section id="batch-process">
+<h3>Batch Process<a class="headerlink" href="#batch-process" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-prename descclassname"><span class="pre">ProteinMDCLI.</span></span><span class="sig-name descname"><span class="pre">batch_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*.pdb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.batch_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd><p>Process multiple PDB files in batch mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Directory containing input files</p></li>
+<li><p><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – File pattern to match</p></li>
+<li><p><strong>config_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Configuration file</p></li>
+<li><p><strong>template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Workflow template</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>) – Output directory</p></li>
+<li><p><strong>parallel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Enable parallel processing</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code (0 = success, 1 = error)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+<p><strong>Command Line Usage</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process all PDB files in directory</span>
+proteinmd<span class="w"> </span>batch-process<span class="w"> </span>./structures/
+
+<span class="c1"># Use specific pattern</span>
+proteinmd<span class="w"> </span>batch-process<span class="w"> </span>./structures/<span class="w"> </span>--pattern<span class="w"> </span><span class="s2">&quot;*.pdb&quot;</span>
+
+<span class="c1"># Use template and configuration</span>
+proteinmd<span class="w"> </span>batch-process<span class="w"> </span>./structures/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--template<span class="w"> </span>protein_folding<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--config<span class="w"> </span>batch_config.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output-dir<span class="w"> </span>batch_results/
+
+<span class="c1"># Enable parallel processing (future feature)</span>
+proteinmd<span class="w"> </span>batch-process<span class="w"> </span>./structures/<span class="w"> </span>--parallel
+</pre></div>
+</div>
+<p><strong>Python Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Batch process multiple structures</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">batch_process</span><span class="p">(</span>
+    <span class="n">input_dir</span><span class="o">=</span><span class="s2">&quot;protein_family/&quot;</span><span class="p">,</span>
+    <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;*.pdb&quot;</span><span class="p">,</span>
+    <span class="n">template</span><span class="o">=</span><span class="s2">&quot;free_energy&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;family_analysis/&quot;</span><span class="p">,</span>
+    <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch processing exit code: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="template-management">
+<h2>Template Management<a class="headerlink" href="#template-management" title="Link to this heading">¶</a></h2>
+<section id="create-template">
+<h3>Create Template<a class="headerlink" href="#create-template" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-prename descclassname"><span class="pre">ProteinMDCLI.</span></span><span class="sig-name descname"><span class="pre">create_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.create_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new workflow template.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Template name</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Template description</p></li>
+<li><p><strong>config_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Configuration file to use as template</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Exit code (0 = success, 1 = error)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+<p><strong>Command Line Usage</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create custom template</span>
+proteinmd<span class="w"> </span>create-template<span class="w"> </span>high_temp<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="s2">&quot;High temperature simulation&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>config_high_temp.json
+</pre></div>
+</div>
+<p><strong>Python Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create template programmatically</span>
+<span class="n">cli</span><span class="o">.</span><span class="n">create_template</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;custom_workflow&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Custom workflow for my research&quot;</span><span class="p">,</span>
+    <span class="n">config_file</span><span class="o">=</span><span class="s2">&quot;my_config.json&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="list-templates">
+<h3>List Templates<a class="headerlink" href="#list-templates" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-prename descclassname"><span class="pre">ProteinMDCLI.</span></span><span class="sig-name descname"><span class="pre">list_templates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.list_templates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
+<dd><p>List available workflow templates.</p>
+<p><strong>Command Line Usage</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># List all available templates</span>
+proteinmd<span class="w"> </span>list-templates
+</pre></div>
+</div>
+<p><strong>Python Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># List templates programmatically</span>
+<span class="n">cli</span><span class="o">.</span><span class="n">list_templates</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="utility-commands">
+<h2>Utility Commands<a class="headerlink" href="#utility-commands" title="Link to this heading">¶</a></h2>
+<section id="validate-setup">
+<h3>Validate Setup<a class="headerlink" href="#validate-setup" title="Link to this heading">¶</a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-prename descclassname"><span class="pre">ProteinMDCLI.</span></span><span class="sig-name descname"><span class="pre">validate_setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#ProteinMDCLI.validate_setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
+<dd><p>Validate ProteinMD installation and dependencies.</p>
+<p><strong>Command Line Usage</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Validate ProteinMD installation</span>
+proteinmd<span class="w"> </span>validate-setup
+</pre></div>
+</div>
+<p><strong>Example Output</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>🔍 ProteinMD Setup Validation
+========================================
+
+📦 Module Availability:
+  ✅ Core modules: Available
+  ✅ Force fields: Available
+  ✅ Environment: Available
+  ✅ Analysis: Available
+  ✅ Sampling: Available
+  ✅ Visualization: Available
+
+📚 Dependencies:
+  ✅ NumPy: 1.21.0
+  ✅ Matplotlib: 3.5.0
+  ✅ SciPy: 1.8.0
+
+📁 File System:
+  📍 Current directory: /home/user/simulations
+  📍 Home directory: /home/user
+  📍 Config directory: /home/user/.proteinmd
+
+✅ ProteinMD setup validation completed
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="configuration-management">
+<h2>Configuration Management<a class="headerlink" href="#configuration-management" title="Link to this heading">¶</a></h2>
+<section id="configuration-utilities">
+<h3>Configuration Utilities<a class="headerlink" href="#configuration-utilities" title="Link to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="proteinMD.cli.create_sample_config">
+<span class="sig-prename descclassname"><span class="pre">proteinMD.cli.</span></span><span class="sig-name descname"><span class="pre">create_sample_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'proteinmd_config.json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/cli.html#create_sample_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.cli.create_sample_config" title="Link to this definition">¶</a></dt>
+<dd><p>Create a sample configuration file.</p>
+<p><strong>Command Line Usage</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create sample configuration file</span>
+proteinmd<span class="w"> </span>sample-config<span class="w"> </span>--output<span class="w"> </span>my_config.json
+</pre></div>
+</div>
+<p><strong>Generated Configuration Structure</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;simulation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.002</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">300.0</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;n_steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50000</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;output_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;trajectory_output&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;trajectory.npz&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;forcefield&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;amber_ff14sb&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;water_model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tip3p&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;cutoff&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.2</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;solvent&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;explicit&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;box_padding&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;periodic_boundary&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;analysis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;rmsd&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;ramachandran&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;radius_of_gyration&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;secondary_structure&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;hydrogen_bonds&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;output_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;analysis_results&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;visualization&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;realtime&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;animation_output&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;animation.gif&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;plots_output&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;plots&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="workflow-templates">
+<h2>Workflow Templates<a class="headerlink" href="#workflow-templates" title="Link to this heading">¶</a></h2>
+<section id="built-in-templates">
+<h3>Built-in Templates<a class="headerlink" href="#built-in-templates" title="Link to this heading">¶</a></h3>
+<p>ProteinMD provides several built-in workflow templates:</p>
+<dl>
+<dt><strong>protein_folding</strong></dt><dd><p>Standard protein folding simulation with comprehensive analysis</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Standard protein folding simulation&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;simulation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;n_steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50000</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">300.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.002</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;solvent&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;explicit&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;analysis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;rmsd&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;radius_of_gyration&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;secondary_structure&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>equilibration</strong></dt><dd><p>System equilibration workflow with shorter timestep</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;System equilibration workflow&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;simulation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;n_steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">25000</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">300.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.001</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;solvent&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;explicit&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;analysis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;rmsd&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;hydrogen_bonds&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>free_energy</strong></dt><dd><p>Free energy calculation using umbrella sampling</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Free energy calculation workflow&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;simulation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;n_steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100000</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">300.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.002</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;sampling&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;umbrella_sampling&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;windows&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;force_constant&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1000.0</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;analysis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;pmf_calculation&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+<dt><strong>steered_md</strong></dt><dd><p>Steered molecular dynamics for protein unfolding</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Steered molecular dynamics simulation&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;simulation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;n_steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50000</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">300.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.002</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;sampling&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steered_md&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;pulling_velocity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.005</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;spring_constant&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1000.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;coordinate_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;distance&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;analysis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;force_curves&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;work_calculation&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</section>
+<section id="configuration-hierarchy">
+<h3>Configuration Hierarchy<a class="headerlink" href="#configuration-hierarchy" title="Link to this heading">¶</a></h3>
+<p>ProteinMD uses a hierarchical configuration system:</p>
+<ol class="arabic simple">
+<li><p><strong>Command-line arguments</strong> (highest priority)</p></li>
+<li><p><strong>Configuration file</strong> specified with <code class="docutils literal notranslate"><span class="pre">--config</span></code></p></li>
+<li><p><strong>Template configuration</strong> specified with <code class="docutils literal notranslate"><span class="pre">--template</span></code></p></li>
+<li><p><strong>Default configuration</strong> (lowest priority)</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configuration merging example</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">merge_configs</span><span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">config_file</span><span class="p">,</span> <span class="n">cli_args</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Merge configurations with proper priority.&quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">default</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">template</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">merge_dicts</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">template</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">config_file</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">merge_dicts</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">config_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cli_args</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">merge_dicts</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">cli_args</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="command-line-reference">
+<h2>Command Line Reference<a class="headerlink" href="#command-line-reference" title="Link to this heading">¶</a></h2>
+<section id="complete-command-syntax">
+<h3>Complete Command Syntax<a class="headerlink" href="#complete-command-syntax" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>proteinmd<span class="w"> </span><span class="o">[</span>GLOBAL_OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>COMMAND_OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>ARGUMENTS<span class="o">]</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><strong>Global Options:</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--verbose</span></code>: Enable verbose output</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-q,</span> <span class="pre">--quiet</span></code>: Suppress non-error output</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--version</span></code>: Show version information</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--help</span></code>: Show help message</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Commands:</strong></p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">simulate</span></code></dt><dd><p>Run molecular dynamics simulation</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>proteinmd<span class="w"> </span>simulate<span class="w"> </span>INPUT_FILE<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><strong>Options:</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">FILE</span></code>: Configuration file (JSON/YAML)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--template</span> <span class="pre">NAME</span></code>: Workflow template name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--output-dir</span> <span class="pre">DIR</span></code>: Output directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--force</span></code>: Overwrite existing output</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">analyze</span></code></dt><dd><p>Analyze trajectory data</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>proteinmd<span class="w"> </span>analyze<span class="w"> </span>TRAJECTORY_FILE<span class="w"> </span>STRUCTURE_FILE<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><strong>Options:</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">FILE</span></code>: Analysis configuration file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--output-dir</span> <span class="pre">DIR</span></code>: Output directory</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">batch-process</span></code></dt><dd><p>Process multiple structures</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>proteinmd<span class="w"> </span>batch-process<span class="w"> </span>INPUT_DIR<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><strong>Options:</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--pattern</span> <span class="pre">PATTERN</span></code>: File pattern (default: <code class="docutils literal notranslate"><span class="pre">&quot;*.pdb&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">FILE</span></code>: Configuration file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--template</span> <span class="pre">NAME</span></code>: Workflow template</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--output-dir</span> <span class="pre">DIR</span></code>: Output directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--parallel</span></code>: Enable parallel processing</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">create-template</span></code></dt><dd><p>Create custom workflow template</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>proteinmd<span class="w"> </span>create-template<span class="w"> </span>NAME<span class="w"> </span>DESCRIPTION<span class="w"> </span>CONFIG_FILE
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">list-templates</span></code></dt><dd><p>List available workflow templates</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>proteinmd<span class="w"> </span>list-templates
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">sample-config</span></code></dt><dd><p>Create sample configuration file</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>proteinmd<span class="w"> </span>sample-config<span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>FILE<span class="o">]</span>
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">validate-setup</span></code></dt><dd><p>Validate ProteinMD installation</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>proteinmd<span class="w"> </span>validate-setup
+</pre></div>
+</div>
+</dd>
+</dl>
+</section>
+</section>
+<section id="error-handling-and-logging">
+<h2>Error Handling and Logging<a class="headerlink" href="#error-handling-and-logging" title="Link to this heading">¶</a></h2>
+<section id="return-codes">
+<h3>Return Codes<a class="headerlink" href="#return-codes" title="Link to this heading">¶</a></h3>
+<p>The CLI uses standard return codes for script integration:</p>
+<ul class="simple">
+<li><p><strong>0</strong>: Success</p></li>
+<li><p><strong>1</strong>: General error</p></li>
+<li><p><strong>130</strong>: Interrupted by user (Ctrl+C)</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check exit status in shell scripts</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$?</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Simulation successful&quot;</span>
+<span class="k">else</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Simulation failed&quot;</span>
+<span class="k">fi</span>
+</pre></div>
+</div>
+</section>
+<section id="logging-configuration">
+<h3>Logging Configuration<a class="headerlink" href="#logging-configuration" title="Link to this heading">¶</a></h3>
+<p>ProteinMD provides comprehensive logging:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="c1"># Configure logging levels</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;proteinmd.log&#39;</span><span class="p">),</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt><strong>Log Files:</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">proteinmd_cli.log</span></code>: CLI-specific logs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simulation.log</span></code>: Simulation progress and errors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">analysis.log</span></code>: Analysis pipeline logs</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="common-usage-patterns">
+<h2>Common Usage Patterns<a class="headerlink" href="#common-usage-patterns" title="Link to this heading">¶</a></h2>
+<section id="complete-workflow-example">
+<h3>Complete Workflow Example<a class="headerlink" href="#complete-workflow-example" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Validate installation</span>
+proteinmd<span class="w"> </span>validate-setup
+
+<span class="c1"># 2. Create sample configuration</span>
+proteinmd<span class="w"> </span>sample-config<span class="w"> </span>--output<span class="w"> </span>my_config.json
+
+<span class="c1"># 3. Edit configuration as needed</span>
+nano<span class="w"> </span>my_config.json
+
+<span class="c1"># 4. Run simulation</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--config<span class="w"> </span>my_config.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output-dir<span class="w"> </span>results/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--verbose
+
+<span class="c1"># 5. Additional analysis</span>
+proteinmd<span class="w"> </span>analyze<span class="w"> </span>results/trajectory.npz<span class="w"> </span>protein.pdb<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output-dir<span class="w"> </span>extended_analysis/
+</pre></div>
+</div>
+</section>
+<section id="high-throughput-processing">
+<h3>High-Throughput Processing<a class="headerlink" href="#high-throughput-processing" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process entire protein family</span>
+proteinmd<span class="w"> </span>batch-process<span class="w"> </span>./protein_family/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--template<span class="w"> </span>free_energy<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output-dir<span class="w"> </span>family_analysis/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--verbose
+
+<span class="c1"># Check batch results</span>
+cat<span class="w"> </span>family_analysis/batch_summary.txt
+</pre></div>
+</div>
+</section>
+<section id="script-integration">
+<h3>Script Integration<a class="headerlink" href="#script-integration" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1"># Automated processing script</span>
+
+<span class="k">for</span><span class="w"> </span>pdb<span class="w"> </span><span class="k">in</span><span class="w"> </span>*.pdb<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Processing </span><span class="nv">$pdb</span><span class="s2">...&quot;</span>
+
+<span class="w">    </span>proteinmd<span class="w"> </span>simulate<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$pdb</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--template<span class="w"> </span>protein_folding<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--output-dir<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">pdb</span><span class="p">%.pdb</span><span class="si">}</span><span class="s2">_results/&quot;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="nv">$?</span><span class="w"> </span>-eq<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Successfully processed </span><span class="nv">$pdb</span><span class="s2">&quot;</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">        </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Failed to process </span><span class="nv">$pdb</span><span class="s2">&quot;</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+<span class="w">    </span><span class="k">fi</span>
+<span class="k">done</span>
+</pre></div>
+</div>
+</section>
+<section id="python-integration">
+<h3>Python Integration<a class="headerlink" href="#python-integration" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_proteinmd_simulation</span><span class="p">(</span><span class="n">pdb_file</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;protein_folding&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run ProteinMD simulation with error handling.&quot;&quot;&quot;</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;proteinmd&quot;</span><span class="p">,</span> <span class="s2">&quot;simulate&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">pdb_file</span><span class="p">),</span>
+        <span class="s2">&quot;--template&quot;</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span>
+        <span class="s2">&quot;--output-dir&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pdb_file</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">_results/&quot;</span>
+    <span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">cmd</span><span class="p">,</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">check</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success: </span><span class="si">{</span><span class="n">pdb_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error processing </span><span class="si">{</span><span class="n">pdb_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">stderr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<span class="c1"># Process multiple files</span>
+<span class="n">pdb_files</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.pdb&quot;</span><span class="p">)</span>
+<span class="n">success_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">for</span> <span class="n">pdb_file</span> <span class="ow">in</span> <span class="n">pdb_files</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">run_proteinmd_simulation</span><span class="p">(</span><span class="n">pdb_file</span><span class="p">):</span>
+        <span class="n">success_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed </span><span class="si">{</span><span class="n">success_count</span><span class="si">}</span><span class="s2"> files&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-optimization">
+<h3>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># For large systems, optimize CLI performance</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>large_protein.pdb<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--config<span class="w"> </span>optimized.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output-dir<span class="w"> </span>large_system_results/
+
+<span class="c1"># Where optimized.json contains:</span>
+<span class="o">{</span>
+<span class="w">  </span><span class="s2">&quot;simulation&quot;</span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="s2">&quot;output_frequency&quot;</span>:<span class="w"> </span><span class="m">1000</span>,
+<span class="w">    </span><span class="s2">&quot;trajectory_compression&quot;</span>:<span class="w"> </span><span class="nb">true</span>
+<span class="w">  </span><span class="o">}</span>,
+<span class="w">  </span><span class="s2">&quot;environment&quot;</span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="s2">&quot;solvent&quot;</span>:<span class="w"> </span><span class="s2">&quot;implicit&quot;</span>
+<span class="w">  </span><span class="o">}</span>,
+<span class="w">  </span><span class="s2">&quot;visualization&quot;</span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="s2">&quot;enabled&quot;</span>:<span class="w"> </span>false,
+<span class="w">    </span><span class="s2">&quot;realtime&quot;</span>:<span class="w"> </span><span class="nb">false</span>
+<span class="w">  </span><span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../user_guide/cli_reference.html"><span class="doc">CLI Reference</span></a> - Complete CLI reference guide</p></li>
+<li><p><a class="reference internal" href="../user_guide/tutorials.html"><span class="doc">Tutorials</span></a> - Step-by-step CLI tutorials</p></li>
+<li><p><a class="reference internal" href="../advanced/troubleshooting.html"><span class="doc">Troubleshooting Guide</span></a> - Troubleshooting CLI issues</p></li>
+<li><p><a class="reference internal" href="core.html"><span class="doc">Core Simulation Engine</span></a> - Core simulation engine used by CLI</p></li>
+<li><p><a class="reference internal" href="../user_guide/examples.html"><span class="doc">Examples</span></a> - Real-world CLI usage examples</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-cli-class">Main CLI Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.cli.ProteinMDCLI"><code class="docutils literal notranslate"><span class="pre">ProteinMDCLI</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-commands">Simulation Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#run-simulation">Run Simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-commands">Analysis Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#run-analysis">Run Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-processing">Batch Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#batch-process">Batch Process</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#template-management">Template Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#create-template">Create Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#list-templates">List Templates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utility-commands">Utility Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#validate-setup">Validate Setup</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-management">Configuration Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-templates">Workflow Templates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#built-in-templates">Built-in Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration-hierarchy">Configuration Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-reference">Command Line Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#complete-command-syntax">Complete Command Syntax</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#error-handling-and-logging">Error Handling and Logging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#return-codes">Return Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#logging-configuration">Logging Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#complete-workflow-example">Complete Workflow Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#high-throughput-processing">High-Throughput Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#script-integration">Script Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-integration">Python Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-optimization">Performance Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="utils.html" title="previous chapter">Utilities API Reference</a></li>
+      <li>Next: <a href="../advanced/performance.html" title="next chapter">Performance Optimization</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/api/cli.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

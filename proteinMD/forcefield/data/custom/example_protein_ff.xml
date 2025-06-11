@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ForceField name="Simple Protein Force Field" version="1.0" 
+            description="A simple custom force field for protein simulation">
+  
+  <Metadata>
+    <Creator>proteinMD CustomForceField</Creator>
+    <Units>
+      <Mass unit="amu"/>
+      <Charge unit="elementary_charge"/>
+      <Length unit="nm"/>
+      <Energy unit="kJ/mol"/>
+      <Angle unit="radians"/>
+    </Units>
+  </Metadata>
+  
+  <AtomTypes>
+    <AtomType name="CA" mass="12.01" charge="0.0" sigma="0.339967" epsilon="0.359824" 
+              description="Carbon alpha in protein backbone"/>
+    <AtomType name="CB" mass="12.01" charge="0.0" sigma="0.339967" epsilon="0.359824" 
+              description="Carbon beta in amino acid side chains"/>
+    <AtomType name="NH" mass="14.007" charge="-0.4" sigma="0.325" epsilon="0.71128" 
+              description="Nitrogen in amide groups"/>
+    <AtomType name="OH" mass="15.999" charge="-0.6" sigma="0.30664" epsilon="0.88281" 
+              description="Oxygen in carbonyl groups"/>
+    <AtomType name="HN" mass="1.008" charge="0.4" sigma="0.10691" epsilon="0.06568" 
+              description="Hydrogen bonded to nitrogen"/>
+    <AtomType name="HC" mass="1.008" charge="0.0" sigma="0.24718" epsilon="0.06568" 
+              description="Hydrogen bonded to carbon"/>
+  </AtomTypes>
+  
+  <BondTypes>
+    <BondType class="CA-CB" length="0.1529" k="259408.0" 
+              description="CA-CB single bond"/>
+    <BondType class="CA-NH" length="0.1449" k="282001.6" 
+              description="CA-NH amide bond"/>
+    <BondType class="CA-OH" length="0.1229" k="476976.0" 
+              description="CA-OH carbonyl bond"/>
+    <BondType class="NH-HN" length="0.1010" k="363171.2" 
+              description="NH-HN bond"/>
+    <BondType class="CA-HC" length="0.1090" k="284512.0" 
+              description="CA-HC bond"/>
+    <BondType class="CB-HC" length="0.1090" k="284512.0" 
+              description="CB-HC bond"/>
+  </BondTypes>
+  
+  <AngleTypes>
+    <AngleType class="NH-CA-CB" angle="1.9146" k="418.4" 
+               description="NH-CA-CB angle"/>
+    <AngleType class="NH-CA-OH" angle="2.0944" k="669.44" 
+               description="NH-CA-OH angle"/>
+    <AngleType class="CB-CA-OH" angle="2.0944" k="669.44" 
+               description="CB-CA-OH angle"/>
+    <AngleType class="CA-NH-HN" angle="2.0944" k="292.88" 
+               description="CA-NH-HN angle"/>
+    <AngleType class="CA-CB-HC" angle="1.9106" k="292.88" 
+               description="CA-CB-HC angle"/>
+    <AngleType class="HC-CB-HC" angle="1.8762" k="276.14" 
+               description="HC-CB-HC angle"/>
+  </AngleTypes>
+  
+  <DihedralTypes>
+    <DihedralType class="NH-CA-CB-HC" periodicity="3" phase="0.0" k="0.6276" 
+                  description="Backbone-sidechain dihedral"/>
+    <DihedralType class="OH-CA-NH-HN" periodicity="2" phase="3.14159" k="8.368" 
+                  description="Amide dihedral"/>
+    <DihedralType class="CA-CB-HC-HC" periodicity="3" phase="0.0" k="0.6276" 
+                  description="Methyl rotation"/>
+  </DihedralTypes>
+  
+</ForceField>

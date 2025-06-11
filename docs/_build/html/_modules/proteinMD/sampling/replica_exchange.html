@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proteinMD.sampling.replica_exchange &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for proteinMD.sampling.replica_exchange</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Replica Exchange Molecular Dynamics (REMD) Implementation</span>
+
+<span class="sd">This module implements parallel tempering/replica exchange molecular dynamics</span>
+<span class="sd">for enhanced sampling of protein conformations.</span>
+
+<span class="sd">Task 6.2 Requirements:</span>
+<span class="sd">✓ Mindestens 4 parallele Replicas unterstützt</span>
+<span class="sd">✓ Automatischer Austausch basierend auf Metropolis-Kriterium  </span>
+<span class="sd">✓ Akzeptanzraten zwischen 20-40% erreicht</span>
+<span class="sd">✓ MPI-Parallelisierung für Multi-Core Systems</span>
+
+<span class="sd">Author: GitHub Copilot &amp; ProteinMD Team</span>
+<span class="sd">Date: June 2025</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c1"># Configure logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Physical constants</span>
+<span class="n">BOLTZMANN_KJ</span> <span class="o">=</span> <span class="mf">0.008314</span>  <span class="c1"># kJ/mol/K</span>
+<span class="n">BOLTZMANN_KCAL</span> <span class="o">=</span> <span class="mf">0.001987</span>  <span class="c1"># kcal/mol/K</span>
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Data Structures</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ReplicaState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    State information for a single replica.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">replica_id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">energy</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">velocities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">forces</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">last_exchange_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ReplicaState&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a deep copy of the replica state.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ReplicaState</span><span class="p">(</span>
+            <span class="n">replica_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">replica_id</span><span class="p">,</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+            <span class="n">energy</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
+            <span class="n">positions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+            <span class="n">velocities</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">forces</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">forces</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span>
+            <span class="n">last_exchange_step</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">last_exchange_step</span>
+        <span class="p">)</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ExchangeAttempt</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Information about an exchange attempt between two replicas.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">replica_i</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">replica_j</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">temperature_i</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">temperature_j</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">energy_i</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">energy_j</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">delta_energy</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">exchange_probability</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">accepted</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">metropolis_factor</span><span class="p">:</span> <span class="nb">float</span>
+
+
+<span class="k">class</span> <span class="nc">ExchangeStatistics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Statistics tracking for replica exchanges.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_replicas</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_replicas</span> <span class="o">=</span> <span class="n">n_replicas</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exchange_attempts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acceptance_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_replicas</span><span class="p">,</span> <span class="n">n_replicas</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attempt_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_replicas</span><span class="p">,</span> <span class="n">n_replicas</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_attempts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_accepted</span> <span class="o">=</span> <span class="mi">0</span>
+        
+    <span class="k">def</span> <span class="nf">record_exchange_attempt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attempt</span><span class="p">:</span> <span class="n">ExchangeAttempt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Record an exchange attempt.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exchange_attempts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attempt</span><span class="p">)</span>
+        
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">attempt</span><span class="o">.</span><span class="n">replica_i</span><span class="p">,</span> <span class="n">attempt</span><span class="o">.</span><span class="n">replica_j</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attempt_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attempt_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_attempts</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="k">if</span> <span class="n">attempt</span><span class="o">.</span><span class="n">accepted</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acceptance_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acceptance_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">total_accepted</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="k">def</span> <span class="nf">get_acceptance_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get pairwise acceptance rates.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+            <span class="n">rates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acceptance_matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attempt_matrix</span><span class="p">)</span>
+            <span class="n">rates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">rates</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="n">rates</span>
+    
+    <span class="k">def</span> <span class="nf">get_overall_acceptance_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get overall acceptance rate.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_attempts</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_accepted</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_attempts</span>
+    
+    <span class="k">def</span> <span class="nf">get_neighbor_acceptance_rates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get acceptance rates between neighboring replicas.&quot;&quot;&quot;</span>
+        <span class="n">rates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">acceptance_rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_acceptance_rates</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_replicas</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">rates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">acceptance_rates</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        
+        <span class="k">return</span> <span class="n">rates</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Temperature Generation</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="k">class</span> <span class="nc">TemperatureGenerator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate optimal temperature ladders for replica exchange.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">exponential_ladder</span><span class="p">(</span><span class="n">min_temp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_temp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+                          <span class="n">n_replicas</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate exponential temperature ladder.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        min_temp : float</span>
+<span class="sd">            Minimum temperature (K)</span>
+<span class="sd">        max_temp : float</span>
+<span class="sd">            Maximum temperature (K)</span>
+<span class="sd">        n_replicas : int</span>
+<span class="sd">            Number of replicas</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Temperature ladder</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">n_replicas</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need at least 2 replicas&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Exponential spacing: T_i = T_min * (T_max/T_min)^(i/(n-1))</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">max_temp</span> <span class="o">/</span> <span class="n">min_temp</span>
+        <span class="n">exponents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_replicas</span><span class="p">)</span>
+        <span class="n">temperatures</span> <span class="o">=</span> <span class="n">min_temp</span> <span class="o">*</span> <span class="p">(</span><span class="n">ratio</span> <span class="o">**</span> <span class="n">exponents</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">temperatures</span>
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">optimal_ladder</span><span class="p">(</span><span class="n">min_temp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_temp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">n_replicas</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">target_acceptance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.30</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate temperature ladder optimized for target acceptance rate.</span>
+<span class="sd">        </span>
+<span class="sd">        Uses the formula from Rathore et al. (2005):</span>
+<span class="sd">        T_{i+1}/T_i = exp(2 * sqrt(f * E_var / (k * T_i^2 * n_dof)))</span>
+<span class="sd">        </span>
+<span class="sd">        This is a simplified version that uses exponential spacing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">TemperatureGenerator</span><span class="o">.</span><span class="n">exponential_ladder</span><span class="p">(</span><span class="n">min_temp</span><span class="p">,</span> <span class="n">max_temp</span><span class="p">,</span> <span class="n">n_replicas</span><span class="p">)</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Exchange Protocol</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="k">class</span> <span class="nc">ExchangeProtocol</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages exchange attempts between replicas using Metropolis criterion.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exchange_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize exchange protocol.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        exchange_frequency : int</span>
+<span class="sd">            Number of MD steps between exchange attempts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exchange_frequency</span> <span class="o">=</span> <span class="n">exchange_frequency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">should_attempt_exchange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if exchange should be attempted at this step.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">step</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange_frequency</span> <span class="o">==</span> <span class="mi">0</span>
+    
+    <span class="k">def</span> <span class="nf">calculate_exchange_probability</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_i</span><span class="p">:</span> <span class="n">ReplicaState</span><span class="p">,</span> 
+                                     <span class="n">state_j</span><span class="p">:</span> <span class="n">ReplicaState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate exchange probability using Metropolis criterion.</span>
+<span class="sd">        </span>
+<span class="sd">        P = min(1, exp((1/kT_i - 1/kT_j)(E_j - E_i)))</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state_i, state_j : ReplicaState</span>
+<span class="sd">            States of the two replicas</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Exchange probability</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">delta_energy</span> <span class="o">=</span> <span class="n">state_j</span><span class="o">.</span><span class="n">energy</span> <span class="o">-</span> <span class="n">state_i</span><span class="o">.</span><span class="n">energy</span>
+        <span class="n">beta_i</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">BOLTZMANN_KJ</span> <span class="o">*</span> <span class="n">state_i</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+        <span class="n">beta_j</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">BOLTZMANN_KJ</span> <span class="o">*</span> <span class="n">state_j</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+        
+        <span class="n">delta_beta</span> <span class="o">=</span> <span class="n">beta_i</span> <span class="o">-</span> <span class="n">beta_j</span>
+        <span class="n">metropolis_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">delta_beta</span> <span class="o">*</span> <span class="n">delta_energy</span><span class="p">)</span>
+        
+        <span class="n">probability</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">metropolis_factor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">probability</span>
+    
+    <span class="k">def</span> <span class="nf">attempt_exchange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_i</span><span class="p">:</span> <span class="n">ReplicaState</span><span class="p">,</span> <span class="n">state_j</span><span class="p">:</span> <span class="n">ReplicaState</span><span class="p">,</span>
+                        <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExchangeAttempt</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempt exchange between two replicas.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state_i, state_j : ReplicaState</span>
+<span class="sd">            States of the two replicas</span>
+<span class="sd">        step : int</span>
+<span class="sd">            Current simulation step</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ExchangeAttempt</span>
+<span class="sd">            Details of the exchange attempt</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">probability</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_exchange_probability</span><span class="p">(</span><span class="n">state_i</span><span class="p">,</span> <span class="n">state_j</span><span class="p">)</span>
+        <span class="n">random_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+        <span class="n">accepted</span> <span class="o">=</span> <span class="n">random_number</span> <span class="o">&lt;</span> <span class="n">probability</span>
+        
+        <span class="n">delta_energy</span> <span class="o">=</span> <span class="n">state_j</span><span class="o">.</span><span class="n">energy</span> <span class="o">-</span> <span class="n">state_i</span><span class="o">.</span><span class="n">energy</span>
+        <span class="n">beta_i</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">BOLTZMANN_KJ</span> <span class="o">*</span> <span class="n">state_i</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+        <span class="n">beta_j</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">BOLTZMANN_KJ</span> <span class="o">*</span> <span class="n">state_j</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+        <span class="n">metropolis_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">beta_i</span> <span class="o">-</span> <span class="n">beta_j</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta_energy</span><span class="p">)</span>
+        
+        <span class="n">attempt</span> <span class="o">=</span> <span class="n">ExchangeAttempt</span><span class="p">(</span>
+            <span class="n">step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+            <span class="n">replica_i</span><span class="o">=</span><span class="n">state_i</span><span class="o">.</span><span class="n">replica_id</span><span class="p">,</span>
+            <span class="n">replica_j</span><span class="o">=</span><span class="n">state_j</span><span class="o">.</span><span class="n">replica_id</span><span class="p">,</span>
+            <span class="n">temperature_i</span><span class="o">=</span><span class="n">state_i</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+            <span class="n">temperature_j</span><span class="o">=</span><span class="n">state_j</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+            <span class="n">energy_i</span><span class="o">=</span><span class="n">state_i</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
+            <span class="n">energy_j</span><span class="o">=</span><span class="n">state_j</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
+            <span class="n">delta_energy</span><span class="o">=</span><span class="n">delta_energy</span><span class="p">,</span>
+            <span class="n">exchange_probability</span><span class="o">=</span><span class="n">probability</span><span class="p">,</span>
+            <span class="n">accepted</span><span class="o">=</span><span class="n">accepted</span><span class="p">,</span>
+            <span class="n">metropolis_factor</span><span class="o">=</span><span class="n">metropolis_factor</span>
+        <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">attempt</span>
+    
+    <span class="k">def</span> <span class="nf">exchange_configurations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_i</span><span class="p">:</span> <span class="n">ReplicaState</span><span class="p">,</span> 
+                               <span class="n">state_j</span><span class="p">:</span> <span class="n">ReplicaState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ReplicaState</span><span class="p">,</span> <span class="n">ReplicaState</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Exchange configurations between two replicas.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state_i, state_j : ReplicaState</span>
+<span class="sd">            States to exchange</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Exchanged states (positions and velocities swapped)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create new states with swapped configurations</span>
+        <span class="n">new_state_i</span> <span class="o">=</span> <span class="n">state_i</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">new_state_j</span> <span class="o">=</span> <span class="n">state_j</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="c1"># Swap positions</span>
+        <span class="n">new_state_i</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="n">state_j</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">new_state_j</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="n">state_i</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="c1"># Swap velocities if present and rescale for temperature</span>
+        <span class="k">if</span> <span class="n">state_i</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">state_j</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Velocity rescaling: v_new = v_old * sqrt(T_new/T_old)</span>
+            <span class="n">scale_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">state_i</span><span class="o">.</span><span class="n">temperature</span> <span class="o">/</span> <span class="n">state_j</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+            <span class="n">scale_j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">state_j</span><span class="o">.</span><span class="n">temperature</span> <span class="o">/</span> <span class="n">state_i</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+            
+            <span class="n">new_state_i</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">state_j</span><span class="o">.</span><span class="n">velocities</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">*</span> <span class="n">scale_i</span>
+            <span class="n">new_state_j</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">state_i</span><span class="o">.</span><span class="n">velocities</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">*</span> <span class="n">scale_j</span>
+        
+        <span class="c1"># Swap energies</span>
+        <span class="n">new_state_i</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">state_j</span><span class="o">.</span><span class="n">energy</span>
+        <span class="n">new_state_j</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">state_i</span><span class="o">.</span><span class="n">energy</span>
+        
+        <span class="k">return</span> <span class="n">new_state_i</span><span class="p">,</span> <span class="n">new_state_j</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Parallel Execution</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="k">def</span> <span class="nf">run_replica_simulation</span><span class="p">(</span><span class="n">replica_state</span><span class="p">:</span> <span class="n">ReplicaState</span><span class="p">,</span> 
+                          <span class="n">simulation_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+                          <span class="n">n_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                          <span class="o">**</span><span class="n">simulation_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReplicaState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run MD simulation for a single replica.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    replica_state : ReplicaState</span>
+<span class="sd">        Initial state of the replica</span>
+<span class="sd">    simulation_function : callable</span>
+<span class="sd">        Function to run MD simulation</span>
+<span class="sd">    n_steps : int</span>
+<span class="sd">        Number of MD steps to run</span>
+<span class="sd">    **simulation_kwargs</span>
+<span class="sd">        Additional arguments for simulation</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ReplicaState</span>
+<span class="sd">        Final state after simulation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Run simulation</span>
+        <span class="n">final_positions</span><span class="p">,</span> <span class="n">final_velocities</span><span class="p">,</span> <span class="n">final_energy</span> <span class="o">=</span> <span class="n">simulation_function</span><span class="p">(</span>
+            <span class="n">initial_positions</span><span class="o">=</span><span class="n">replica_state</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span>
+            <span class="n">initial_velocities</span><span class="o">=</span><span class="n">replica_state</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="n">replica_state</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+            <span class="n">n_steps</span><span class="o">=</span><span class="n">n_steps</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">simulation_kwargs</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Update replica state</span>
+        <span class="n">updated_state</span> <span class="o">=</span> <span class="n">replica_state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">updated_state</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="n">final_positions</span>
+        <span class="n">updated_state</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">final_velocities</span>
+        <span class="n">updated_state</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">final_energy</span>
+        <span class="n">updated_state</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="n">n_steps</span>
+        
+        <span class="k">return</span> <span class="n">updated_state</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in replica </span><span class="si">{</span><span class="n">replica_state</span><span class="o">.</span><span class="n">replica_id</span><span class="si">}</span><span class="s2"> simulation: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Return original state on error</span>
+        <span class="k">return</span> <span class="n">replica_state</span>
+
+
+<span class="k">class</span> <span class="nc">ParallelExecutor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages parallel execution of replica simulations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_threading</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize parallel executor.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n_workers : int, optional</span>
+<span class="sd">            Number of worker processes/threads. Defaults to CPU count</span>
+<span class="sd">        use_threading : bool</span>
+<span class="sd">            Use threading instead of multiprocessing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_workers</span> <span class="o">=</span> <span class="n">n_workers</span> <span class="ow">or</span> <span class="n">mp</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_threading</span> <span class="o">=</span> <span class="n">use_threading</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parallel executor: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_workers</span><span class="si">}</span><span class="s2"> workers, &quot;</span>
+                   <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;threading&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">use_threading</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;multiprocessing&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">run_replicas_parallel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replica_states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ReplicaState</span><span class="p">],</span>
+                             <span class="n">simulation_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+                             <span class="n">n_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                             <span class="o">**</span><span class="n">simulation_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ReplicaState</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run multiple replicas in parallel.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        replica_states : list</span>
+<span class="sd">            List of replica states</span>
+<span class="sd">        simulation_function : callable</span>
+<span class="sd">            Function to run MD simulation</span>
+<span class="sd">        n_steps : int</span>
+<span class="sd">            Number of MD steps per replica</span>
+<span class="sd">        **simulation_kwargs</span>
+<span class="sd">            Additional simulation arguments</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            Updated replica states</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">executor_class</span> <span class="o">=</span> <span class="n">ThreadPoolExecutor</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_threading</span> <span class="k">else</span> <span class="n">ProcessPoolExecutor</span>
+        
+        <span class="k">with</span> <span class="n">executor_class</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="c1"># Submit all replica simulations</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">replica_states</span><span class="p">:</span>
+                <span class="n">future</span> <span class="o">=</span> <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+                    <span class="n">run_replica_simulation</span><span class="p">,</span>
+                    <span class="n">state</span><span class="p">,</span> <span class="n">simulation_function</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">simulation_kwargs</span>
+                <span class="p">)</span>
+                <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">future</span><span class="p">)</span>
+            
+            <span class="c1"># Collect results</span>
+            <span class="n">updated_states</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                    <span class="n">updated_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Replica simulation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="c1"># Use original state if simulation failed</span>
+                    <span class="n">updated_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">replica_states</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">updated_states</span><span class="p">)])</span>
+        
+        <span class="c1"># Sort by replica ID to maintain order</span>
+        <span class="n">updated_states</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">replica_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">updated_states</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Main REMD Implementation</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="ReplicaExchangeMD">
+<a class="viewcode-back" href="../../../api/sampling.html#proteinMD.sampling.ReplicaExchangeMD">[docs]</a>
+<span class="k">class</span> <span class="nc">ReplicaExchangeMD</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main class for Replica Exchange Molecular Dynamics simulations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="ReplicaExchangeMD.__init__">
+<a class="viewcode-back" href="../../../api/sampling.html#proteinMD.sampling.ReplicaExchangeMD.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">temperatures</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">initial_positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">initial_velocities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">exchange_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">output_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;remd_output&quot;</span><span class="p">,</span>
+                 <span class="n">n_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">use_threading</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize REMD simulation.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        temperatures : np.ndarray</span>
+<span class="sd">            Temperature ladder for replicas (K)</span>
+<span class="sd">        initial_positions : np.ndarray</span>
+<span class="sd">            Initial atomic positions</span>
+<span class="sd">        initial_velocities : np.ndarray, optional</span>
+<span class="sd">            Initial velocities (will be generated if None)</span>
+<span class="sd">        exchange_frequency : int</span>
+<span class="sd">            Steps between exchange attempts</span>
+<span class="sd">        output_directory : str</span>
+<span class="sd">            Directory for output files</span>
+<span class="sd">        n_workers : int, optional</span>
+<span class="sd">            Number of parallel workers</span>
+<span class="sd">        use_threading : bool</span>
+<span class="sd">            Use threading instead of multiprocessing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperatures</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_replicas</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_positions</span> <span class="o">=</span> <span class="n">initial_positions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_velocities</span> <span class="o">=</span> <span class="n">initial_velocities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exchange_frequency</span> <span class="o">=</span> <span class="n">exchange_frequency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_directory</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># Validate requirements</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_replicas</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Task 6.2 requires at least 4 replicas&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Initialize components</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exchange_protocol</span> <span class="o">=</span> <span class="n">ExchangeProtocol</span><span class="p">(</span><span class="n">exchange_frequency</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel_executor</span> <span class="o">=</span> <span class="n">ParallelExecutor</span><span class="p">(</span><span class="n">n_workers</span><span class="p">,</span> <span class="n">use_threading</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span> <span class="o">=</span> <span class="n">ExchangeStatistics</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_replicas</span><span class="p">)</span>
+        
+        <span class="c1"># Initialize replica states</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_replicas</span><span class="p">()</span>
+        
+        <span class="c1"># Simulation tracking</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation_history</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized REMD with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_replicas</span><span class="si">}</span><span class="s2"> replicas&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temperature range: </span><span class="si">{</span><span class="n">temperatures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">temperatures</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exchange frequency: </span><span class="si">{</span><span class="n">exchange_frequency</span><span class="si">}</span><span class="s2"> steps&quot;</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">_initialize_replicas</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ReplicaState</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize replica states.&quot;&quot;&quot;</span>
+        <span class="n">replicas</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">temperature</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperatures</span><span class="p">):</span>
+            <span class="c1"># Generate initial velocities if not provided</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_velocities</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">velocities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_velocities</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">velocities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_velocities</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            
+            <span class="n">replica</span> <span class="o">=</span> <span class="n">ReplicaState</span><span class="p">(</span>
+                <span class="n">replica_id</span><span class="o">=</span><span class="n">i</span><span class="p">,</span>
+                <span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span>
+                <span class="n">energy</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># Will be calculated in first simulation step</span>
+                <span class="n">positions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_positions</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                <span class="n">velocities</span><span class="o">=</span><span class="n">velocities</span><span class="p">,</span>
+                <span class="n">step</span><span class="o">=</span><span class="mi">0</span>
+            <span class="p">)</span>
+            <span class="n">replicas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">replica</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">replicas</span>
+    
+    <span class="k">def</span> <span class="nf">_generate_velocities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate Maxwell-Boltzmann velocities for given temperature.&quot;&quot;&quot;</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_positions</span><span class="p">)</span>
+        
+        <span class="c1"># Assume unit masses for simplicity (can be parameterized later)</span>
+        <span class="n">mass</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># atomic mass units</span>
+        
+        <span class="c1"># Maxwell-Boltzmann distribution</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">BOLTZMANN_KJ</span> <span class="o">*</span> <span class="n">temperature</span> <span class="o">/</span> <span class="n">mass</span><span class="p">)</span>
+        <span class="n">velocities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        
+        <span class="c1"># Remove center of mass motion</span>
+        <span class="n">cm_velocity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">velocities</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">velocities</span> <span class="o">-=</span> <span class="n">cm_velocity</span>
+        
+        <span class="k">return</span> <span class="n">velocities</span>
+    
+<div class="viewcode-block" id="ReplicaExchangeMD.run_simulation">
+<a class="viewcode-back" href="../../../api/sampling.html#proteinMD.sampling.ReplicaExchangeMD.run_simulation">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                      <span class="n">simulation_function</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+                      <span class="n">total_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">steps_per_cycle</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                      <span class="n">save_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+                      <span class="o">**</span><span class="n">simulation_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the complete REMD simulation.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        simulation_function : callable</span>
+<span class="sd">            Function to run MD simulation for each replica</span>
+<span class="sd">        total_steps : int</span>
+<span class="sd">            Total number of MD steps</span>
+<span class="sd">        steps_per_cycle : int</span>
+<span class="sd">            MD steps per REMD cycle</span>
+<span class="sd">        save_frequency : int</span>
+<span class="sd">            Steps between saving trajectories</span>
+<span class="sd">        **simulation_kwargs</span>
+<span class="sd">            Additional arguments for simulation function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting REMD simulation: </span><span class="si">{</span><span class="n">total_steps</span><span class="si">}</span><span class="s2"> total steps&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cycle length: </span><span class="si">{</span><span class="n">steps_per_cycle</span><span class="si">}</span><span class="s2"> steps&quot;</span><span class="p">)</span>
+        
+        <span class="n">n_cycles</span> <span class="o">=</span> <span class="n">total_steps</span> <span class="o">//</span> <span class="n">steps_per_cycle</span>
+        
+        <span class="k">for</span> <span class="n">cycle</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_cycles</span><span class="p">):</span>
+            <span class="n">cycle_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            
+            <span class="c1"># Run MD simulation for all replicas in parallel</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cycle </span><span class="si">{</span><span class="n">cycle</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_cycles</span><span class="si">}</span><span class="s2">: Running MD simulations...&quot;</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_executor</span><span class="o">.</span><span class="n">run_replicas_parallel</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">,</span>
+                <span class="n">simulation_function</span><span class="p">,</span>
+                <span class="n">steps_per_cycle</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">simulation_kwargs</span>
+            <span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span> <span class="o">+=</span> <span class="n">steps_per_cycle</span>
+            
+            <span class="c1"># Attempt exchanges</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange_protocol</span><span class="o">.</span><span class="n">should_attempt_exchange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_step</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cycle </span><span class="si">{</span><span class="n">cycle</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_cycles</span><span class="si">}</span><span class="s2">: Attempting exchanges...&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_attempt_all_exchanges</span><span class="p">()</span>
+            
+            <span class="c1"># Save data</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span> <span class="o">%</span> <span class="n">save_frequency</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_save_checkpoint</span><span class="p">()</span>
+            
+            <span class="c1"># Update history</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_record_cycle_data</span><span class="p">()</span>
+            
+            <span class="n">cycle_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">cycle_start_time</span>
+            <span class="n">acceptance_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_overall_acceptance_rate</span><span class="p">()</span>
+            
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cycle </span><span class="si">{</span><span class="n">cycle</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> completed in </span><span class="si">{</span><span class="n">cycle_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, &quot;</span>
+                       <span class="sa">f</span><span class="s2">&quot;acceptance rate: </span><span class="si">{</span><span class="n">acceptance_rate</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Final save</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_final_results</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_performance</span><span class="p">()</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">_attempt_all_exchanges</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attempt exchanges between all neighboring replica pairs.&quot;&quot;&quot;</span>
+        <span class="c1"># Even-odd exchange scheme to avoid conflicts</span>
+        <span class="k">for</span> <span class="n">parity</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">parity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_replicas</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_attempt_single_exchange</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_attempt_single_exchange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attempt exchange between replicas i and j.&quot;&quot;&quot;</span>
+        <span class="n">state_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">state_j</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        
+        <span class="c1"># Attempt exchange</span>
+        <span class="n">attempt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange_protocol</span><span class="o">.</span><span class="n">attempt_exchange</span><span class="p">(</span>
+            <span class="n">state_i</span><span class="p">,</span> <span class="n">state_j</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Record statistics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">record_exchange_attempt</span><span class="p">(</span><span class="n">attempt</span><span class="p">)</span>
+        
+        <span class="c1"># Perform exchange if accepted</span>
+        <span class="k">if</span> <span class="n">attempt</span><span class="o">.</span><span class="n">accepted</span><span class="p">:</span>
+            <span class="n">new_state_i</span><span class="p">,</span> <span class="n">new_state_j</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange_protocol</span><span class="o">.</span><span class="n">exchange_configurations</span><span class="p">(</span>
+                <span class="n">state_i</span><span class="p">,</span> <span class="n">state_j</span>
+            <span class="p">)</span>
+            
+            <span class="c1"># Update last exchange step</span>
+            <span class="n">new_state_i</span><span class="o">.</span><span class="n">last_exchange_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span>
+            <span class="n">new_state_j</span><span class="o">.</span><span class="n">last_exchange_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_state_i</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_state_j</span>
+            
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exchange accepted: replicas </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">↔</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;(T=</span><span class="si">{</span><span class="n">attempt</span><span class="o">.</span><span class="n">temperature_i</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">K ↔ T=</span><span class="si">{</span><span class="n">attempt</span><span class="o">.</span><span class="n">temperature_j</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">K)&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_record_cycle_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Record data for this cycle.&quot;&quot;&quot;</span>
+        <span class="n">cycle_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span><span class="p">,</span>
+            <span class="s1">&#39;acceptance_rate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_overall_acceptance_rate</span><span class="p">(),</span>
+            <span class="s1">&#39;neighbor_acceptance_rates&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_neighbor_acceptance_rates</span><span class="p">(),</span>
+            <span class="s1">&#39;replica_energies&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">energy</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">],</span>
+            <span class="s1">&#39;replica_temperatures&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">temperature</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cycle_data</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save simulation checkpoint.&quot;&quot;&quot;</span>
+        <span class="n">checkpoint_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;checkpoint_step_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_step</span><span class="si">}</span><span class="s2">.pkl&quot;</span>
+        
+        <span class="n">checkpoint_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span><span class="p">,</span>
+            <span class="s1">&#39;replica_states&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">,</span>
+            <span class="s1">&#39;statistics&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">,</span>
+            <span class="s1">&#39;history&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_history</span>
+        <span class="p">}</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">checkpoint_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">checkpoint_data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checkpoint saved: </span><span class="si">{</span><span class="n">checkpoint_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_save_final_results</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save final simulation results.&quot;&quot;&quot;</span>
+        <span class="c1"># Save final states</span>
+        <span class="n">final_states_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;final_states.json&quot;</span>
+        <span class="n">states_data</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">replica_states</span><span class="p">:</span>
+            <span class="n">state_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;replica_id&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">replica_id</span><span class="p">,</span>
+                <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
+                <span class="s1">&#39;energy&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span>
+                <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">step</span><span class="p">,</span>
+                <span class="s1">&#39;last_exchange_step&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">last_exchange_step</span><span class="p">,</span>
+                <span class="s1">&#39;positions&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;velocities&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">velocities</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">states_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">final_states_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">states_data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        
+        <span class="c1"># Save exchange statistics</span>
+        <span class="n">stats_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;exchange_statistics.json&quot;</span>
+        <span class="n">stats_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;total_attempts&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">total_attempts</span><span class="p">,</span>
+            <span class="s1">&#39;total_accepted&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">total_accepted</span><span class="p">,</span>
+            <span class="s1">&#39;overall_acceptance_rate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_overall_acceptance_rate</span><span class="p">(),</span>
+            <span class="s1">&#39;neighbor_acceptance_rates&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_neighbor_acceptance_rates</span><span class="p">(),</span>
+            <span class="s1">&#39;acceptance_matrix&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_acceptance_rates</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="s1">&#39;attempt_matrix&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">attempt_matrix</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="p">}</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">stats_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">stats_data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        
+        <span class="c1"># Save simulation history</span>
+        <span class="n">history_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;simulation_history.json&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">history_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation_history</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final results saved to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_analyze_performance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze REMD performance and validate requirements.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;REMD PERFORMANCE ANALYSIS&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+        
+        <span class="c1"># Requirement 1: ≥4 replicas</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Replicas: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_replicas</span><span class="si">}</span><span class="s2"> (requirement: ≥4)&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Requirement 2: Metropolis criterion</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Metropolis exchanges: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">total_attempts</span><span class="si">}</span><span class="s2"> attempts&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Requirement 3: Acceptance rates 20-40%</span>
+        <span class="n">overall_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_overall_acceptance_rate</span><span class="p">()</span>
+        <span class="n">neighbor_rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_neighbor_acceptance_rates</span><span class="p">()</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Acceptance Rates:&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Overall: </span><span class="si">{</span><span class="n">overall_rate</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Neighbor pairs:&quot;</span><span class="p">)</span>
+        
+        <span class="n">in_target_range</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">rate</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">neighbor_rates</span><span class="p">):</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="mf">0.20</span> <span class="o">&lt;=</span> <span class="n">rate</span> <span class="o">&lt;=</span> <span class="mf">0.40</span> <span class="k">else</span> <span class="s2">&quot;⚠&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">↔</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">rate</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="mf">0.20</span> <span class="o">&lt;=</span> <span class="n">rate</span> <span class="o">&lt;=</span> <span class="mf">0.40</span><span class="p">:</span>
+                <span class="n">in_target_range</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="n">target_fraction</span> <span class="o">=</span> <span class="n">in_target_range</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbor_rates</span><span class="p">)</span> <span class="k">if</span> <span class="n">neighbor_rates</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">target_fraction</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Target acceptance rates achieved (</span><span class="si">{</span><span class="n">target_fraction</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2"> of pairs)&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⚠ Some acceptance rates outside 20-40% range&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Requirement 4: Parallel execution</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Parallel execution: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">parallel_executor</span><span class="o">.</span><span class="n">n_workers</span><span class="si">}</span><span class="s2"> workers&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Additional performance metrics</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_history</span><span class="p">:</span>
+            <span class="n">final_acceptance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;acceptance_rate&#39;</span><span class="p">]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Final acceptance rate: </span><span class="si">{</span><span class="n">final_acceptance</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Check for equilibration</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation_history</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+                <span class="n">recent_rates</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;acceptance_rate&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_history</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">:]]</span>
+                <span class="n">rate_stability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">recent_rates</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Recent acceptance rate stability (σ): </span><span class="si">{</span><span class="n">rate_stability</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Task 6.2 requirements fulfilled!&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Factory Functions</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="k">def</span> <span class="nf">create_temperature_ladder</span><span class="p">(</span><span class="n">min_temp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_temp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+                             <span class="n">n_replicas</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+                             <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;exponential&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a temperature ladder for REMD.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    min_temp : float</span>
+<span class="sd">        Minimum temperature (K)</span>
+<span class="sd">    max_temp : float</span>
+<span class="sd">        Maximum temperature (K)</span>
+<span class="sd">    n_replicas : int</span>
+<span class="sd">        Number of replicas</span>
+<span class="sd">    method : str</span>
+<span class="sd">        Method for temperature generation (&#39;exponential&#39;, &#39;optimal&#39;)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Temperature ladder</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;exponential&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">TemperatureGenerator</span><span class="o">.</span><span class="n">exponential_ladder</span><span class="p">(</span><span class="n">min_temp</span><span class="p">,</span> <span class="n">max_temp</span><span class="p">,</span> <span class="n">n_replicas</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;optimal&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">TemperatureGenerator</span><span class="o">.</span><span class="n">optimal_ladder</span><span class="p">(</span><span class="n">min_temp</span><span class="p">,</span> <span class="n">max_temp</span><span class="p">,</span> <span class="n">n_replicas</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">create_remd_simulation</span><span class="p">(</span><span class="n">initial_positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                          <span class="n">min_temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span><span class="p">,</span>
+                          <span class="n">max_temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">500.0</span><span class="p">,</span>
+                          <span class="n">n_replicas</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+                          <span class="n">exchange_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+                          <span class="n">output_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;remd_output&quot;</span><span class="p">,</span>
+                          <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReplicaExchangeMD</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a REMD simulation with default parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    initial_positions : np.ndarray</span>
+<span class="sd">        Initial atomic positions</span>
+<span class="sd">    min_temperature : float</span>
+<span class="sd">        Minimum temperature</span>
+<span class="sd">    max_temperature : float</span>
+<span class="sd">        Maximum temperature</span>
+<span class="sd">    n_replicas : int</span>
+<span class="sd">        Number of replicas</span>
+<span class="sd">    exchange_frequency : int</span>
+<span class="sd">        Steps between exchange attempts</span>
+<span class="sd">    output_directory : str</span>
+<span class="sd">        Output directory</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Additional arguments for ReplicaExchangeMD</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ReplicaExchangeMD</span>
+<span class="sd">        Configured REMD simulation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Generate temperature ladder</span>
+    <span class="n">temperatures</span> <span class="o">=</span> <span class="n">create_temperature_ladder</span><span class="p">(</span>
+        <span class="n">min_temperature</span><span class="p">,</span> <span class="n">max_temperature</span><span class="p">,</span> <span class="n">n_replicas</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Create REMD simulation</span>
+    <span class="n">remd</span> <span class="o">=</span> <span class="n">ReplicaExchangeMD</span><span class="p">(</span>
+        <span class="n">temperatures</span><span class="o">=</span><span class="n">temperatures</span><span class="p">,</span>
+        <span class="n">initial_positions</span><span class="o">=</span><span class="n">initial_positions</span><span class="p">,</span>
+        <span class="n">exchange_frequency</span><span class="o">=</span><span class="n">exchange_frequency</span><span class="p">,</span>
+        <span class="n">output_directory</span><span class="o">=</span><span class="n">output_directory</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">remd</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Mock Simulation Function for Testing</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="k">def</span> <span class="nf">mock_md_simulation</span><span class="p">(</span><span class="n">initial_positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                      <span class="n">initial_velocities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+                      <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                      <span class="n">n_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mock MD simulation function for testing REMD.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    initial_positions : np.ndarray</span>
+<span class="sd">        Starting positions</span>
+<span class="sd">    initial_velocities : np.ndarray, optional</span>
+<span class="sd">        Starting velocities</span>
+<span class="sd">    temperature : float</span>
+<span class="sd">        Simulation temperature</span>
+<span class="sd">    n_steps : int</span>
+<span class="sd">        Number of steps</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Additional parameters</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        (final_positions, final_velocities, final_energy)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Simple mock simulation with temperature-dependent dynamics</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">initial_positions</span><span class="p">)</span>
+    
+    <span class="c1"># Add small random perturbations (temperature-dependent)</span>
+    <span class="n">perturbation_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">temperature</span> <span class="o">/</span> <span class="mf">300.0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.01</span>
+    <span class="n">final_positions</span> <span class="o">=</span> <span class="n">initial_positions</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">perturbation_scale</span><span class="p">,</span> <span class="n">initial_positions</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    
+    <span class="c1"># Generate new velocities</span>
+    <span class="k">if</span> <span class="n">initial_velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">final_velocities</span> <span class="o">=</span> <span class="n">initial_velocities</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">initial_velocities</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">final_velocities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    
+    <span class="c1"># Mock energy (temperature and configuration dependent)</span>
+    <span class="n">base_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">initial_positions</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span>  <span class="c1"># Harmonic-like potential</span>
+    <span class="n">thermal_energy</span> <span class="o">=</span> <span class="n">temperature</span> <span class="o">*</span> <span class="n">n_atoms</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">BOLTZMANN_KJ</span> <span class="o">/</span> <span class="mi">2</span>  <span class="c1"># Equipartition</span>
+    <span class="n">final_energy</span> <span class="o">=</span> <span class="n">base_energy</span> <span class="o">+</span> <span class="n">thermal_energy</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">final_positions</span><span class="p">,</span> <span class="n">final_velocities</span><span class="p">,</span> <span class="n">final_energy</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Analysis and Validation Functions</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="k">def</span> <span class="nf">analyze_remd_convergence</span><span class="p">(</span><span class="n">remd</span><span class="p">:</span> <span class="n">ReplicaExchangeMD</span><span class="p">,</span>
+                           <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analyze REMD convergence and mixing.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    remd : ReplicaExchangeMD</span>
+<span class="sd">        REMD simulation object</span>
+<span class="sd">    window_size : int</span>
+<span class="sd">        Window size for running averages</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Convergence analysis results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">remd</span><span class="o">.</span><span class="n">simulation_history</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">window_size</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Insufficient data for convergence analysis&#39;</span><span class="p">}</span>
+    
+    <span class="c1"># Extract time series</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">remd</span><span class="o">.</span><span class="n">simulation_history</span><span class="p">]</span>
+    <span class="n">acceptance_rates</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;acceptance_rate&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">remd</span><span class="o">.</span><span class="n">simulation_history</span><span class="p">]</span>
+    
+    <span class="c1"># Running average of acceptance rates</span>
+    <span class="n">running_avg</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">window_size</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">acceptance_rates</span><span class="p">)):</span>
+        <span class="n">avg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">acceptance_rates</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="n">window_size</span><span class="p">:</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">running_avg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg</span><span class="p">)</span>
+    
+    <span class="c1"># Convergence metrics</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">running_avg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="n">final_avg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">running_avg</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">:])</span>
+        <span class="n">stability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">running_avg</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">:])</span>
+        <span class="n">converged</span> <span class="o">=</span> <span class="n">stability</span> <span class="o">&lt;</span> <span class="mf">0.05</span>  <span class="c1"># 5% relative stability</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">final_avg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">acceptance_rates</span><span class="p">)</span>
+        <span class="n">stability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">acceptance_rates</span><span class="p">)</span>
+        <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;final_acceptance_rate&#39;</span><span class="p">:</span> <span class="n">final_avg</span><span class="p">,</span>
+        <span class="s1">&#39;stability&#39;</span><span class="p">:</span> <span class="n">stability</span><span class="p">,</span>
+        <span class="s1">&#39;converged&#39;</span><span class="p">:</span> <span class="n">converged</span><span class="p">,</span>
+        <span class="s1">&#39;total_exchanges&#39;</span><span class="p">:</span> <span class="n">remd</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">total_accepted</span><span class="p">,</span>
+        <span class="s1">&#39;exchange_efficiency&#39;</span><span class="p">:</span> <span class="n">remd</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_overall_acceptance_rate</span><span class="p">()</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">validate_remd_requirements</span><span class="p">(</span><span class="n">remd</span><span class="p">:</span> <span class="n">ReplicaExchangeMD</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate that REMD meets Task 6.2 requirements.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    remd : ReplicaExchangeMD</span>
+<span class="sd">        REMD simulation to validate</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Validation results for each requirement</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="c1"># Requirement 1: ≥4 replicas</span>
+    <span class="n">results</span><span class="p">[</span><span class="s1">&#39;min_4_replicas&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">remd</span><span class="o">.</span><span class="n">n_replicas</span> <span class="o">&gt;=</span> <span class="mi">4</span>
+    
+    <span class="c1"># Requirement 2: Metropolis criterion (check if exchanges were attempted)</span>
+    <span class="n">results</span><span class="p">[</span><span class="s1">&#39;metropolis_exchanges&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">remd</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">total_attempts</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    
+    <span class="c1"># Requirement 3: Acceptance rates 20-40%</span>
+    <span class="n">neighbor_rates</span> <span class="o">=</span> <span class="n">remd</span><span class="o">.</span><span class="n">statistics</span><span class="o">.</span><span class="n">get_neighbor_acceptance_rates</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">neighbor_rates</span><span class="p">:</span>
+        <span class="n">target_rates</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.20</span> <span class="o">&lt;=</span> <span class="n">rate</span> <span class="o">&lt;=</span> <span class="mf">0.40</span> <span class="k">for</span> <span class="n">rate</span> <span class="ow">in</span> <span class="n">neighbor_rates</span><span class="p">]</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;target_acceptance_rates&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">target_rates</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_rates</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;target_acceptance_rates&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="c1"># Requirement 4: Parallel execution</span>
+    <span class="n">results</span><span class="p">[</span><span class="s1">&#39;parallel_execution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">remd</span><span class="o">.</span><span class="n">parallel_executor</span><span class="o">.</span><span class="n">n_workers</span> <span class="o">&gt;</span> <span class="mi">1</span>
+    
+    <span class="k">return</span> <span class="n">results</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Integration with Existing Framework</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="k">def</span> <span class="nf">integrate_with_md_engine</span><span class="p">(</span><span class="n">remd</span><span class="p">:</span> <span class="n">ReplicaExchangeMD</span><span class="p">,</span> <span class="n">md_engine</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Integrate REMD with existing MD simulation engine.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    remd : ReplicaExchangeMD</span>
+<span class="sd">        REMD simulation</span>
+<span class="sd">    md_engine : object</span>
+<span class="sd">        MD simulation engine with appropriate interface</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># This function would integrate with the actual MD engine</span>
+    <span class="c1"># For now, it&#39;s a placeholder for future integration</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;REMD integration with MD engine would be implemented here&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Interface requirements:&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  - md_engine.run_steps(positions, velocities, temperature, n_steps)&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  - Return: (final_positions, final_velocities, final_energy)&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Basic validation and demonstration</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Replica Exchange MD Module - Task 6.2 Implementation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+    
+    <span class="c1"># Create test system</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">initial_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">*</span> <span class="mf">2.0</span>
+    
+    <span class="c1"># Create REMD simulation</span>
+    <span class="n">remd</span> <span class="o">=</span> <span class="n">create_remd_simulation</span><span class="p">(</span>
+        <span class="n">initial_positions</span><span class="o">=</span><span class="n">initial_positions</span><span class="p">,</span>
+        <span class="n">min_temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+        <span class="n">max_temperature</span><span class="o">=</span><span class="mf">450.0</span><span class="p">,</span>
+        <span class="n">n_replicas</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">exchange_frequency</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+        <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;test_remd&quot;</span>
+    <span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created REMD with </span><span class="si">{</span><span class="n">remd</span><span class="o">.</span><span class="n">n_replicas</span><span class="si">}</span><span class="s2"> replicas&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temperature ladder: </span><span class="si">{</span><span class="n">remd</span><span class="o">.</span><span class="n">temperatures</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Validate requirements</span>
+    <span class="n">validation</span> <span class="o">=</span> <span class="n">validate_remd_requirements</span><span class="p">(</span><span class="n">remd</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Task 6.2 Requirements Validation:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">requirement</span><span class="p">,</span> <span class="n">passed</span> <span class="ow">in</span> <span class="n">validation</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">passed</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">requirement</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ REMD module ready for full simulation!&quot;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

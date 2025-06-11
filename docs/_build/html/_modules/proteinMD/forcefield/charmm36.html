@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proteinMD.forcefield.charmm36 &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for proteinMD.forcefield.charmm36</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">CHARMM36 Force Field Implementation</span>
+
+<span class="sd">This module provides a complete implementation of the CHARMM36 force field</span>
+<span class="sd">for protein simulations with comprehensive parameter support.</span>
+
+<span class="sd">Features:</span>
+<span class="sd">- Complete CHARMM36 parameter database</span>
+<span class="sd">- PSF file format support  </span>
+<span class="sd">- Automatic parameter assignment for proteins</span>
+<span class="sd">- Performance comparable to AMBER implementation</span>
+<span class="sd">- Full compatibility with CHARMM topology files</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">.forcefield</span> <span class="kn">import</span> <span class="n">ForceField</span><span class="p">,</span> <span class="n">NonbondedMethod</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CHARMMAtomTypeParameters">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">CHARMMAtomTypeParameters</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CHARMM atom type parameters.&quot;&quot;&quot;</span>
+    <span class="n">atom_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">mass</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+<div class="viewcode-block" id="CHARMMBondParameters">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMMBondParameters">[docs]</a>
+<span class="nd">@dataclass</span>  
+<span class="k">class</span> <span class="nc">CHARMMBondParameters</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CHARMM bond parameters.&quot;&quot;&quot;</span>
+    <span class="n">atom_types</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># Force constant in kJ/mol/nm²</span>
+    <span class="n">r0</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># Equilibrium bond length in nm</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+<div class="viewcode-block" id="CHARMMAngleParameters">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMMAngleParameters">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">CHARMMAngleParameters</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CHARMM angle parameters.&quot;&quot;&quot;</span>
+    <span class="n">atom_types</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># Force constant in kJ/mol/rad²</span>
+    <span class="n">theta0</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># Equilibrium angle in degrees</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+<div class="viewcode-block" id="CHARMMDihedralParameters">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMMDihedralParameters">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">CHARMMDihedralParameters</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CHARMM dihedral parameters.&quot;&quot;&quot;</span>
+    <span class="n">atom_types</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># Force constant in kJ/mol</span>
+    <span class="n">n</span><span class="p">:</span> <span class="nb">int</span>    <span class="c1"># Periodicity</span>
+    <span class="n">phase</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># Phase in degrees</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+<div class="viewcode-block" id="PSFParser">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.PSFParser">[docs]</a>
+<span class="k">class</span> <span class="nc">PSFParser</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parser for CHARMM PSF (Protein Structure File) format.&quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="PSFParser.__init__">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.PSFParser.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+    
+<div class="viewcode-block" id="PSFParser.parse_psf_file">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.PSFParser.parse_psf_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">parse_psf_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse a PSF file and extract topology information.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        
+        <span class="n">topology</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;atoms&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;bonds&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;angles&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;dihedrals&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;impropers&#39;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+        
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            
+            <span class="c1"># Parse atoms section</span>
+            <span class="k">if</span> <span class="s1">&#39;!NATOM&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">natoms</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natoms</span><span class="p">):</span>
+                    <span class="n">atom_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="n">atom</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">atom_line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Convert to 0-based</span>
+                        <span class="s1">&#39;segment&#39;</span><span class="p">:</span> <span class="n">atom_line</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="s1">&#39;residue_id&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">atom_line</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                        <span class="s1">&#39;residue_name&#39;</span><span class="p">:</span> <span class="n">atom_line</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                        <span class="s1">&#39;atom_name&#39;</span><span class="p">:</span> <span class="n">atom_line</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                        <span class="s1">&#39;atom_type&#39;</span><span class="p">:</span> <span class="n">atom_line</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>
+                        <span class="s1">&#39;charge&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">atom_line</span><span class="p">[</span><span class="mi">6</span><span class="p">]),</span>
+                        <span class="s1">&#39;mass&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">atom_line</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span>
+                    <span class="p">}</span>
+                    <span class="n">topology</span><span class="p">[</span><span class="s1">&#39;atoms&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="n">natoms</span>
+                
+            <span class="c1"># Parse bonds section</span>
+            <span class="k">elif</span> <span class="s1">&#39;!NBOND&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">nbonds</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">bonds_per_line</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># PSF format has 4 bond pairs per line</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nbonds</span><span class="p">,</span> <span class="n">bonds_per_line</span><span class="p">):</span>
+                    <span class="n">bond_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">//</span> <span class="n">bonds_per_line</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bond_line</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">bond_line</span><span class="p">):</span>
+                            <span class="n">bond</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">bond_line</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">bond_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Convert to 0-based</span>
+                            <span class="n">topology</span><span class="p">[</span><span class="s1">&#39;bonds&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bond</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="p">(</span><span class="n">nbonds</span> <span class="o">+</span> <span class="n">bonds_per_line</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">bonds_per_line</span>
+                
+            <span class="c1"># Parse angles section</span>
+            <span class="k">elif</span> <span class="s1">&#39;!NTHETA&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">nangles</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">angles_per_line</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># PSF format has 3 angle triplets per line</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nangles</span><span class="p">,</span> <span class="n">angles_per_line</span><span class="p">):</span>
+                    <span class="n">angle_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">//</span> <span class="n">angles_per_line</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">angle_line</span><span class="p">),</span> <span class="mi">3</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">angle_line</span><span class="p">):</span>
+                            <span class="n">angle</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">angle_line</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">angle_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">angle_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                            <span class="n">topology</span><span class="p">[</span><span class="s1">&#39;angles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="p">(</span><span class="n">nangles</span> <span class="o">+</span> <span class="n">angles_per_line</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">angles_per_line</span>
+                
+            <span class="c1"># Parse dihedrals section</span>
+            <span class="k">elif</span> <span class="s1">&#39;!NPHI&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">ndihedrals</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">dihedrals_per_line</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># PSF format has 2 dihedral quadruplets per line</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ndihedrals</span><span class="p">,</span> <span class="n">dihedrals_per_line</span><span class="p">):</span>
+                    <span class="n">dihedral_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">//</span> <span class="n">dihedrals_per_line</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dihedral_line</span><span class="p">),</span> <span class="mi">4</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">dihedral_line</span><span class="p">):</span>
+                            <span class="n">dihedral</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">dihedral_line</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">dihedral_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                                      <span class="nb">int</span><span class="p">(</span><span class="n">dihedral_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">dihedral_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">3</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                            <span class="n">topology</span><span class="p">[</span><span class="s1">&#39;dihedrals&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dihedral</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="p">(</span><span class="n">ndihedrals</span> <span class="o">+</span> <span class="n">dihedrals_per_line</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">dihedrals_per_line</span>
+                
+            <span class="c1"># Parse impropers section</span>
+            <span class="k">elif</span> <span class="s1">&#39;!NIMPHI&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">nimpropers</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">impropers_per_line</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># PSF format has 2 improper quadruplets per line</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nimpropers</span><span class="p">,</span> <span class="n">impropers_per_line</span><span class="p">):</span>
+                    <span class="n">improper_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">//</span> <span class="n">impropers_per_line</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">improper_line</span><span class="p">),</span> <span class="mi">4</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">improper_line</span><span class="p">):</span>
+                            <span class="n">improper</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">improper_line</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">improper_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                                      <span class="nb">int</span><span class="p">(</span><span class="n">improper_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">improper_line</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">3</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                            <span class="n">topology</span><span class="p">[</span><span class="s1">&#39;impropers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">improper</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="p">(</span><span class="n">nimpropers</span> <span class="o">+</span> <span class="n">impropers_per_line</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">impropers_per_line</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="k">return</span> <span class="n">topology</span></div>
+</div>
+
+
+<div class="viewcode-block" id="CHARMM36">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36">[docs]</a>
+<span class="k">class</span> <span class="nc">CHARMM36</span><span class="p">(</span><span class="n">ForceField</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Complete implementation of CHARMM36 force field.</span>
+<span class="sd">    </span>
+<span class="sd">    This class provides a fully functional CHARMM36 force field with</span>
+<span class="sd">    comprehensive parameter support and PSF file compatibility.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="CHARMM36.__init__">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.2</span><span class="p">,</span>
+                 <span class="n">switch_distance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">nonbonded_method</span><span class="p">:</span> <span class="n">NonbondedMethod</span> <span class="o">=</span> <span class="n">NonbondedMethod</span><span class="o">.</span><span class="n">PME</span><span class="p">,</span>
+                 <span class="n">use_long_range_correction</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">ewaldErrorTolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0001</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize CHARMM36 force field.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cutoff : float, optional</span>
+<span class="sd">            Cutoff distance for nonbonded interactions in nm</span>
+<span class="sd">        switch_distance : float, optional</span>
+<span class="sd">            Distance at which to start switching the LJ potential</span>
+<span class="sd">        nonbonded_method : NonbondedMethod, optional</span>
+<span class="sd">            Method for handling nonbonded interactions</span>
+<span class="sd">        use_long_range_correction : bool, optional</span>
+<span class="sd">            Whether to use a long-range correction for LJ interactions</span>
+<span class="sd">        ewaldErrorTolerance : float, optional</span>
+<span class="sd">            Error tolerance for Ewald summation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;CHARMM36&quot;</span><span class="p">,</span>
+            <span class="n">cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">,</span>
+            <span class="n">switch_distance</span><span class="o">=</span><span class="n">switch_distance</span><span class="p">,</span>
+            <span class="n">nonbonded_method</span><span class="o">=</span><span class="n">nonbonded_method</span><span class="p">,</span>
+            <span class="n">use_long_range_correction</span><span class="o">=</span><span class="n">use_long_range_correction</span><span class="p">,</span>
+            <span class="n">ewaldErrorTolerance</span><span class="o">=</span><span class="n">ewaldErrorTolerance</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Initialize parameter storage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_database</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amino_acid_library</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atom_type_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">improper_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># PSF parser for topology files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psf_parser</span> <span class="o">=</span> <span class="n">PSFParser</span><span class="p">()</span>
+        
+        <span class="c1"># Load all parameter files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_parameter_database</span><span class="p">()</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CHARMM36 force field initialized with complete parameter set&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amino_acid_library</span><span class="p">)</span><span class="si">}</span><span class="s2"> amino acid residue templates&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_type_parameters</span><span class="p">)</span><span class="si">}</span><span class="s2"> atom types&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">)</span><span class="si">}</span><span class="s2"> bond parameters&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span><span class="p">)</span><span class="si">}</span><span class="s2"> angle parameters&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dihedral_parameters</span><span class="p">)</span><span class="si">}</span><span class="s2"> dihedral parameters&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">improper_parameters</span><span class="p">)</span><span class="si">}</span><span class="s2"> improper parameters&quot;</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">_load_parameter_database</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the complete CHARMM36 parameter database.&quot;&quot;&quot;</span>
+        <span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;charmm&quot;</span>
+        
+        <span class="c1"># Load main parameter file</span>
+        <span class="n">param_file</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;charmm36_parameters.json&quot;</span>
+        <span class="k">if</span> <span class="n">param_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">param_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parameter_database</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            
+            <span class="c1"># Process atom types</span>
+            <span class="k">for</span> <span class="n">atom_type</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_database</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_types&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">atom_type_parameters</span><span class="p">[</span><span class="n">atom_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">CHARMMAtomTypeParameters</span><span class="p">(</span>
+                    <span class="n">atom_type</span><span class="o">=</span><span class="n">atom_type</span><span class="p">,</span>
+                    <span class="n">mass</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">],</span>
+                    <span class="n">sigma</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;sigma&quot;</span><span class="p">],</span>
+                    <span class="n">epsilon</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">],</span>
+                    <span class="n">description</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+            
+            <span class="c1"># Process bond parameters</span>
+            <span class="k">for</span> <span class="n">bond_key</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_database</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bond_parameters&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">atom_types</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">bond_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">[</span><span class="n">atom_types</span><span class="p">]</span> <span class="o">=</span> <span class="n">CHARMMBondParameters</span><span class="p">(</span>
+                    <span class="n">atom_types</span><span class="o">=</span><span class="n">atom_types</span><span class="p">,</span>
+                    <span class="n">k</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
+                    <span class="n">r0</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;r0&quot;</span><span class="p">],</span>
+                    <span class="n">description</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="c1"># Add reverse bond</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">reverse_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom_types</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">atom_types</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">[</span><span class="n">reverse_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">CHARMMBondParameters</span><span class="p">(</span>
+                        <span class="n">atom_types</span><span class="o">=</span><span class="n">reverse_key</span><span class="p">,</span>
+                        <span class="n">k</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
+                        <span class="n">r0</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;r0&quot;</span><span class="p">],</span>
+                        <span class="n">description</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+            
+            <span class="c1"># Process angle parameters</span>
+            <span class="k">for</span> <span class="n">angle_key</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_database</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angle_parameters&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">atom_types</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">angle_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span><span class="p">[</span><span class="n">atom_types</span><span class="p">]</span> <span class="o">=</span> <span class="n">CHARMMAngleParameters</span><span class="p">(</span>
+                    <span class="n">atom_types</span><span class="o">=</span><span class="n">atom_types</span><span class="p">,</span>
+                    <span class="n">k</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
+                    <span class="n">theta0</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;theta0&quot;</span><span class="p">],</span>
+                    <span class="n">description</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="c1"># Add reverse angle</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">reverse_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom_types</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">atom_types</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">atom_types</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span><span class="p">[</span><span class="n">reverse_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">CHARMMAngleParameters</span><span class="p">(</span>
+                        <span class="n">atom_types</span><span class="o">=</span><span class="n">reverse_key</span><span class="p">,</span>
+                        <span class="n">k</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
+                        <span class="n">theta0</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;theta0&quot;</span><span class="p">],</span>
+                        <span class="n">description</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+            
+            <span class="c1"># Process dihedral parameters</span>
+            <span class="k">for</span> <span class="n">dihedral_key</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_database</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dihedral_parameters&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">atom_types</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dihedral_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_parameters</span><span class="p">[</span><span class="n">atom_types</span><span class="p">]</span> <span class="o">=</span> <span class="n">CHARMMDihedralParameters</span><span class="p">(</span>
+                    <span class="n">atom_types</span><span class="o">=</span><span class="n">atom_types</span><span class="p">,</span>
+                    <span class="n">k</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
+                    <span class="n">n</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">],</span>
+                    <span class="n">phase</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">],</span>
+                    <span class="n">description</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="c1"># Add reverse dihedral</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                    <span class="n">reverse_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom_types</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">atom_types</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">atom_types</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">atom_types</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_parameters</span><span class="p">[</span><span class="n">reverse_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">CHARMMDihedralParameters</span><span class="p">(</span>
+                        <span class="n">atom_types</span><span class="o">=</span><span class="n">reverse_key</span><span class="p">,</span>
+                        <span class="n">k</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
+                        <span class="n">n</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">],</span>
+                        <span class="n">phase</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">],</span>
+                        <span class="n">description</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                    <span class="p">)</span>
+            
+            <span class="c1"># Process improper parameters</span>
+            <span class="k">for</span> <span class="n">improper_key</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_database</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;improper_parameters&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">atom_types</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">improper_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">improper_parameters</span><span class="p">[</span><span class="n">atom_types</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;phase&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+                <span class="p">}</span>
+        
+        <span class="c1"># Load amino acid library</span>
+        <span class="n">aa_file</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="s2">&quot;amino_acids.json&quot;</span>
+        <span class="k">if</span> <span class="n">aa_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">aa_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">amino_acid_library</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CHARMM36 parameter database loaded successfully&quot;</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="CHARMM36.load_psf_topology">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36.load_psf_topology">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_psf_topology</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">psf_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load topology from CHARMM PSF file.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        psf_filename : str</span>
+<span class="sd">            Path to PSF file</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict</span>
+<span class="sd">            Parsed topology information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">topology</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">psf_parser</span><span class="o">.</span><span class="n">parse_psf_file</span><span class="p">(</span><span class="n">psf_filename</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded PSF topology with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s1">&#39;atoms&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> atoms, &quot;</span>
+                   <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s1">&#39;bonds&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> bonds, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s1">&#39;angles&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> angles, &quot;</span>
+                   <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s1">&#39;dihedrals&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> dihedrals&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">topology</span></div>
+
+    
+<div class="viewcode-block" id="CHARMM36.validate_protein_parameters">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36.validate_protein_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">validate_protein_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate that all required parameters are available for a protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        protein_data : Dict</span>
+<span class="sd">            Protein structure data with atoms and connectivity</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict</span>
+<span class="sd">            Validation results with missing parameters and coverage statistics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">validation_result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;is_valid&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;missing_atom_types&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+            <span class="s2">&quot;missing_bond_parameters&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+            <span class="s2">&quot;missing_angle_parameters&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span> 
+            <span class="s2">&quot;missing_dihedral_parameters&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(),</span>
+            <span class="s2">&quot;coverage_statistics&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;validation_errors&quot;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># Check atom type coverage</span>
+        <span class="n">atom_types_found</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">protein_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">atom_type</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">atom_types_found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">atom_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">atom_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_type_parameters</span><span class="p">:</span>
+                <span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_atom_types&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">atom_type</span><span class="p">)</span>
+                <span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;is_valid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        
+        <span class="c1"># Check bond parameter coverage</span>
+        <span class="n">bonds_found</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">protein_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bonds&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bond</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">atom1_type</span> <span class="o">=</span> <span class="n">protein_data</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">bond</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom2_type</span> <span class="o">=</span> <span class="n">protein_data</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">bond</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">bond_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom1_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">)</span>
+                <span class="n">bonds_found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bond_key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">bond_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span> <span class="ow">and</span> <span class="p">(</span><span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">:</span>
+                    <span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_bond_parameters&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bond_key</span><span class="p">)</span>
+                    <span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;is_valid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        
+        <span class="c1"># Check angle parameter coverage</span>
+        <span class="n">angles_found</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">protein_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angles&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">atom1_type</span> <span class="o">=</span> <span class="n">protein_data</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">angle</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom2_type</span> <span class="o">=</span> <span class="n">protein_data</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">angle</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom3_type</span> <span class="o">=</span> <span class="n">protein_data</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">angle</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">angle_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom1_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom3_type</span><span class="p">)</span>
+                <span class="n">angles_found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">angle_key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">angle_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span> <span class="ow">and</span> <span class="p">(</span><span class="n">atom3_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span><span class="p">:</span>
+                    <span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_angle_parameters&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">angle_key</span><span class="p">)</span>
+                    <span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;is_valid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        
+        <span class="c1"># Coverage statistics</span>
+        <span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;coverage_statistics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;total_atom_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_types_found</span><span class="p">),</span>
+            <span class="s2">&quot;covered_atom_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_types_found</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_atom_types&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;total_bond_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">bonds_found</span><span class="p">),</span>
+            <span class="s2">&quot;covered_bond_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">bonds_found</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_bond_parameters&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;total_angle_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">angles_found</span><span class="p">),</span>
+            <span class="s2">&quot;covered_angle_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">angles_found</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_angle_parameters&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;atom_type_coverage&quot;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">atom_types_found</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_atom_types&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_types_found</span><span class="p">)),</span>
+            <span class="s2">&quot;bond_coverage&quot;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bonds_found</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_bond_parameters&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">bonds_found</span><span class="p">)),</span>
+            <span class="s2">&quot;angle_coverage&quot;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">angles_found</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">validation_result</span><span class="p">[</span><span class="s2">&quot;missing_angle_parameters&quot;</span><span class="p">]))</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">angles_found</span><span class="p">))</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">validation_result</span></div>
+
+    
+<div class="viewcode-block" id="CHARMM36.assign_parameters_to_protein">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36.assign_parameters_to_protein">[docs]</a>
+    <span class="k">def</span> <span class="nf">assign_parameters_to_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign CHARMM36 parameters to a protein structure.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        protein_data : Dict</span>
+<span class="sd">            Protein structure data</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict</span>
+<span class="sd">            Protein data with assigned force field parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">assigned_protein</span> <span class="o">=</span> <span class="n">protein_data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        
+        <span class="c1"># Assign atom parameters</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">assigned_protein</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">atom_type</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">atom_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_type_parameters</span><span class="p">:</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_type_parameters</span><span class="p">[</span><span class="n">atom_type</span><span class="p">]</span>
+                <span class="n">atom</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">mass</span>
+                <span class="n">atom</span><span class="p">[</span><span class="s2">&quot;sigma&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">sigma</span>
+                <span class="n">atom</span><span class="p">[</span><span class="s2">&quot;epsilon&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">epsilon</span>
+        
+        <span class="c1"># Assign bond parameters</span>
+        <span class="n">bond_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">assigned_protein</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bonds&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bond</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">atom1_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">bond</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom2_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">bond</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">bond_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom1_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">bond_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">[</span><span class="n">bond_key</span><span class="p">]</span>
+                    <span class="n">bond_params</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s2">&quot;atoms&quot;</span><span class="p">:</span> <span class="n">bond</span><span class="p">,</span>
+                        <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                        <span class="s2">&quot;r0&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">r0</span><span class="p">,</span>
+                        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">description</span>
+                    <span class="p">})</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">[(</span><span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)]</span>
+                    <span class="n">bond_params</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s2">&quot;atoms&quot;</span><span class="p">:</span> <span class="n">bond</span><span class="p">,</span>
+                        <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                        <span class="s2">&quot;r0&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">r0</span><span class="p">,</span>
+                        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">description</span>
+                    <span class="p">})</span>
+        
+        <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;bond_parameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bond_params</span>
+        
+        <span class="c1"># Assign angle parameters</span>
+        <span class="n">angle_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">assigned_protein</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angles&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">atom1_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">angle</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom2_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">angle</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom3_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">angle</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">angle_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom1_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom3_type</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">angle_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span><span class="p">[</span><span class="n">angle_key</span><span class="p">]</span>
+                    <span class="n">angle_params</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s2">&quot;atoms&quot;</span><span class="p">:</span> <span class="n">angle</span><span class="p">,</span>
+                        <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                        <span class="s2">&quot;theta0&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">theta0</span><span class="p">,</span>
+                        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">description</span>
+                    <span class="p">})</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">atom3_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_parameters</span><span class="p">[(</span><span class="n">atom3_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)]</span>
+                    <span class="n">angle_params</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s2">&quot;atoms&quot;</span><span class="p">:</span> <span class="n">angle</span><span class="p">,</span>
+                        <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                        <span class="s2">&quot;theta0&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">theta0</span><span class="p">,</span>
+                        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">description</span>
+                    <span class="p">})</span>
+        
+        <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;angle_parameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle_params</span>
+        
+        <span class="c1"># Assign dihedral parameters</span>
+        <span class="n">dihedral_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dihedral</span> <span class="ow">in</span> <span class="n">assigned_protein</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dihedrals&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dihedral</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">atom1_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">dihedral</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom2_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">dihedral</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom3_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">dihedral</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">atom4_type</span> <span class="o">=</span> <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">dihedral</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">dihedral_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom1_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom3_type</span><span class="p">,</span> <span class="n">atom4_type</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">dihedral_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_parameters</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_parameters</span><span class="p">[</span><span class="n">dihedral_key</span><span class="p">]</span>
+                    <span class="n">dihedral_params</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s2">&quot;atoms&quot;</span><span class="p">:</span> <span class="n">dihedral</span><span class="p">,</span>
+                        <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+                        <span class="s2">&quot;phase&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+                        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">description</span>
+                    <span class="p">})</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">atom4_type</span><span class="p">,</span> <span class="n">atom3_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_parameters</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_parameters</span><span class="p">[(</span><span class="n">atom4_type</span><span class="p">,</span> <span class="n">atom3_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)]</span>
+                    <span class="n">dihedral_params</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s2">&quot;atoms&quot;</span><span class="p">:</span> <span class="n">dihedral</span><span class="p">,</span>
+                        <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+                        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
+                        <span class="s2">&quot;phase&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span>
+                        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">description</span>
+                    <span class="p">})</span>
+        
+        <span class="n">assigned_protein</span><span class="p">[</span><span class="s2">&quot;dihedral_parameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dihedral_params</span>
+        
+        <span class="k">return</span> <span class="n">assigned_protein</span></div>
+
+    
+<div class="viewcode-block" id="CHARMM36.benchmark_against_reference">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36.benchmark_against_reference">[docs]</a>
+    <span class="k">def</span> <span class="nf">benchmark_against_reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_proteins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Benchmark CHARMM36 implementation against reference data.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        test_proteins : List[Dict]</span>
+<span class="sd">            List of test protein structures</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict</span>
+<span class="sd">            Benchmark results and performance metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">benchmark_results</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;total_proteins&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_proteins</span><span class="p">),</span>
+            <span class="s2">&quot;successful_assignments&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;parameter_coverage&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;performance_metrics&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;validation_summary&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;fully_parameterized&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;partially_parameterized&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;failed&quot;</span><span class="p">:</span> <span class="mi">0</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        
+        <span class="n">total_atom_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">covered_atom_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">total_bond_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">covered_bond_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">protein</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">test_proteins</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Validate parameters</span>
+                <span class="n">validation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_protein_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+                
+                <span class="c1"># Assign parameters</span>
+                <span class="n">assigned_protein</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_parameters_to_protein</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+                
+                <span class="c1"># Calculate atom type and bond coverage</span>
+                <span class="n">protein_atom_types</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span> <span class="p">[])))</span>
+                <span class="n">missing_atom_types</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">validation</span><span class="p">[</span><span class="s2">&quot;missing_atom_types&quot;</span><span class="p">])</span>
+                <span class="n">atom_coverage</span> <span class="o">=</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">protein_atom_types</span> <span class="o">-</span> <span class="n">missing_atom_types</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">protein_atom_types</span><span class="p">)</span>
+                
+                <span class="n">protein_bonds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">protein</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bonds&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+                <span class="n">missing_bonds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">validation</span><span class="p">[</span><span class="s2">&quot;missing_bond_parameters&quot;</span><span class="p">])</span>
+                <span class="n">bond_coverage</span> <span class="o">=</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">protein_bonds</span> <span class="o">-</span> <span class="n">missing_bonds</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">protein_bonds</span><span class="p">)</span>
+                
+                <span class="c1"># Consider successful if good atom and bond coverage (&gt;= 80%)</span>
+                <span class="k">if</span> <span class="n">validation</span><span class="p">[</span><span class="s2">&quot;is_valid&quot;</span><span class="p">]:</span>
+                    <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;successful_assignments&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;validation_summary&quot;</span><span class="p">][</span><span class="s2">&quot;fully_parameterized&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">atom_coverage</span> <span class="o">&gt;=</span> <span class="mf">80.0</span> <span class="ow">and</span> <span class="n">bond_coverage</span> <span class="o">&gt;=</span> <span class="mf">50.0</span><span class="p">:</span>
+                    <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;successful_assignments&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;validation_summary&quot;</span><span class="p">][</span><span class="s2">&quot;partially_parameterized&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">missing_atom_types</span> <span class="o">&lt;</span> <span class="n">protein_atom_types</span><span class="p">:</span>
+                    <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;validation_summary&quot;</span><span class="p">][</span><span class="s2">&quot;partially_parameterized&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;validation_summary&quot;</span><span class="p">][</span><span class="s2">&quot;failed&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                
+                <span class="c1"># Collect coverage statistics</span>
+                <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                    <span class="n">atom_type</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="n">total_atom_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">atom_type</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">atom_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_type_parameters</span><span class="p">:</span>
+                        <span class="n">covered_atom_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">atom_type</span><span class="p">)</span>
+                
+                <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bonds&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bond</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">atom1_type</span> <span class="o">=</span> <span class="n">protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">bond</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                        <span class="n">atom2_type</span> <span class="o">=</span> <span class="n">protein</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">][</span><span class="n">bond</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                        <span class="n">bond_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">atom1_type</span><span class="p">,</span> <span class="n">atom2_type</span><span class="p">)</span>
+                        <span class="n">total_bond_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bond_key</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">bond_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span> <span class="ow">or</span> <span class="p">(</span><span class="n">atom2_type</span><span class="p">,</span> <span class="n">atom1_type</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_parameters</span><span class="p">:</span>
+                            <span class="n">covered_bond_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bond_key</span><span class="p">)</span>
+                
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error processing protein </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;validation_summary&quot;</span><span class="p">][</span><span class="s2">&quot;failed&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># Calculate overall coverage</span>
+        <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;parameter_coverage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;atom_type_coverage&quot;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">covered_atom_types</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">total_atom_types</span><span class="p">)),</span>
+            <span class="s2">&quot;bond_coverage&quot;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">covered_bond_types</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">total_bond_types</span><span class="p">)),</span>
+            <span class="s2">&quot;total_atom_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">total_atom_types</span><span class="p">),</span>
+            <span class="s2">&quot;covered_atom_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">covered_atom_types</span><span class="p">),</span>
+            <span class="s2">&quot;total_bond_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">total_bond_types</span><span class="p">),</span>
+            <span class="s2">&quot;covered_bond_types&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">covered_bond_types</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># Performance metrics</span>
+        <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;performance_metrics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;success_rate&quot;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;successful_assignments&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_proteins</span><span class="p">)),</span>
+            <span class="s2">&quot;full_coverage_rate&quot;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;validation_summary&quot;</span><span class="p">][</span><span class="s2">&quot;fully_parameterized&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_proteins</span><span class="p">)),</span>
+            <span class="s2">&quot;partial_coverage_rate&quot;</span><span class="p">:</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">benchmark_results</span><span class="p">[</span><span class="s2">&quot;validation_summary&quot;</span><span class="p">][</span><span class="s2">&quot;partially_parameterized&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_proteins</span><span class="p">))</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">benchmark_results</span></div>
+
+    
+<div class="viewcode-block" id="CHARMM36.get_amino_acid_residue">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36.get_amino_acid_residue">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_amino_acid_residue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get amino acid residue template by name.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        residue_name : str</span>
+<span class="sd">            Three-letter amino acid code</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[Dict]</span>
+<span class="sd">            Residue template or None if not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">amino_acid_library</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">residue_name</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span></div>
+
+    
+<div class="viewcode-block" id="CHARMM36.get_supported_residues">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36.get_supported_residues">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_supported_residues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get list of supported amino acid residues.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List[str]</span>
+<span class="sd">            List of supported three-letter amino acid codes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amino_acid_library</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+    
+<div class="viewcode-block" id="CHARMM36.create_simulation_system">
+<a class="viewcode-back" href="../../../api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36.create_simulation_system">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_simulation_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a complete simulation system with CHARMM36 parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        protein_data : Dict</span>
+<span class="sd">            Protein structure data</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Additional simulation parameters</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict</span>
+<span class="sd">            Complete simulation system</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Validate and assign parameters</span>
+        <span class="n">validation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_protein_parameters</span><span class="p">(</span><span class="n">protein_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validation</span><span class="p">[</span><span class="s2">&quot;is_valid&quot;</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Protein not fully parameterized: </span><span class="si">{</span><span class="n">validation</span><span class="p">[</span><span class="s1">&#39;validation_errors&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">assigned_protein</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_parameters_to_protein</span><span class="p">(</span><span class="n">protein_data</span><span class="p">)</span>
+        
+        <span class="c1"># Create simulation system</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;protein&quot;</span><span class="p">:</span> <span class="n">assigned_protein</span><span class="p">,</span>
+            <span class="s2">&quot;force_field&quot;</span><span class="p">:</span> <span class="s2">&quot;CHARMM36&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;cutoff&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span><span class="p">,</span>
+                <span class="s2">&quot;switch_distance&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">switch_distance</span><span class="p">,</span>
+                <span class="s2">&quot;nonbonded_method&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonbonded_method</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="s2">&quot;use_long_range_correction&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_long_range_correction</span><span class="p">,</span>
+                <span class="s2">&quot;ewaldErrorTolerance&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ewaldErrorTolerance</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;validation&quot;</span><span class="p">:</span> <span class="n">validation</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">system</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">ProteinMD</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/cli_reference.html">CLI Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utils.html">Utilities API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

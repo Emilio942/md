@@ -1,0 +1,87 @@
+# Docker Compose for ProteinMD development and deployment
+version: '3.8'
+
+services:
+  proteinmd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: proteinmd:latest
+    container_name: proteinmd-main
+    volumes:
+      # Mount data directories
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./configs:/app/configs
+    environment:
+      - PROTEINMD_DATA_DIR=/app/data
+      - PROTEINMD_OUTPUT_DIR=/app/outputs
+      - PROTEINMD_CONFIG_DIR=/app/configs
+    working_dir: /app
+    command: tail -f /dev/null  # Keep container running
+    
+  proteinmd-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: proteinmd:dev
+    container_name: proteinmd-dev
+    volumes:
+      # Mount source code for development
+      - .:/app
+      - proteinmd-cache:/app/.cache
+    environment:
+      - PROTEINMD_DEV=1
+      - PYTHONPATH=/app
+    ports:
+      - "8888:8888"  # Jupyter
+      - "8080:8080"  # Web interface
+    command: tail -f /dev/null
+
+  proteinmd-jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: proteinmd:latest
+    container_name: proteinmd-jupyter
+    volumes:
+      - ./notebooks:/app/notebooks
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    ports:
+      - "8888:8888"
+    command: >
+      bash -c "
+        pip install jupyter jupyterlab &&
+        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+      "
+
+  proteinmd-docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: proteinmd:latest
+    container_name: proteinmd-docs
+    volumes:
+      - ./docs:/app/docs
+      - ./proteinMD:/app/proteinMD
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "
+        pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints &&
+        cd docs &&
+        sphinx-build -b html . _build/html &&
+        python -m http.server 8000 --directory _build/html
+      "
+
+volumes:
+  proteinmd-cache:
+    driver: local
+
+networks:
+  default:
+    name: proteinmd-network

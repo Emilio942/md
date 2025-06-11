@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Common Patterns &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Troubleshooting Guide" href="troubleshooting.html" />
+    <link rel="prev" title="Module Reference" href="module_reference.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="common-patterns">
+<h1>Common Patterns<a class="headerlink" href="#common-patterns" title="Link to this heading">¶</a></h1>
+<p>This guide documents common design patterns, coding idioms, and best practices used throughout the ProteinMD codebase to maintain consistency and code quality.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#design-patterns" id="id2">Design Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#factory-pattern" id="id3">Factory Pattern</a></p></li>
+<li><p><a class="reference internal" href="#strategy-pattern" id="id4">Strategy Pattern</a></p></li>
+<li><p><a class="reference internal" href="#observer-pattern" id="id5">Observer Pattern</a></p></li>
+<li><p><a class="reference internal" href="#command-pattern" id="id6">Command Pattern</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#data-access-patterns" id="id7">Data Access Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#repository-pattern" id="id8">Repository Pattern</a></p></li>
+<li><p><a class="reference internal" href="#unit-of-work-pattern" id="id9">Unit of Work Pattern</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#error-handling-patterns" id="id10">Error Handling Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#exception-hierarchy" id="id11">Exception Hierarchy</a></p></li>
+<li><p><a class="reference internal" href="#error-recovery-pattern" id="id12">Error Recovery Pattern</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-patterns" id="id13">Performance Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#lazy-loading-pattern" id="id14">Lazy Loading Pattern</a></p></li>
+<li><p><a class="reference internal" href="#object-pool-pattern" id="id15">Object Pool Pattern</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#functional-programming-patterns" id="id16">Functional Programming Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#functional-composition" id="id17">Functional Composition</a></p></li>
+<li><p><a class="reference internal" href="#immutable-data-patterns" id="id18">Immutable Data Patterns</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#configuration-patterns" id="id19">Configuration Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#configuration-builder" id="id20">Configuration Builder</a></p></li>
+<li><p><a class="reference internal" href="#validation-patterns" id="id21">Validation Patterns</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>ProteinMD follows established design patterns and coding conventions to ensure maintainable, extensible, and performant code. This guide serves as a reference for developers to understand and apply these patterns consistently.</p>
+</section>
+<section id="design-patterns">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Design Patterns</a><a class="headerlink" href="#design-patterns" title="Link to this heading">¶</a></h2>
+<section id="factory-pattern">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Factory Pattern</a><a class="headerlink" href="#factory-pattern" title="Link to this heading">¶</a></h3>
+<p>Used extensively for creating objects with complex initialization logic.</p>
+<p><strong>Force Factory:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ForceFactory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory for creating force calculation objects.</span>
+
+<span class="sd">    Centralizes force creation logic and ensures proper</span>
+<span class="sd">    configuration based on simulation parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_force_types</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_force_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">force_class</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register a new force type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): Force type identifier</span>
+<span class="sd">            force_class: Force class constructor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_force_types</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">force_class</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_force</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">force_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create force instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            force_type (str): Type of force to create</span>
+<span class="sd">            **kwargs: Force-specific parameters</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Force: Configured force instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">force_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_force_types</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown force type: </span><span class="si">{</span><span class="n">force_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">force_class</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_force_types</span><span class="p">[</span><span class="n">force_type</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">force_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_available_forces</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List all registered force types.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_force_types</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<span class="c1"># Usage example</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forces</span><span class="w"> </span><span class="kn">import</span> <span class="n">LennardJonesForce</span><span class="p">,</span> <span class="n">ElectrostaticForce</span>
+
+<span class="c1"># Register force types</span>
+<span class="n">ForceFactory</span><span class="o">.</span><span class="n">register_force_type</span><span class="p">(</span><span class="s1">&#39;lennard_jones&#39;</span><span class="p">,</span> <span class="n">LennardJonesForce</span><span class="p">)</span>
+<span class="n">ForceFactory</span><span class="o">.</span><span class="n">register_force_type</span><span class="p">(</span><span class="s1">&#39;electrostatic&#39;</span><span class="p">,</span> <span class="n">ElectrostaticForce</span><span class="p">)</span>
+
+<span class="c1"># Create forces</span>
+<span class="n">lj_force</span> <span class="o">=</span> <span class="n">ForceFactory</span><span class="o">.</span><span class="n">create_force</span><span class="p">(</span><span class="s1">&#39;lennard_jones&#39;</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="n">elec_force</span> <span class="o">=</span> <span class="n">ForceFactory</span><span class="o">.</span><span class="n">create_force</span><span class="p">(</span><span class="s1">&#39;electrostatic&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;pme&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>System Builder Factory:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SystemBuilderFactory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory for creating system builders for different input types.&quot;&quot;&quot;</span>
+
+    <span class="n">_builders</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;.pdb&#39;</span><span class="p">:</span> <span class="s1">&#39;PDBSystemBuilder&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.gro&#39;</span><span class="p">:</span> <span class="s1">&#39;GromacsSystemBuilder&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.mol2&#39;</span><span class="p">:</span> <span class="s1">&#39;Mol2SystemBuilder&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.xyz&#39;</span><span class="p">:</span> <span class="s1">&#39;XYZSystemBuilder&#39;</span>
+    <span class="p">}</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_builder</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create appropriate system builder based on file extension.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename (str): Input file path</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SystemBuilder: Appropriate builder instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_builders</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported file format: </span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">builder_name</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_builders</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span>
+        <span class="n">builder_module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;proteinmd.io.builders&#39;</span><span class="p">,</span> <span class="n">fromlist</span><span class="o">=</span><span class="p">[</span><span class="n">builder_name</span><span class="p">])</span>
+        <span class="n">builder_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">builder_module</span><span class="p">,</span> <span class="n">builder_name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">builder_class</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="strategy-pattern">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Strategy Pattern</a><a class="headerlink" href="#strategy-pattern" title="Link to this heading">¶</a></h3>
+<p>Used for algorithms that can be interchanged at runtime.</p>
+<p><strong>Integration Strategy:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">IntegrationStrategy</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for integration algorithms.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">timestep</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform one integration step.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state (SimulationState): Current simulation state</span>
+<span class="sd">            forces (array): Forces on all particles</span>
+<span class="sd">            timestep (float): Integration timestep</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">VelocityVerletStrategy</span><span class="p">(</span><span class="n">IntegrationStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Velocity Verlet integration algorithm.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">timestep</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Velocity Verlet integration step.&quot;&quot;&quot;</span>
+        <span class="c1"># Store old forces for second velocity update</span>
+        <span class="n">old_forces</span> <span class="o">=</span> <span class="n">forces</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Update positions: x(t+dt) = x(t) + v(t)*dt + 0.5*a(t)*dt^2</span>
+        <span class="n">accelerations</span> <span class="o">=</span> <span class="n">forces</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">masses</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">positions</span> <span class="o">+=</span> <span class="n">state</span><span class="o">.</span><span class="n">velocities</span> <span class="o">*</span> <span class="n">timestep</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">accelerations</span> <span class="o">*</span> <span class="n">timestep</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="c1"># Update velocities (first half): v(t+dt/2) = v(t) + 0.5*a(t)*dt</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">velocities</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">accelerations</span> <span class="o">*</span> <span class="n">timestep</span>
+
+        <span class="c1"># Calculate new forces at new positions</span>
+        <span class="c1"># (This would be done by the simulation engine)</span>
+
+        <span class="c1"># Update velocities (second half): v(t+dt) = v(t+dt/2) + 0.5*a(t+dt)*dt</span>
+        <span class="n">new_accelerations</span> <span class="o">=</span> <span class="n">forces</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">masses</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">velocities</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">new_accelerations</span> <span class="o">*</span> <span class="n">timestep</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LeapfrogStrategy</span><span class="p">(</span><span class="n">IntegrationStrategy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Leapfrog integration algorithm.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">timestep</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Leapfrog integration step.&quot;&quot;&quot;</span>
+        <span class="n">accelerations</span> <span class="o">=</span> <span class="n">forces</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">masses</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+        <span class="c1"># Update velocities: v(t+dt/2) = v(t-dt/2) + a(t)*dt</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">velocities</span> <span class="o">+=</span> <span class="n">accelerations</span> <span class="o">*</span> <span class="n">timestep</span>
+
+        <span class="c1"># Update positions: x(t+dt) = x(t) + v(t+dt/2)*dt</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">positions</span> <span class="o">+=</span> <span class="n">state</span><span class="o">.</span><span class="n">velocities</span> <span class="o">*</span> <span class="n">timestep</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Integrator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context class that uses integration strategies.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">IntegrationStrategy</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timestep</span> <span class="o">=</span> <span class="n">timestep</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">IntegrationStrategy</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Change integration strategy at runtime.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">forces</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform integration step using current strategy.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestep</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="observer-pattern">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Observer Pattern</a><a class="headerlink" href="#observer-pattern" title="Link to this heading">¶</a></h3>
+<p>Used for event handling and data collection during simulations.</p>
+<p><strong>Simulation Observer:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationObserver</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for simulation observers.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">notify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle simulation event.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event_type (str): Type of event (&#39;step&#39;, &#39;energy&#39;, &#39;temperature&#39;, etc.)</span>
+<span class="sd">            data: Event-specific data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">EnergyObserver</span><span class="p">(</span><span class="n">SimulationObserver</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Observer that tracks energy during simulation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">notify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle energy-related events.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s1">&#39;energy_calculated&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_energy&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s1">&#39;step_completed&#39;</span><span class="p">:</span>
+            <span class="c1"># Could also trigger energy calculation here</span>
+            <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TrajectoryObserver</span><span class="p">(</span><span class="n">SimulationObserver</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Observer that saves trajectory data.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">save_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_interval</span> <span class="o">=</span> <span class="n">save_interval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">notify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle trajectory events.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">event_type</span> <span class="o">==</span> <span class="s1">&#39;step_completed&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_count</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajectoryWriter</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="n">TrajectoryWriter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">write_frame</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">])</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationSubject</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subject that notifies observers of simulation events.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SimulationObserver</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">attach</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer</span><span class="p">:</span> <span class="n">SimulationObserver</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attach observer to receive notifications.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">detach</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observer</span><span class="p">:</span> <span class="n">SimulationObserver</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detach observer from notifications.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">observer</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">notify_observers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify all observers of event.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">observer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observers</span><span class="p">:</span>
+            <span class="n">observer</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="n">event_type</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="command-pattern">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Command Pattern</a><a class="headerlink" href="#command-pattern" title="Link to this heading">¶</a></h3>
+<p>Used for operations that can be undone or queued.</p>
+<p><strong>Simulation Commands:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Command</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for simulation commands.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute the command.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Undo the command.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MinimizeEnergyCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Command to minimize system energy.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">max_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="o">=</span> <span class="n">simulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iterations</span> <span class="o">=</span> <span class="n">max_iterations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_positions</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute energy minimization.&quot;&quot;&quot;</span>
+        <span class="c1"># Store initial state for undo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Perform minimization</span>
+        <span class="n">converged</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span>
+            <span class="n">max_iterations</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iterations</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">converged</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restore initial positions.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_positions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_positions</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RunSimulationCommand</span><span class="p">(</span><span class="n">Command</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Command to run simulation for specified steps.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="o">=</span> <span class="n">simulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="n">steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_state</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute simulation run.&quot;&quot;&quot;</span>
+        <span class="c1"># Store initial state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Run simulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restore initial state.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CommandInvoker</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages command execution and undo/redo functionality.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span> <span class="n">Command</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute command and add to history.&quot;&quot;&quot;</span>
+        <span class="c1"># Remove any commands after current position (for redo functionality)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command_history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command_history</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">current_position</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Execute and store command</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">undo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Undo last command.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command_history</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_position</span><span class="p">]</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">redo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Redo next command.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command_history</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_position</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command_history</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_position</span><span class="p">]</span>
+            <span class="n">command</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-access-patterns">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Data Access Patterns</a><a class="headerlink" href="#data-access-patterns" title="Link to this heading">¶</a></h2>
+<section id="repository-pattern">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Repository Pattern</a><a class="headerlink" href="#repository-pattern" title="Link to this heading">¶</a></h3>
+<p>Used for data persistence and retrieval operations.</p>
+<p><strong>Trajectory Repository:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TrajectoryRepository</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract repository for trajectory data access.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save trajectory frame.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load specific trajectory frame.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load range of trajectory frames.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_frame_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get total number of frames.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">HDF5TrajectoryRepository</span><span class="p">(</span><span class="n">TrajectoryRepository</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;HDF5-based trajectory repository.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_handle</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_open_file</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open HDF5 file for reading/writing.&quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_handle</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Create groups if they don&#39;t exist</span>
+        <span class="k">if</span> <span class="s1">&#39;trajectory&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_handle</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_handle</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save trajectory frame to HDF5.&quot;&quot;&quot;</span>
+        <span class="n">traj_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_handle</span><span class="p">[</span><span class="s1">&#39;trajectory&#39;</span><span class="p">]</span>
+        <span class="n">frame_index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">traj_group</span><span class="p">)</span>
+
+        <span class="n">frame_group</span> <span class="o">=</span> <span class="n">traj_group</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;frame_</span><span class="si">{</span><span class="n">frame_index</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Save positions</span>
+        <span class="n">frame_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;positions&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">frame_data</span><span class="p">[</span><span class="s1">&#39;positions&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Save optional data</span>
+        <span class="k">if</span> <span class="s1">&#39;velocities&#39;</span> <span class="ow">in</span> <span class="n">frame_data</span><span class="p">:</span>
+            <span class="n">frame_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;velocities&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">frame_data</span><span class="p">[</span><span class="s1">&#39;velocities&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">&#39;forces&#39;</span> <span class="ow">in</span> <span class="n">frame_data</span><span class="p">:</span>
+            <span class="n">frame_group</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;forces&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">frame_data</span><span class="p">[</span><span class="s1">&#39;forces&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Save metadata</span>
+        <span class="n">frame_group</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">frame_group</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load specific frame from HDF5.&quot;&quot;&quot;</span>
+        <span class="n">traj_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_handle</span><span class="p">[</span><span class="s1">&#39;trajectory&#39;</span><span class="p">]</span>
+        <span class="n">frame_group</span> <span class="o">=</span> <span class="n">traj_group</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;frame_</span><span class="si">{</span><span class="n">frame_index</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
+
+        <span class="n">frame_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;positions&#39;</span><span class="p">:</span> <span class="n">frame_group</span><span class="p">[</span><span class="s1">&#39;positions&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">],</span>
+            <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">frame_group</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="n">frame_group</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Load optional data</span>
+        <span class="k">if</span> <span class="s1">&#39;velocities&#39;</span> <span class="ow">in</span> <span class="n">frame_group</span><span class="p">:</span>
+            <span class="n">frame_data</span><span class="p">[</span><span class="s1">&#39;velocities&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_group</span><span class="p">[</span><span class="s1">&#39;velocities&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;forces&#39;</span> <span class="ow">in</span> <span class="n">frame_group</span><span class="p">:</span>
+            <span class="n">frame_data</span><span class="p">[</span><span class="s1">&#39;forces&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_group</span><span class="p">[</span><span class="s1">&#39;forces&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">frame_data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_frame_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number of frames in trajectory.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_handle</span><span class="p">[</span><span class="s1">&#39;trajectory&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="unit-of-work-pattern">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Unit of Work Pattern</a><a class="headerlink" href="#unit-of-work-pattern" title="Link to this heading">¶</a></h3>
+<p>Used for managing complex operations that involve multiple steps.</p>
+<p><strong>Simulation Unit of Work:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SimulationUnitOfWork</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages a complete simulation workflow as a unit of work.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="o">=</span> <span class="n">simulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">committed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add operation to unit of work.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">operation</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute all operations in order.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">operation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="p">:</span>
+                <span class="n">operation</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">committed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">rollback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Undo all executed operations.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">operation</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">operation</span><span class="p">,</span> <span class="s1">&#39;undo&#39;</span><span class="p">):</span>
+                <span class="n">operation</span><span class="o">.</span><span class="n">undo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">committed</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Usage example</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_complete_simulation_workflow</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Example of using unit of work for complex simulation.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span><span class="p">,</span> <span class="n">VelocityVerletIntegrator</span>
+
+    <span class="c1"># Create simulation</span>
+    <span class="n">integrator</span> <span class="o">=</span> <span class="n">VelocityVerletIntegrator</span><span class="p">(</span><span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">)</span>
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">integrator</span><span class="p">)</span>
+
+    <span class="c1"># Create unit of work</span>
+    <span class="n">uow</span> <span class="o">=</span> <span class="n">SimulationUnitOfWork</span><span class="p">(</span><span class="n">simulation</span><span class="p">)</span>
+
+    <span class="c1"># Add operations</span>
+    <span class="n">uow</span><span class="o">.</span><span class="n">add_operation</span><span class="p">(</span><span class="n">MinimizeEnergyCommand</span><span class="p">(</span><span class="n">simulation</span><span class="p">))</span>
+    <span class="n">uow</span><span class="o">.</span><span class="n">add_operation</span><span class="p">(</span><span class="n">EquilibrationCommand</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+    <span class="n">uow</span><span class="o">.</span><span class="n">add_operation</span><span class="p">(</span><span class="n">ProductionCommand</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">))</span>
+
+    <span class="c1"># Execute all operations</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">uow</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation workflow completed successfully&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation workflow failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Cleanup is handled by rollback</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-handling-patterns">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Error Handling Patterns</a><a class="headerlink" href="#error-handling-patterns" title="Link to this heading">¶</a></h2>
+<section id="exception-hierarchy">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Exception Hierarchy</a><a class="headerlink" href="#exception-hierarchy" title="Link to this heading">¶</a></h3>
+<p>ProteinMD uses a structured exception hierarchy for better error handling.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ProteinMDError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base exception for all ProteinMD errors.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationError</span><span class="p">(</span><span class="n">ProteinMDError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors related to simulation execution.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ForceCalculationError</span><span class="p">(</span><span class="n">SimulationError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors in force calculations.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">IntegrationError</span><span class="p">(</span><span class="n">SimulationError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors in time integration.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">IOError</span><span class="p">(</span><span class="n">ProteinMDError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors in input/output operations.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">FileFormatError</span><span class="p">(</span><span class="ne">IOError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors related to file format parsing.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SystemError</span><span class="p">(</span><span class="n">ProteinMDError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors in system setup or configuration.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TopologyError</span><span class="p">(</span><span class="ne">SystemError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors in molecular topology.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="c1"># Usage with context information</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DetailedProteinMDError</span><span class="p">(</span><span class="n">ProteinMDError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enhanced error with context information.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">suggestions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">context</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suggestions</span> <span class="o">=</span> <span class="n">suggestions</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Context: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">suggestions</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Suggestions: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suggestions</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">msg</span>
+</pre></div>
+</div>
+</section>
+<section id="error-recovery-pattern">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Error Recovery Pattern</a><a class="headerlink" href="#error-recovery-pattern" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ErrorRecoveryManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages error recovery strategies for robust simulations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recovery_strategies</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">strategy</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register recovery strategy for specific error type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            error_type: Exception type to handle</span>
+<span class="sd">            strategy: Recovery function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recovery_strategies</span><span class="p">[</span><span class="n">error_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">strategy</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute_with_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute operation with automatic error recovery.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            operation: Function to execute</span>
+<span class="sd">            *args, **kwargs: Arguments for operation</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Result of operation or recovery</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">max_retries</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">retry_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="n">retry_count</span> <span class="o">&lt;</span> <span class="n">max_retries</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">operation</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Operation failed (attempt </span><span class="si">{</span><span class="n">retry_count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Try recovery</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">recovery_strategies</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">recovery_strategy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recovery_strategies</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span>
+                        <span class="n">recovery_strategy</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                        <span class="n">retry_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">continue</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">recovery_error</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Recovery failed: </span><span class="si">{</span><span class="n">recovery_error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># If no recovery or recovery failed, re-raise</span>
+                <span class="k">if</span> <span class="n">retry_count</span> <span class="o">==</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span>
+
+                <span class="n">retry_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Maximum retry attempts exceeded&quot;</span><span class="p">)</span>
+
+<span class="c1"># Example recovery strategies</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">numerical_instability_recovery</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recovery strategy for numerical instabilities.&quot;&quot;&quot;</span>
+    <span class="c1"># Reduce timestep</span>
+    <span class="n">original_timestep</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span> <span class="o">*=</span> <span class="mf">0.5</span>
+
+    <span class="c1"># Restore from checkpoint if available</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="s1">&#39;restore_checkpoint&#39;</span><span class="p">):</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">restore_checkpoint</span><span class="p">()</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reduced timestep from </span><span class="si">{</span><span class="n">original_timestep</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">memory_error_recovery</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recovery strategy for memory errors.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+
+    <span class="c1"># Force garbage collection</span>
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+    <span class="c1"># Try to free GPU memory if using CUDA</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+        <span class="n">mempool</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_default_memory_pool</span><span class="p">()</span>
+        <span class="n">mempool</span><span class="o">.</span><span class="n">free_all_blocks</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempted memory cleanup&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-patterns">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Performance Patterns</a><a class="headerlink" href="#performance-patterns" title="Link to this heading">¶</a></h2>
+<section id="lazy-loading-pattern">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Lazy Loading Pattern</a><a class="headerlink" href="#lazy-loading-pattern" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LazyTrajectory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lazy-loading trajectory that loads frames on demand.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_frame_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazy-load trajectory metadata.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_metadata</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get frame with caching.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">frame_index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_cache</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_frame_cache</span><span class="p">[</span><span class="n">frame_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_frame</span><span class="p">(</span><span class="n">frame_index</span><span class="p">)</span>
+
+            <span class="c1"># Limit cache size</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_cache</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="c1"># Remove oldest entry</span>
+                <span class="n">oldest_key</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frame_cache</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_cache</span><span class="p">[</span><span class="n">oldest_key</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frame_cache</span><span class="p">[</span><span class="n">frame_index</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load specific frame from file.&quot;&quot;&quot;</span>
+        <span class="c1"># Implementation depends on file format</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load trajectory metadata.&quot;&quot;&quot;</span>
+        <span class="c1"># Implementation depends on file format</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+<section id="object-pool-pattern">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Object Pool Pattern</a><a class="headerlink" href="#object-pool-pattern" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ArrayPool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pool of reusable NumPy arrays to reduce allocation overhead.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pools</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># (shape, dtype) -&gt; list of arrays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_use</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># Track arrays currently in use</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get array from pool or create new one.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shape: Array shape</span>
+<span class="sd">            dtype: Array data type</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: Reusable array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="c1"># Mark as in use</span>
+        <span class="n">array_id</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_use</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">array_id</span><span class="p">)</span>
+
+        <span class="c1"># Zero out array for clean state</span>
+        <span class="n">array</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">array</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">return_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return array to pool for reuse.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            array: Array to return to pool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">array_id</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">array_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_use</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">in_use</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">array_id</span><span class="p">)</span>
+
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">array</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all pools.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pools</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_use</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+<span class="c1"># Usage with context manager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">temporary_array</span><span class="p">(</span><span class="n">pool</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager for temporary array usage.&quot;&quot;&quot;</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">get_array</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">array</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">pool</span><span class="o">.</span><span class="n">return_array</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="functional-programming-patterns">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Functional Programming Patterns</a><a class="headerlink" href="#functional-programming-patterns" title="Link to this heading">¶</a></h2>
+<section id="functional-composition">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Functional Composition</a><a class="headerlink" href="#functional-composition" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce</span><span class="p">,</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="o">*</span><span class="n">functions</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compose multiple functions into a single function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        *functions: Functions to compose (right to left)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Callable: Composed function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">f</span><span class="p">(</span><span class="n">g</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">functions</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pipe</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">functions</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply functions to value in sequence (left to right).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value: Initial value</span>
+<span class="sd">        *functions: Functions to apply</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Final transformed value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">functions</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+<span class="c1"># Example: Analysis pipeline</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">center_coordinates</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Center coordinates at origin.&quot;&quot;&quot;</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">positions</span> <span class="o">-</span> <span class="n">center</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">align_to_reference</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">reference</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Align positions to reference structure.&quot;&quot;&quot;</span>
+    <span class="c1"># Simplified alignment</span>
+    <span class="k">return</span> <span class="n">positions</span>  <span class="c1"># Would implement Kabsch algorithm</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_rmsd</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">reference</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate RMSD.&quot;&quot;&quot;</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">positions</span> <span class="o">-</span> <span class="n">reference</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">diff</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)))</span>
+
+<span class="c1"># Functional pipeline</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_structure</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">reference</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyze structure using functional composition.&quot;&quot;&quot;</span>
+    <span class="n">align_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">align_to_reference</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="n">reference</span><span class="p">)</span>
+    <span class="n">rmsd_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">calculate_rmsd</span><span class="p">,</span> <span class="n">reference</span><span class="o">=</span><span class="n">reference</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pipe</span><span class="p">(</span>
+        <span class="n">positions</span><span class="p">,</span>
+        <span class="n">center_coordinates</span><span class="p">,</span>
+        <span class="n">align_func</span><span class="p">,</span>
+        <span class="n">rmsd_func</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="immutable-data-patterns">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Immutable Data Patterns</a><a class="headerlink" href="#immutable-data-patterns" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">replace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ImmutableSimulationState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Immutable simulation state for functional programming.&quot;&quot;&quot;</span>
+
+    <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">velocities</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">forces</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">time</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_positions</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create new state with updated positions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="o">=</span><span class="n">new_positions</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_velocities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_velocities</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create new state with updated velocities.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">velocities</span><span class="o">=</span><span class="n">new_velocities</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time</span><span class="p">,</span> <span class="n">new_step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create new state with updated time.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">new_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">new_time</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">new_step</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">integration_step</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">ImmutableSimulationState</span><span class="p">,</span>
+                    <span class="n">forces</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                    <span class="n">timestep</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImmutableSimulationState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pure function for integration step.&quot;&quot;&quot;</span>
+    <span class="c1"># Velocity Verlet integration</span>
+    <span class="n">masses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="p">))</span>  <span class="c1"># Simplified</span>
+
+    <span class="n">accelerations</span> <span class="o">=</span> <span class="n">forces</span> <span class="o">/</span> <span class="n">masses</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="n">new_positions</span> <span class="o">=</span> <span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span> <span class="o">+</span>
+                    <span class="n">state</span><span class="o">.</span><span class="n">velocities</span> <span class="o">*</span> <span class="n">timestep</span> <span class="o">+</span>
+                    <span class="mf">0.5</span> <span class="o">*</span> <span class="n">accelerations</span> <span class="o">*</span> <span class="n">timestep</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">new_velocities</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">velocities</span> <span class="o">+</span> <span class="n">accelerations</span> <span class="o">*</span> <span class="n">timestep</span>
+
+    <span class="n">new_time</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">time</span> <span class="o">+</span> <span class="n">timestep</span>
+    <span class="n">new_step</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">ImmutableSimulationState</span><span class="p">(</span>
+        <span class="n">positions</span><span class="o">=</span><span class="n">new_positions</span><span class="p">,</span>
+        <span class="n">velocities</span><span class="o">=</span><span class="n">new_velocities</span><span class="p">,</span>
+        <span class="n">forces</span><span class="o">=</span><span class="n">forces</span><span class="p">,</span>
+        <span class="n">time</span><span class="o">=</span><span class="n">new_time</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="n">new_step</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration-patterns">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Configuration Patterns</a><a class="headerlink" href="#configuration-patterns" title="Link to this heading">¶</a></h2>
+<section id="configuration-builder">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Configuration Builder</a><a class="headerlink" href="#configuration-builder" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for simulation parameters.&quot;&quot;&quot;</span>
+
+    <span class="c1"># System parameters</span>
+    <span class="n">system_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">topology_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">force_field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;amber99sb&quot;</span>
+
+    <span class="c1"># Simulation parameters</span>
+    <span class="n">timestep</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.002</span>  <span class="c1"># ps</span>
+    <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span>  <span class="c1"># K</span>
+    <span class="n">pressure</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># bar (None = NVT, value = NPT)</span>
+
+    <span class="c1"># Integration parameters</span>
+    <span class="n">integrator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;velocity_verlet&quot;</span>
+    <span class="n">constraints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="c1"># Output parameters</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;output&quot;</span>
+    <span class="n">trajectory_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">energy_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="c1"># Performance parameters</span>
+    <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="n">gpu_device</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">threads</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ConfigurationBuilder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Builder for creating simulation configurations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">SimulationConfig</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">topology_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set system files.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">system_file</span> <span class="o">=</span> <span class="n">system_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">topology_file</span> <span class="o">=</span> <span class="n">topology_file</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">pressure</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set dynamics parameters.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timestep</span> <span class="o">=</span> <span class="n">timestep</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">temperature</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">pressure</span> <span class="o">=</span> <span class="n">pressure</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">traj_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set output parameters.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="n">output_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">trajectory_interval</span> <span class="o">=</span> <span class="n">traj_interval</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set computational platform.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">platform</span> <span class="o">=</span> <span class="n">platform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">gpu_device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimulationConfig</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build final configuration.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_config</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate configuration parameters.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">system_file</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;System file must be specified&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timestep</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Timestep must be positive&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">temperature</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Temperature must be positive&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="validation-patterns">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Validation Patterns</a><a class="headerlink" href="#validation-patterns" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ValidationRule</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for validation rules.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate value according to rule.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_error_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get error message for invalid value.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RangeValidationRule</span><span class="p">(</span><span class="n">ValidationRule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validation rule for numeric ranges.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">max_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_value</span> <span class="o">=</span> <span class="n">min_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_value</span> <span class="o">=</span> <span class="n">max_value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if value is in range.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_value</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_error_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get range error message.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Value </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> not in range [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_value</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_value</span><span class="si">}</span><span class="s2">]&quot;</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Validator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validates objects using multiple rules.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">ValidationRule</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rule</span><span class="p">:</span> <span class="n">ValidationRule</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add validation rule for field.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">field_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate object and return list of errors.&quot;&quot;&quot;</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">rules</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">field_name</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">field_name</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">rules</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">rule</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">get_error_message</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">errors</span>
+</pre></div>
+</div>
+<p>This comprehensive guide to common patterns provides developers with established solutions for common problems in molecular dynamics software development, promoting code consistency and maintainability across the ProteinMD codebase.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#quick-start-for-developers">Quick Start for Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#core-documentation">Core Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developer_guide.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#contributing-workflow">Contributing Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#key-development-areas">Key Development Areas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="module_reference.html" title="previous chapter">Module Reference</a></li>
+      <li>Next: <a href="troubleshooting.html" title="next chapter">Troubleshooting Guide</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/common_patterns.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

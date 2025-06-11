@@ -1,0 +1,558 @@
+{
+  "ALA": {
+    "name": "Alanine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT3", "charge": -0.27},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "HB3": {"type": "HA", "charge": 0.09},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "HB3"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "ARG": {
+    "name": "Arginine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CT2", "charge": -0.18},
+      "HG1": {"type": "HA", "charge": 0.09},
+      "HG2": {"type": "HA", "charge": 0.09},
+      "CD": {"type": "CT2", "charge": 0.20},
+      "HD1": {"type": "HA", "charge": 0.09},
+      "HD2": {"type": "HA", "charge": 0.09},
+      "NE": {"type": "NC2", "charge": -0.70},
+      "HE": {"type": "HC", "charge": 0.44},
+      "CZ": {"type": "C", "charge": 0.64},
+      "NH1": {"type": "NC2", "charge": -0.80},
+      "HH11": {"type": "HC", "charge": 0.46},
+      "HH12": {"type": "HC", "charge": 0.46},
+      "NH2": {"type": "NC2", "charge": -0.80},
+      "HH21": {"type": "HC", "charge": 0.46},
+      "HH22": {"type": "HC", "charge": 0.46},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "HG1"], ["CG", "HG2"],
+      ["CG", "CD"], ["CD", "HD1"], ["CD", "HD2"], ["CD", "NE"], ["NE", "HE"],
+      ["NE", "CZ"], ["CZ", "NH1"], ["CZ", "NH2"], ["NH1", "HH11"], ["NH1", "HH12"],
+      ["NH2", "HH21"], ["NH2", "HH22"], ["C", "O"]
+    ],
+    "net_charge": 1.0
+  },
+  "ASN": {
+    "name": "Asparagine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "C", "charge": 0.55},
+      "OD1": {"type": "O", "charge": -0.55},
+      "ND2": {"type": "NH2", "charge": -0.62},
+      "HD21": {"type": "H", "charge": 0.32},
+      "HD22": {"type": "H", "charge": 0.30},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "OD1"], ["CG", "ND2"],
+      ["ND2", "HD21"], ["ND2", "HD22"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "ASP": {
+    "name": "Aspartic acid",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.28},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "C", "charge": 0.62},
+      "OD1": {"type": "OC", "charge": -0.76},
+      "OD2": {"type": "OC", "charge": -0.76},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "OD1"], ["CG", "OD2"],
+      ["C", "O"]
+    ],
+    "net_charge": -1.0
+  },
+  "CYS": {
+    "name": "Cysteine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.11},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "SG": {"type": "S", "charge": -0.23},
+      "HG": {"type": "HS", "charge": 0.16},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "SG"], ["SG", "HG"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "GLN": {
+    "name": "Glutamine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CT2", "charge": -0.18},
+      "HG1": {"type": "HA", "charge": 0.09},
+      "HG2": {"type": "HA", "charge": 0.09},
+      "CD": {"type": "C", "charge": 0.55},
+      "OE1": {"type": "O", "charge": -0.55},
+      "NE2": {"type": "NH2", "charge": -0.62},
+      "HE21": {"type": "H", "charge": 0.32},
+      "HE22": {"type": "H", "charge": 0.30},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "HG1"], ["CG", "HG2"],
+      ["CG", "CD"], ["CD", "OE1"], ["CD", "NE2"], ["NE2", "HE21"], ["NE2", "HE22"],
+      ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "GLU": {
+    "name": "Glutamic acid",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CT2", "charge": -0.28},
+      "HG1": {"type": "HA", "charge": 0.09},
+      "HG2": {"type": "HA", "charge": 0.09},
+      "CD": {"type": "C", "charge": 0.62},
+      "OE1": {"type": "OC", "charge": -0.76},
+      "OE2": {"type": "OC", "charge": -0.76},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "HG1"], ["CG", "HG2"],
+      ["CG", "CD"], ["CD", "OE1"], ["CD", "OE2"], ["C", "O"]
+    ],
+    "net_charge": -1.0
+  },
+  "GLY": {
+    "name": "Glycine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT2", "charge": -0.02},
+      "HA1": {"type": "HB", "charge": 0.09},
+      "HA2": {"type": "HB", "charge": 0.09},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA1"], ["CA", "HA2"], ["CA", "C"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "HIS": {
+    "name": "Histidine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.05},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CPH1", "charge": -0.05},
+      "ND1": {"type": "NR2", "charge": -0.36},
+      "HD1": {"type": "H", "charge": 0.32},
+      "CE1": {"type": "CPH2", "charge": 0.25},
+      "HE1": {"type": "HR1", "charge": 0.13},
+      "NE2": {"type": "NR1", "charge": -0.70},
+      "CD2": {"type": "CPH1", "charge": 0.22},
+      "HD2": {"type": "HR3", "charge": 0.10},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "ND1"], ["CG", "CD2"],
+      ["ND1", "HD1"], ["ND1", "CE1"], ["CE1", "HE1"], ["CE1", "NE2"],
+      ["NE2", "CD2"], ["CD2", "HD2"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "ILE": {
+    "name": "Isoleucine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT1", "charge": -0.09},
+      "HB": {"type": "HA", "charge": 0.09},
+      "CG1": {"type": "CT2", "charge": -0.18},
+      "HG11": {"type": "HA", "charge": 0.09},
+      "HG12": {"type": "HA", "charge": 0.09},
+      "CG2": {"type": "CT3", "charge": -0.27},
+      "HG21": {"type": "HA", "charge": 0.09},
+      "HG22": {"type": "HA", "charge": 0.09},
+      "HG23": {"type": "HA", "charge": 0.09},
+      "CD1": {"type": "CT3", "charge": -0.27},
+      "HD11": {"type": "HA", "charge": 0.09},
+      "HD12": {"type": "HA", "charge": 0.09},
+      "HD13": {"type": "HA", "charge": 0.09},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB"], ["CB", "CG1"], ["CB", "CG2"], ["CG1", "HG11"], ["CG1", "HG12"],
+      ["CG1", "CD1"], ["CG2", "HG21"], ["CG2", "HG22"], ["CG2", "HG23"],
+      ["CD1", "HD11"], ["CD1", "HD12"], ["CD1", "HD13"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "LEU": {
+    "name": "Leucine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CT1", "charge": -0.09},
+      "HG": {"type": "HA", "charge": 0.09},
+      "CD1": {"type": "CT3", "charge": -0.27},
+      "HD11": {"type": "HA", "charge": 0.09},
+      "HD12": {"type": "HA", "charge": 0.09},
+      "HD13": {"type": "HA", "charge": 0.09},
+      "CD2": {"type": "CT3", "charge": -0.27},
+      "HD21": {"type": "HA", "charge": 0.09},
+      "HD22": {"type": "HA", "charge": 0.09},
+      "HD23": {"type": "HA", "charge": 0.09},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "HG"], ["CG", "CD1"],
+      ["CG", "CD2"], ["CD1", "HD11"], ["CD1", "HD12"], ["CD1", "HD13"],
+      ["CD2", "HD21"], ["CD2", "HD22"], ["CD2", "HD23"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "LYS": {
+    "name": "Lysine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CT2", "charge": -0.18},
+      "HG1": {"type": "HA", "charge": 0.09},
+      "HG2": {"type": "HA", "charge": 0.09},
+      "CD": {"type": "CT2", "charge": -0.18},
+      "HD1": {"type": "HA", "charge": 0.09},
+      "HD2": {"type": "HA", "charge": 0.09},
+      "CE": {"type": "CT2", "charge": 0.21},
+      "HE1": {"type": "HA", "charge": 0.05},
+      "HE2": {"type": "HA", "charge": 0.05},
+      "NZ": {"type": "NH3", "charge": -0.30},
+      "HZ1": {"type": "HC", "charge": 0.33},
+      "HZ2": {"type": "HC", "charge": 0.33},
+      "HZ3": {"type": "HC", "charge": 0.33},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "HG1"], ["CG", "HG2"],
+      ["CG", "CD"], ["CD", "HD1"], ["CD", "HD2"], ["CD", "CE"], ["CE", "HE1"],
+      ["CE", "HE2"], ["CE", "NZ"], ["NZ", "HZ1"], ["NZ", "HZ2"], ["NZ", "HZ3"],
+      ["C", "O"]
+    ],
+    "net_charge": 1.0
+  },
+  "MET": {
+    "name": "Methionine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CT2", "charge": -0.14},
+      "HG1": {"type": "HA", "charge": 0.09},
+      "HG2": {"type": "HA", "charge": 0.09},
+      "SD": {"type": "S", "charge": -0.09},
+      "CE": {"type": "CT3", "charge": -0.22},
+      "HE1": {"type": "HA", "charge": 0.09},
+      "HE2": {"type": "HA", "charge": 0.09},
+      "HE3": {"type": "HA", "charge": 0.09},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "HG1"], ["CG", "HG2"],
+      ["CG", "SD"], ["SD", "CE"], ["CE", "HE1"], ["CE", "HE2"], ["CE", "HE3"],
+      ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "PHE": {
+    "name": "Phenylalanine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CA", "charge": 0.00},
+      "CD1": {"type": "CA", "charge": -0.115},
+      "HD1": {"type": "HP", "charge": 0.115},
+      "CE1": {"type": "CA", "charge": -0.115},
+      "HE1": {"type": "HP", "charge": 0.115},
+      "CZ": {"type": "CA", "charge": -0.115},
+      "HZ": {"type": "HP", "charge": 0.115},
+      "CE2": {"type": "CA", "charge": -0.115},
+      "HE2": {"type": "HP", "charge": 0.115},
+      "CD2": {"type": "CA", "charge": -0.115},
+      "HD2": {"type": "HP", "charge": 0.115},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "CD1"], ["CG", "CD2"],
+      ["CD1", "HD1"], ["CD1", "CE1"], ["CE1", "HE1"], ["CE1", "CZ"],
+      ["CZ", "HZ"], ["CZ", "CE2"], ["CE2", "HE2"], ["CE2", "CD2"],
+      ["CD2", "HD2"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "PRO": {
+    "name": "Proline",
+    "atoms": {
+      "N": {"type": "N", "charge": -0.29},
+      "CA": {"type": "CP1", "charge": 0.02},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CT2", "charge": -0.18},
+      "HG1": {"type": "HA", "charge": 0.09},
+      "HG2": {"type": "HA", "charge": 0.09},
+      "CD": {"type": "CP3", "charge": 0.00},
+      "HD1": {"type": "HA", "charge": 0.09},
+      "HD2": {"type": "HA", "charge": 0.09},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "CA"], ["N", "CD"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "HG1"], ["CG", "HG2"],
+      ["CG", "CD"], ["CD", "HD1"], ["CD", "HD2"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "SER": {
+    "name": "Serine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": 0.05},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "OG": {"type": "OH1", "charge": -0.66},
+      "HG": {"type": "H", "charge": 0.43},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "OG"], ["OG", "HG"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "THR": {
+    "name": "Threonine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT1", "charge": 0.14},
+      "HB": {"type": "HA", "charge": 0.09},
+      "OG1": {"type": "OH1", "charge": -0.66},
+      "HG1": {"type": "H", "charge": 0.43},
+      "CG2": {"type": "CT3", "charge": -0.27},
+      "HG21": {"type": "HA", "charge": 0.09},
+      "HG22": {"type": "HA", "charge": 0.09},
+      "HG23": {"type": "HA", "charge": 0.09},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB"], ["CB", "OG1"], ["CB", "CG2"], ["OG1", "HG1"],
+      ["CG2", "HG21"], ["CG2", "HG22"], ["CG2", "HG23"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "TRP": {
+    "name": "Tryptophan",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CY", "charge": -0.03},
+      "CD1": {"type": "CA", "charge": 0.035},
+      "HD1": {"type": "HP", "charge": 0.115},
+      "NE1": {"type": "NY", "charge": -0.61},
+      "HE1": {"type": "H", "charge": 0.38},
+      "CE2": {"type": "CPT", "charge": 0.13},
+      "CZ2": {"type": "CA", "charge": -0.115},
+      "HZ2": {"type": "HP", "charge": 0.115},
+      "CH2": {"type": "CA", "charge": -0.115},
+      "HH2": {"type": "HP", "charge": 0.115},
+      "CZ3": {"type": "CA", "charge": -0.115},
+      "HZ3": {"type": "HP", "charge": 0.115},
+      "CE3": {"type": "CA", "charge": -0.115},
+      "HE3": {"type": "HP", "charge": 0.115},
+      "CD2": {"type": "CPT", "charge": 0.02},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "CD1"], ["CG", "CD2"],
+      ["CD1", "HD1"], ["CD1", "NE1"], ["NE1", "HE1"], ["NE1", "CE2"],
+      ["CE2", "CZ2"], ["CE2", "CD2"], ["CZ2", "HZ2"], ["CZ2", "CH2"],
+      ["CH2", "HH2"], ["CH2", "CZ3"], ["CZ3", "HZ3"], ["CZ3", "CE3"],
+      ["CE3", "HE3"], ["CE3", "CD2"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "TYR": {
+    "name": "Tyrosine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT2", "charge": -0.18},
+      "HB1": {"type": "HA", "charge": 0.09},
+      "HB2": {"type": "HA", "charge": 0.09},
+      "CG": {"type": "CA", "charge": 0.00},
+      "CD1": {"type": "CA", "charge": -0.115},
+      "HD1": {"type": "HP", "charge": 0.115},
+      "CE1": {"type": "CA", "charge": -0.115},
+      "HE1": {"type": "HP", "charge": 0.115},
+      "CZ": {"type": "CA", "charge": 0.11},
+      "OH": {"type": "OH1", "charge": -0.54},
+      "HH": {"type": "H", "charge": 0.43},
+      "CE2": {"type": "CA", "charge": -0.115},
+      "HE2": {"type": "HP", "charge": 0.115},
+      "CD2": {"type": "CA", "charge": -0.115},
+      "HD2": {"type": "HP", "charge": 0.115},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB1"], ["CB", "HB2"], ["CB", "CG"], ["CG", "CD1"], ["CG", "CD2"],
+      ["CD1", "HD1"], ["CD1", "CE1"], ["CE1", "HE1"], ["CE1", "CZ"],
+      ["CZ", "OH"], ["CZ", "CE2"], ["OH", "HH"], ["CE2", "HE2"],
+      ["CE2", "CD2"], ["CD2", "HD2"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  },
+  "VAL": {
+    "name": "Valine",
+    "atoms": {
+      "N": {"type": "NH1", "charge": -0.47},
+      "H": {"type": "H", "charge": 0.31},
+      "CA": {"type": "CT1", "charge": 0.07},
+      "HA": {"type": "HB", "charge": 0.09},
+      "CB": {"type": "CT1", "charge": -0.09},
+      "HB": {"type": "HA", "charge": 0.09},
+      "CG1": {"type": "CT3", "charge": -0.27},
+      "HG11": {"type": "HA", "charge": 0.09},
+      "HG12": {"type": "HA", "charge": 0.09},
+      "HG13": {"type": "HA", "charge": 0.09},
+      "CG2": {"type": "CT3", "charge": -0.27},
+      "HG21": {"type": "HA", "charge": 0.09},
+      "HG22": {"type": "HA", "charge": 0.09},
+      "HG23": {"type": "HA", "charge": 0.09},
+      "C": {"type": "C", "charge": 0.51},
+      "O": {"type": "O", "charge": -0.51}
+    },
+    "bonds": [
+      ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+      ["CB", "HB"], ["CB", "CG1"], ["CB", "CG2"], ["CG1", "HG11"],
+      ["CG1", "HG12"], ["CG1", "HG13"], ["CG2", "HG21"], ["CG2", "HG22"],
+      ["CG2", "HG23"], ["C", "O"]
+    ],
+    "net_charge": 0.0
+  }
+}

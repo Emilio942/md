@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ProteinMD Developer Guide &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Software Architecture" href="architecture.html" />
+    <link rel="prev" title="Troubleshooting Guide" href="../advanced/troubleshooting.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="proteinmd-developer-guide">
+<h1>ProteinMD Developer Guide<a class="headerlink" href="#proteinmd-developer-guide" title="Link to this heading">¶</a></h1>
+<p>Welcome to the comprehensive developer guide for ProteinMD! This guide provides everything you need to know to contribute effectively to the ProteinMD molecular dynamics simulation library.</p>
+<nav class="contents local" id="developer-guide-contents">
+<p class="topic-title">Developer Guide Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#quick-start-for-developers" id="id1">Quick Start for Developers</a></p></li>
+<li><p><a class="reference internal" href="#core-documentation" id="id2">Core Documentation</a></p></li>
+<li><p><a class="reference internal" href="#development-workflow" id="id3">Development Workflow</a></p></li>
+<li><p><a class="reference internal" href="#advanced-topics" id="id4">Advanced Topics</a></p></li>
+<li><p><a class="reference internal" href="#reference" id="id5">Reference</a></p></li>
+<li><p><a class="reference internal" href="#overview" id="id6">Overview</a></p>
+<ul>
+<li><p><a class="reference internal" href="#about-proteinmd-development" id="id7">About ProteinMD Development</a></p></li>
+<li><p><a class="reference internal" href="#development-principles" id="id8">Development Principles</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#getting-help" id="id9">Getting Help</a></p></li>
+<li><p><a class="reference internal" href="#development-environment" id="id10">Development Environment</a></p></li>
+<li><p><a class="reference internal" href="#contributing-workflow" id="id11">Contributing Workflow</a></p></li>
+<li><p><a class="reference internal" href="#key-development-areas" id="id12">Key Development Areas</a></p></li>
+<li><p><a class="reference internal" href="#best-practices-summary" id="id13">Best Practices Summary</a></p></li>
+<li><p><a class="reference internal" href="#next-steps" id="id14">Next Steps</a></p></li>
+</ul>
+</nav>
+<section id="quick-start-for-developers">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Quick Start for Developers</a><a class="headerlink" href="#quick-start-for-developers" title="Link to this heading">¶</a></h2>
+<p><strong>New to ProteinMD Development?</strong></p>
+<ol class="arabic simple">
+<li><p>Read the <a class="reference internal" href="architecture.html"><span class="doc">Software Architecture</span></a> overview to understand the system design</p></li>
+<li><p>Set up your development environment using <a class="reference internal" href="contributing.html"><span class="doc">Contributing to ProteinMD</span></a></p></li>
+<li><p>Review our <a class="reference internal" href="coding_standards.html"><span class="doc">Coding Standards and Style Guide</span></a> and best practices</p></li>
+<li><p>Write and run tests following our <a class="reference internal" href="testing.html"><span class="doc">Testing Framework</span></a> guidelines</p></li>
+<li><p>Submit your first pull request using our <a class="reference internal" href="pull_request_guide.html"><span class="doc">Pull Request Guide</span></a></p></li>
+</ol>
+<p><strong>Already Contributing?</strong></p>
+<ul class="simple">
+<li><p>Check the <a class="reference internal" href="api_design.html"><span class="doc">API Design Principles</span></a> principles for new features</p></li>
+<li><p>Review <a class="reference internal" href="performance_guide.html"><span class="doc">Performance Guide</span></a> for optimization work</p></li>
+<li><p>Use <a class="reference internal" href="debugging_guide.html"><span class="doc">Debugging Guide</span></a> for troubleshooting</p></li>
+<li><p>Follow <a class="reference internal" href="release_process.html"><span class="doc">Release Process</span></a> for maintainers</p></li>
+</ul>
+</section>
+<section id="core-documentation">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Core Documentation</a><a class="headerlink" href="#core-documentation" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#overall-architecture">Overall Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#module-architecture">Module Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#data-flow-architecture">Data Flow Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#backend-architecture">Backend Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#configuration-management">Configuration Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#performance-architecture">Performance Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#error-handling-and-logging">Error Handling and Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#testing-architecture">Testing Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#code-guidelines">Code Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#testing-guidelines">Testing Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#pull-request-process">Pull Request Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#types-of-contributions">Types of Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#community-guidelines">Community Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#python-code-style">Python Code Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#documentation-standards">Documentation Standards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#code-organization">Code Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#performance-guidelines">Performance Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#testing-guidelines">Testing Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#git-and-version-control">Git and Version Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#code-review-standards">Code Review Standards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#quality-assurance-tools">Quality Assurance Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coding_standards.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#core-design-philosophy">Core Design Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#api-patterns">API Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#error-handling-patterns">Error Handling Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#data-access-patterns">Data Access Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#extensibility-patterns">Extensibility Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#version-compatibility">Version Compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#documentation-in-code">Documentation in Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#testing-api-design">Testing API Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_design.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#test-organization">Test Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#test-utilities">Test Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#test-fixtures">Test Fixtures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#test-configuration">Test Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#continuous-integration">Continuous Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#test-data-management">Test Data Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#test-reporting">Test Reporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#documentation-structure">Documentation Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#writing-documentation">Writing Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#api-documentation">API Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#building-documentation">Building Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#documentation-quality">Documentation Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#accessibility">Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#maintenance">Maintenance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="performance_guide.html#performance-philosophy">Performance Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_guide.html#profiling-and-benchmarking">Profiling and Benchmarking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_guide.html#optimization-strategies">Optimization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_guide.html#performance-testing">Performance Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance_guide.html#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="debugging_guide.html">Debugging Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="debugging_guide.html#general-debugging-principles">General Debugging Principles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debugging_guide.html#common-debugging-scenarios">Common Debugging Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debugging_guide.html#debugging-tools">Debugging Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debugging_guide.html#gpu-debugging">GPU Debugging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debugging_guide.html#testing-and-validation">Testing and Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debugging_guide.html#common-issues-and-solutions">Common Issues and Solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debugging_guide.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debugging_guide.html#tools-and-resources">Tools and Resources</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="development-workflow">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Development Workflow</a><a class="headerlink" href="#development-workflow" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#branching-strategy">Branching Strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#workflow-for-contributors">Workflow for Contributors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#commit-guidelines">Commit Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#branch-management">Branch Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#advanced-git-workflows">Advanced Git Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#release-workflow">Release Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#collaboration-patterns">Collaboration Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#emergency-procedures">Emergency Procedures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#tools-and-aliases">Tools and Aliases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="git_workflow.html#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#before-you-start">Before You Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#pre-development-checklist">Pre-Development Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#code-quality-checklist">Code Quality Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#submitting-the-pull-request">Submitting the Pull Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#review-process">Review Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#merging-process">Merging Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#common-issues-and-solutions">Common Issues and Solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#quality-gates">Quality Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull_request_guide.html#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="review_process.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="review_process.html#review-process-workflow">Review Process Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="review_process.html#types-of-reviews">Types of Reviews</a></li>
+<li class="toctree-l2"><a class="reference internal" href="review_process.html#review-guidelines">Review Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="review_process.html#advanced-review-scenarios">Advanced Review Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="review_process.html#review-tools-and-automation">Review Tools and Automation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="review_process.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="review_process.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#release-planning">Release Planning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#release-process-workflow">Release Process Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#distribution">Distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#post-release-activities">Post-Release Activities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#hotfix-process">Hotfix Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#quality-assurance">Quality Assurance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_process.html#summary">Summary</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="advanced-topics">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Advanced Topics</a><a class="headerlink" href="#advanced-topics" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cuda_development.html">CUDA Development Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#development-environment-setup">Development Environment Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#cuda-kernel-development">CUDA Kernel Development</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#memory-management">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#kernel-launch-optimization">Kernel Launch Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#performance-optimization">Performance Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#multi-gpu-support">Multi-GPU Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#error-handling-and-debugging">Error Handling and Debugging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#testing-and-validation">Testing and Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda_development.html#integration-with-proteinmd">Integration with ProteinMD</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="memory_optimization.html">Memory Optimization Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#memory-profiling">Memory Profiling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#data-structure-optimization">Data Structure Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#memory-pool-management">Memory Pool Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#cache-optimization">Cache Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#gpu-memory-optimization">GPU Memory Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#memory-layout-optimization">Memory Layout Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#algorithm-level-optimizations">Algorithm-Level Optimizations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#performance-monitoring">Performance Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_optimization.html#tools-and-resources">Tools and Resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="profiling.html">Profiling Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#python-profiling">Python Profiling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#numpy-and-scientific-computing-profiling">NumPy and Scientific Computing Profiling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#gpu-profiling">GPU Profiling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#molecular-dynamics-specific-profiling">Molecular Dynamics Specific Profiling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#performance-bottleneck-analysis">Performance Bottleneck Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#automated-performance-monitoring">Automated Performance Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#visualization-and-reporting">Visualization and Reporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="profiling.html#tools-summary">Tools Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#benchmark-suite-design">Benchmark Suite Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#platform-specific-benchmarks">Platform-Specific Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#automated-benchmark-infrastructure">Automated Benchmark Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#regression-testing">Regression Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#benchmark-reporting">Benchmark Reporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#tools-and-infrastructure">Tools and Infrastructure</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="reference">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Reference</a><a class="headerlink" href="#reference" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module_reference.html">Module Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#core-module-proteinmd-core">Core Module (<cite>proteinmd.core</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#forces-module-proteinmd-forces">Forces Module (<cite>proteinmd.forces</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#topology-module-proteinmd-topology">Topology Module (<cite>proteinmd.topology</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#i-o-module-proteinmd-io">I/O Module (<cite>proteinmd.io</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#analysis-module-proteinmd-analysis">Analysis Module (<cite>proteinmd.analysis</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#utils-module-proteinmd-utils">Utils Module (<cite>proteinmd.utils</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#cuda-module-proteinmd-cuda">CUDA Module (<cite>proteinmd.cuda</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="module_reference.html#module-integration-patterns">Module Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="common_patterns.html">Common Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="common_patterns.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common_patterns.html#design-patterns">Design Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common_patterns.html#data-access-patterns">Data Access Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common_patterns.html#error-handling-patterns">Error Handling Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common_patterns.html#performance-patterns">Performance Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common_patterns.html#functional-programming-patterns">Functional Programming Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="common_patterns.html#configuration-patterns">Configuration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#build-and-installation-issues">Build and Installation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#runtime-errors">Runtime Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#i-o-and-file-format-issues">I/O and File Format Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#memory-and-performance-issues">Memory and Performance Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#testing-and-debugging-issues">Testing and Debugging Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#environment-and-system-issues">Environment and System Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#documentation-and-api-issues">Documentation and API Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#error-reporting-and-logging">Error Reporting and Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#resources">Resources</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="overview">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<section id="about-proteinmd-development">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">About ProteinMD Development</a><a class="headerlink" href="#about-proteinmd-development" title="Link to this heading">¶</a></h3>
+<p>ProteinMD is a modular, high-performance molecular dynamics simulation library designed for studying protein behavior in cellular environments. Our development philosophy emphasizes:</p>
+<dl class="simple">
+<dt><strong>Code Quality</strong></dt><dd><ul class="simple">
+<li><p>Clean, readable, and well-documented code</p></li>
+<li><p>Comprehensive testing with &gt;90% coverage</p></li>
+<li><p>Performance optimization where needed</p></li>
+<li><p>Consistent API design</p></li>
+</ul>
+</dd>
+<dt><strong>Collaboration</strong></dt><dd><ul class="simple">
+<li><p>Inclusive and welcoming community</p></li>
+<li><p>Thorough code review process</p></li>
+<li><p>Clear contribution guidelines</p></li>
+<li><p>Open communication channels</p></li>
+</ul>
+</dd>
+<dt><strong>Scientific Rigor</strong></dt><dd><ul class="simple">
+<li><p>Physically accurate simulations</p></li>
+<li><p>Validated algorithms and implementations</p></li>
+<li><p>Reproducible results</p></li>
+<li><p>Extensive benchmarking</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="development-principles">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Development Principles</a><a class="headerlink" href="#development-principles" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><strong>Modularity</strong></dt><dd><p>Our architecture is built around loosely coupled, highly cohesive modules that can be developed and tested independently.</p>
+</dd>
+<dt><strong>Performance</strong></dt><dd><p>We prioritize computational efficiency while maintaining code clarity, with optional CUDA acceleration for computationally intensive operations.</p>
+</dd>
+<dt><strong>Extensibility</strong></dt><dd><p>New force fields, analysis methods, and sampling techniques can be added through well-defined plugin interfaces.</p>
+</dd>
+<dt><strong>Reproducibility</strong></dt><dd><p>All simulations are fully reproducible with deterministic random number generation and comprehensive logging.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="getting-help">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Getting Help</a><a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<p><strong>For Development Questions:</strong></p>
+<ul class="simple">
+<li><p>Create an issue on GitHub for bugs or feature requests</p></li>
+<li><p>Start a discussion for architectural questions</p></li>
+<li><p>Check existing documentation and code examples</p></li>
+<li><p>Ask in our developer community channels</p></li>
+</ul>
+<p><strong>For Code Reviews:</strong></p>
+<ul class="simple">
+<li><p>Follow our pull request template</p></li>
+<li><p>Include comprehensive tests</p></li>
+<li><p>Document all public APIs</p></li>
+<li><p>Ensure CI passes before requesting review</p></li>
+</ul>
+<p><strong>Emergency Contact:</strong></p>
+<p>For security issues or urgent problems, contact the maintainers directly.</p>
+</section>
+<section id="development-environment">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Development Environment</a><a class="headerlink" href="#development-environment" title="Link to this heading">¶</a></h2>
+<p><strong>System Requirements:</strong></p>
+<ul class="simple">
+<li><p>Python 3.8+ (3.9+ recommended)</p></li>
+<li><p>NumPy 1.19+</p></li>
+<li><p>SciPy 1.7+</p></li>
+<li><p>CUDA 11.0+ (optional, for GPU acceleration)</p></li>
+<li><p>8GB+ RAM (16GB+ recommended for large systems)</p></li>
+</ul>
+<p><strong>Recommended IDE Setup:</strong></p>
+<ul class="simple">
+<li><p>VS Code with Python extension</p></li>
+<li><p>PyCharm Professional (for advanced debugging)</p></li>
+<li><p>Vim/Neovim with appropriate plugins</p></li>
+</ul>
+<p><strong>Code Quality Tools:</strong></p>
+<ul class="simple">
+<li><p>Black (code formatting)</p></li>
+<li><p>Flake8 (linting)</p></li>
+<li><p>MyPy (type checking)</p></li>
+<li><p>Pre-commit hooks (automated checks)</p></li>
+</ul>
+</section>
+<section id="contributing-workflow">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Contributing Workflow</a><a class="headerlink" href="#contributing-workflow" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>1. Issue Triage</strong></dt><dd><ul class="simple">
+<li><p>Check existing issues before creating new ones</p></li>
+<li><p>Use appropriate labels and templates</p></li>
+<li><p>Provide minimal reproducible examples</p></li>
+</ul>
+</dd>
+<dt><strong>2. Feature Development</strong></dt><dd><ul class="simple">
+<li><p>Create feature branch from main</p></li>
+<li><p>Follow coding standards and API design principles</p></li>
+<li><p>Write comprehensive tests</p></li>
+<li><p>Update documentation</p></li>
+</ul>
+</dd>
+<dt><strong>3. Code Review</strong></dt><dd><ul class="simple">
+<li><p>Submit pull request with clear description</p></li>
+<li><p>Address reviewer feedback promptly</p></li>
+<li><p>Ensure CI passes</p></li>
+<li><p>Maintain clean git history</p></li>
+</ul>
+</dd>
+<dt><strong>4. Integration</strong></dt><dd><ul class="simple">
+<li><p>Merge after approval and CI success</p></li>
+<li><p>Update changelog and documentation</p></li>
+<li><p>Communicate breaking changes</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="key-development-areas">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Key Development Areas</a><a class="headerlink" href="#key-development-areas" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>Core Engine Development</strong></dt><dd><ul class="simple">
+<li><p>Molecular dynamics integrators</p></li>
+<li><p>Force field implementations</p></li>
+<li><p>Thermostats and barostats</p></li>
+<li><p>Periodic boundary conditions</p></li>
+</ul>
+</dd>
+<dt><strong>Analysis Tools</strong></dt><dd><ul class="simple">
+<li><p>Structural analysis methods</p></li>
+<li><p>Thermodynamic property calculations</p></li>
+<li><p>Time series analysis</p></li>
+<li><p>Visualization capabilities</p></li>
+</ul>
+</dd>
+<dt><strong>Sampling Methods</strong></dt><dd><ul class="simple">
+<li><p>Enhanced sampling techniques</p></li>
+<li><p>Replica exchange methods</p></li>
+<li><p>Umbrella sampling</p></li>
+<li><p>Steered molecular dynamics</p></li>
+</ul>
+</dd>
+<dt><strong>I/O and Data Management</strong></dt><dd><ul class="simple">
+<li><p>File format support</p></li>
+<li><p>Database integration</p></li>
+<li><p>Trajectory compression</p></li>
+<li><p>Metadata handling</p></li>
+</ul>
+</dd>
+<dt><strong>GPU Acceleration</strong></dt><dd><ul class="simple">
+<li><p>CUDA kernel development</p></li>
+<li><p>Memory management</p></li>
+<li><p>Performance optimization</p></li>
+<li><p>Cross-platform compatibility</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="best-practices-summary">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Best Practices Summary</a><a class="headerlink" href="#best-practices-summary" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>Code Style</strong></dt><dd><ul class="simple">
+<li><p>Follow PEP 8 with Black formatting</p></li>
+<li><p>Use type hints for all public APIs</p></li>
+<li><p>Write self-documenting code with clear names</p></li>
+<li><p>Include docstrings for all public functions</p></li>
+</ul>
+</dd>
+<dt><strong>Testing</strong></dt><dd><ul class="simple">
+<li><p>Unit tests for all new functionality</p></li>
+<li><p>Integration tests for workflows</p></li>
+<li><p>Performance regression tests</p></li>
+<li><p>Benchmarks for critical paths</p></li>
+</ul>
+</dd>
+<dt><strong>Documentation</strong></dt><dd><ul class="simple">
+<li><p>API documentation from docstrings</p></li>
+<li><p>Examples for all public functions</p></li>
+<li><p>Architecture documentation for design decisions</p></li>
+<li><p>User guides for new features</p></li>
+</ul>
+</dd>
+<dt><strong>Performance</strong></dt><dd><ul class="simple">
+<li><p>Profile before optimizing</p></li>
+<li><p>Use NumPy vectorization where possible</p></li>
+<li><p>Consider CUDA for compute-intensive operations</p></li>
+<li><p>Monitor memory usage and avoid leaks</p></li>
+</ul>
+</dd>
+<dt><strong>Git Workflow</strong></dt><dd><ul class="simple">
+<li><p>Use descriptive commit messages</p></li>
+<li><p>Keep commits focused and atomic</p></li>
+<li><p>Rebase feature branches before merging</p></li>
+<li><p>Tag releases with semantic versioning</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="next-steps">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Next Steps</a><a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>New Contributors:</strong> Start with the <a class="reference internal" href="contributing.html"><span class="doc">Contributing to ProteinMD</span></a> guide</p></li>
+<li><p><strong>Experienced Developers:</strong> Review <a class="reference internal" href="architecture.html"><span class="doc">Software Architecture</span></a> and <a class="reference internal" href="api_design.html"><span class="doc">API Design Principles</span></a></p></li>
+<li><p><strong>Performance Enthusiasts:</strong> Check out <a class="reference internal" href="performance_guide.html"><span class="doc">Performance Guide</span></a> and <a class="reference internal" href="cuda_development.html"><span class="doc">CUDA Development Guide</span></a></p></li>
+<li><p><strong>Documentation Writers:</strong> See <a class="reference internal" href="documentation.html"><span class="doc">Documentation Guidelines</span></a> guidelines</p></li>
+</ol>
+<p>Welcome to the ProteinMD development community!</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ProteinMD Developer Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start-for-developers">Quick Start for Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-documentation">Core Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contributing-workflow">Contributing Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#key-development-areas">Key Development Areas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../advanced/troubleshooting.html" title="previous chapter">Troubleshooting Guide</a></li>
+      <li>Next: <a href="architecture.html" title="next chapter">Software Architecture</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/developer_guide.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

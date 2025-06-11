@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Validation and Quality Assurance &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Extending ProteinMD" href="extending.html" />
+    <link rel="prev" title="Performance Optimization" href="performance.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="validation-and-quality-assurance">
+<h1>Validation and Quality Assurance<a class="headerlink" href="#validation-and-quality-assurance" title="Link to this heading">¶</a></h1>
+<p>This guide covers validation protocols and quality assurance procedures for ProteinMD simulations.</p>
+<nav class="contents local" id="validation-topics">
+<p class="topic-title">Validation Topics</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#pre-simulation-validation" id="id2">Pre-Simulation Validation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#structure-validation" id="id3">Structure Validation</a></p></li>
+<li><p><a class="reference internal" href="#force-field-validation" id="id4">Force Field Validation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#simulation-validation" id="id5">Simulation Validation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#equilibration-validation" id="id6">Equilibration Validation</a></p></li>
+<li><p><a class="reference internal" href="#production-run-validation" id="id7">Production Run Validation</a></p></li>
+<li><p><a class="reference internal" href="#sampling-validation" id="id8">Sampling Validation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#statistical-validation" id="id9">Statistical Validation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#convergence-analysis" id="id10">Convergence Analysis</a></p></li>
+<li><p><a class="reference internal" href="#error-analysis" id="id11">Error Analysis</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#comparative-validation" id="id12">Comparative Validation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#literature-comparison" id="id13">Literature Comparison</a></p></li>
+<li><p><a class="reference internal" href="#id1" id="id14">Force Field Validation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#validation-reporting" id="id15">Validation Reporting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#automated-validation-reports" id="id16">Automated Validation Reports</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#validation-best-practices" id="id17">Validation Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#pre-simulation-checklist" id="id18">Pre-Simulation Checklist</a></p></li>
+<li><p><a class="reference internal" href="#during-simulation-monitoring" id="id19">During Simulation Monitoring</a></p></li>
+<li><p><a class="reference internal" href="#post-simulation-analysis" id="id20">Post-Simulation Analysis</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#common-validation-issues" id="id21">Common Validation Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#structure-problems" id="id22">Structure Problems</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#see-also" id="id23">See Also</a></p></li>
+</ul>
+</nav>
+<section id="pre-simulation-validation">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Pre-Simulation Validation</a><a class="headerlink" href="#pre-simulation-validation" title="Link to this heading">¶</a></h2>
+<section id="structure-validation">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Structure Validation</a><a class="headerlink" href="#structure-validation" title="Link to this heading">¶</a></h3>
+<p><strong>Comprehensive Structure Checking</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructureValidator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeometryValidator</span><span class="p">,</span> <span class="n">ChemistryValidator</span>
+
+<span class="c1"># Load structure</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">ProteinStructure</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Comprehensive validation</span>
+<span class="n">validator</span> <span class="o">=</span> <span class="n">StructureValidator</span><span class="p">()</span>
+
+<span class="c1"># Basic structure checks</span>
+<span class="n">basic_issues</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate_basic</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Basic validation issues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">basic_issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">basic_issues</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">severity</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">issue</span><span class="o">.</span><span class="n">severity</span> <span class="o">==</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Suggested fix: </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">suggested_fix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Geometry Validation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Detailed geometry checking</span>
+<span class="n">geom_validator</span> <span class="o">=</span> <span class="n">GeometryValidator</span><span class="p">()</span>
+
+<span class="c1"># Check bond lengths</span>
+<span class="n">bond_issues</span> <span class="o">=</span> <span class="n">geom_validator</span><span class="o">.</span><span class="n">validate_bonds</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Bond length issues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bond_issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">bond_issues</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">issue</span><span class="o">.</span><span class="n">deviation</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="c1"># &gt; 0.1 Å deviation</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">atom1</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">atom2</span><span class="si">}</span><span class="s2">: &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">length</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> Å (expected: </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">expected</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> Å)&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check angles</span>
+<span class="n">angle_issues</span> <span class="o">=</span> <span class="n">geom_validator</span><span class="o">.</span><span class="n">validate_angles</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="n">severe_angle_issues</span> <span class="o">=</span> <span class="p">[</span><span class="n">issue</span> <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">angle_issues</span> <span class="k">if</span> <span class="n">issue</span><span class="o">.</span><span class="n">deviation</span> <span class="o">&gt;</span> <span class="mf">10.0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Severe angle issues (&gt;10°): </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">severe_angle_issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check dihedrals</span>
+<span class="n">dihedral_issues</span> <span class="o">=</span> <span class="n">geom_validator</span><span class="o">.</span><span class="n">validate_dihedrals</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dihedral issues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dihedral_issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Chemistry Validation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Chemical consistency checks</span>
+<span class="n">chem_validator</span> <span class="o">=</span> <span class="n">ChemistryValidator</span><span class="p">()</span>
+
+<span class="c1"># Validate protonation states</span>
+<span class="n">protonation_issues</span> <span class="o">=</span> <span class="n">chem_validator</span><span class="o">.</span><span class="n">validate_protonation</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">ph</span><span class="o">=</span><span class="mf">7.0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Protonation issues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">protonation_issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check for unusual residues</span>
+<span class="n">unusual_residues</span> <span class="o">=</span> <span class="n">chem_validator</span><span class="o">.</span><span class="n">find_unusual_residues</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">unusual_residues</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unusual residues found:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">unusual_residues</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> at position </span><span class="si">{</span><span class="n">residue</span><span class="o">.</span><span class="n">number</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Validate disulfide bonds</span>
+<span class="n">disulfide_issues</span> <span class="o">=</span> <span class="n">chem_validator</span><span class="o">.</span><span class="n">validate_disulfide_bonds</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Disulfide bond issues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">disulfide_issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="force-field-validation">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Force Field Validation</a><a class="headerlink" href="#force-field-validation" title="Link to this heading">¶</a></h3>
+<p><strong>Parameter Coverage Check</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forcefield.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForceFieldValidator</span>
+
+<span class="c1"># Check force field parameter coverage</span>
+<span class="n">ff_validator</span> <span class="o">=</span> <span class="n">ForceFieldValidator</span><span class="p">()</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+
+<span class="n">coverage_report</span> <span class="o">=</span> <span class="n">ff_validator</span><span class="o">.</span><span class="n">check_coverage</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">forcefield</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter coverage: </span><span class="si">{</span><span class="n">coverage_report</span><span class="o">.</span><span class="n">coverage_percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">coverage_report</span><span class="o">.</span><span class="n">missing_parameters</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Missing parameters:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">coverage_report</span><span class="o">.</span><span class="n">missing_parameters</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">param</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">param</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Energy Validation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnergyValidator</span>
+
+<span class="c1"># Create system for energy validation</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Validate initial energies</span>
+<span class="n">energy_validator</span> <span class="o">=</span> <span class="n">EnergyValidator</span><span class="p">()</span>
+<span class="n">energy_report</span> <span class="o">=</span> <span class="n">energy_validator</span><span class="o">.</span><span class="n">validate_initial_energy</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial potential energy: </span><span class="si">{</span><span class="n">energy_report</span><span class="o">.</span><span class="n">potential_energy</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy per atom: </span><span class="si">{</span><span class="n">energy_report</span><span class="o">.</span><span class="n">energy_per_atom</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check for unreasonable energies</span>
+<span class="k">if</span> <span class="n">energy_report</span><span class="o">.</span><span class="n">has_extreme_energies</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Extreme energies detected&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">warning</span> <span class="ow">in</span> <span class="n">energy_report</span><span class="o">.</span><span class="n">warnings</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">warning</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="simulation-validation">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Simulation Validation</a><a class="headerlink" href="#simulation-validation" title="Link to this heading">¶</a></h2>
+<section id="equilibration-validation">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Equilibration Validation</a><a class="headerlink" href="#equilibration-validation" title="Link to this heading">¶</a></h3>
+<p><strong>Energy Convergence</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">EquilibrationValidator</span>
+
+<span class="c1"># Monitor equilibration</span>
+<span class="n">equilibration_validator</span> <span class="o">=</span> <span class="n">EquilibrationValidator</span><span class="p">()</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_equilibration</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run equilibration with validation&quot;&quot;&quot;</span>
+
+    <span class="c1"># Collect data during equilibration</span>
+    <span class="n">energy_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">temperature_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">pressure_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Collect every 100 steps</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_current_state</span><span class="p">()</span>
+            <span class="n">energy_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">potential_energy</span><span class="p">)</span>
+            <span class="n">temperature_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+            <span class="n">pressure_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">pressure</span><span class="p">)</span>
+
+    <span class="c1"># Validate convergence</span>
+    <span class="n">convergence_report</span> <span class="o">=</span> <span class="n">equilibration_validator</span><span class="o">.</span><span class="n">check_convergence</span><span class="p">({</span>
+        <span class="s1">&#39;energy&#39;</span><span class="p">:</span> <span class="n">energy_data</span><span class="p">,</span>
+        <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="n">temperature_data</span><span class="p">,</span>
+        <span class="s1">&#39;pressure&#39;</span><span class="p">:</span> <span class="n">pressure_data</span>
+    <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">convergence_report</span>
+
+<span class="c1"># Run validation</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">validate_equilibration</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="mi">50000</span><span class="p">)</span>  <span class="c1"># 50k steps</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Equilibration validation:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Energy converged: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">energy_converged</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Temperature stable: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">temperature_stable</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Pressure stable: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">pressure_stable</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">fully_equilibrated</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Recommended additional steps: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">additional_steps</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Volume Equilibration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Specific validation for NPT equilibration</span>
+<span class="n">volume_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">box_vectors</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_box_vectors</span><span class="p">()</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">box_vectors</span><span class="p">)</span>
+        <span class="n">volume_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+
+<span class="c1"># Check volume convergence</span>
+<span class="n">volume_converged</span> <span class="o">=</span> <span class="n">equilibration_validator</span><span class="o">.</span><span class="n">check_volume_convergence</span><span class="p">(</span>
+    <span class="n">volume_data</span><span class="p">,</span>
+    <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.02</span>  <span class="c1"># 2% tolerance</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Volume equilibration: </span><span class="si">{</span><span class="s1">&#39;Converged&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">volume_converged</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;Not converged&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="production-run-validation">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Production Run Validation</a><a class="headerlink" href="#production-run-validation" title="Link to this heading">¶</a></h3>
+<p><strong>Trajectory Quality Checks</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajectoryValidator</span>
+
+<span class="c1"># Validate trajectory quality</span>
+<span class="n">traj_validator</span> <span class="o">=</span> <span class="n">TrajectoryValidator</span><span class="p">()</span>
+<span class="n">trajectory</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_trajectory</span><span class="p">()</span>
+
+<span class="c1"># Check for structural integrity</span>
+<span class="n">integrity_report</span> <span class="o">=</span> <span class="n">traj_validator</span><span class="o">.</span><span class="n">check_structural_integrity</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Trajectory validation:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Frames analyzed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Structural integrity: </span><span class="si">{</span><span class="n">integrity_report</span><span class="o">.</span><span class="n">integrity_score</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">integrity_report</span><span class="o">.</span><span class="n">issues</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Issues detected:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">integrity_report</span><span class="o">.</span><span class="n">issues</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Frame </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Thermodynamic Validation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicValidator</span>
+
+<span class="c1"># Validate thermodynamic properties</span>
+<span class="n">thermo_validator</span> <span class="o">=</span> <span class="n">ThermodynamicValidator</span><span class="p">()</span>
+
+<span class="c1"># Load energy data</span>
+<span class="n">energy_data</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_energy_data</span><span class="p">()</span>
+
+<span class="c1"># Validate energy conservation (for NVE)</span>
+<span class="k">if</span> <span class="n">simulation</span><span class="o">.</span><span class="n">ensemble</span> <span class="o">==</span> <span class="s2">&quot;NVE&quot;</span><span class="p">:</span>
+    <span class="n">conservation_report</span> <span class="o">=</span> <span class="n">thermo_validator</span><span class="o">.</span><span class="n">check_energy_conservation</span><span class="p">(</span><span class="n">energy_data</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy drift: </span><span class="si">{</span><span class="n">conservation_report</span><span class="o">.</span><span class="n">drift_per_ns</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol/ns&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">conservation_report</span><span class="o">.</span><span class="n">drift_per_ns</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Significant energy drift detected&quot;</span><span class="p">)</span>
+
+<span class="c1"># Validate temperature distribution</span>
+<span class="n">temp_validation</span> <span class="o">=</span> <span class="n">thermo_validator</span><span class="o">.</span><span class="n">validate_temperature_distribution</span><span class="p">(</span>
+    <span class="n">energy_data</span><span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">],</span>
+    <span class="n">target_temperature</span><span class="o">=</span><span class="mf">300.0</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temperature validation:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Mean: </span><span class="si">{</span><span class="n">temp_validation</span><span class="o">.</span><span class="n">mean</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Std: </span><span class="si">{</span><span class="n">temp_validation</span><span class="o">.</span><span class="n">std</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Distribution normal: </span><span class="si">{</span><span class="n">temp_validation</span><span class="o">.</span><span class="n">is_normal</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="sampling-validation">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Sampling Validation</a><a class="headerlink" href="#sampling-validation" title="Link to this heading">¶</a></h3>
+<p><strong>Conformational Sampling</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">SamplingValidator</span>
+
+<span class="c1"># Validate conformational sampling</span>
+<span class="n">sampling_validator</span> <span class="o">=</span> <span class="n">SamplingValidator</span><span class="p">()</span>
+
+<span class="c1"># Check RMSD distribution</span>
+<span class="n">rmsd_values</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">reference_structure</span> <span class="o">=</span> <span class="n">trajectory</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="p">:</span>
+    <span class="n">rmsd</span> <span class="o">=</span> <span class="n">calculate_rmsd</span><span class="p">(</span><span class="n">reference_structure</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+    <span class="n">rmsd_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rmsd</span><span class="p">)</span>
+
+<span class="n">sampling_report</span> <span class="o">=</span> <span class="n">sampling_validator</span><span class="o">.</span><span class="n">analyze_rmsd_distribution</span><span class="p">(</span><span class="n">rmsd_values</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sampling validation:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  RMSD range: </span><span class="si">{</span><span class="n">sampling_report</span><span class="o">.</span><span class="n">rmsd_range</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Sampling efficiency: </span><span class="si">{</span><span class="n">sampling_report</span><span class="o">.</span><span class="n">efficiency</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Convergence achieved: </span><span class="si">{</span><span class="n">sampling_report</span><span class="o">.</span><span class="n">converged</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Phase Space Coverage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Analyze phase space coverage using dihedral angles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">DihedralAnalysis</span>
+
+<span class="n">dihedral_analyzer</span> <span class="o">=</span> <span class="n">DihedralAnalysis</span><span class="p">()</span>
+<span class="n">phi_psi_data</span> <span class="o">=</span> <span class="n">dihedral_analyzer</span><span class="o">.</span><span class="n">extract_phi_psi</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+
+<span class="c1"># Calculate coverage of Ramachandran space</span>
+<span class="n">coverage_report</span> <span class="o">=</span> <span class="n">sampling_validator</span><span class="o">.</span><span class="n">analyze_ramachandran_coverage</span><span class="p">(</span><span class="n">phi_psi_data</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ramachandran coverage: </span><span class="si">{</span><span class="n">coverage_report</span><span class="o">.</span><span class="n">coverage_percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Outliers: </span><span class="si">{</span><span class="n">coverage_report</span><span class="o">.</span><span class="n">outlier_percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="statistical-validation">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Statistical Validation</a><a class="headerlink" href="#statistical-validation" title="Link to this heading">¶</a></h2>
+<section id="convergence-analysis">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Convergence Analysis</a><a class="headerlink" href="#convergence-analysis" title="Link to this heading">¶</a></h3>
+<p><strong>Block Averaging</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvergenceAnalyzer</span>
+
+<span class="c1"># Perform block averaging analysis</span>
+<span class="n">convergence_analyzer</span> <span class="o">=</span> <span class="n">ConvergenceAnalyzer</span><span class="p">()</span>
+
+<span class="c1"># Analyze property convergence (e.g., RMSD)</span>
+<span class="n">property_data</span> <span class="o">=</span> <span class="n">rmsd_values</span>  <span class="c1"># From previous example</span>
+
+<span class="n">block_analysis</span> <span class="o">=</span> <span class="n">convergence_analyzer</span><span class="o">.</span><span class="n">block_averaging</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
+    <span class="n">max_block_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">property_data</span><span class="p">)</span> <span class="o">//</span> <span class="mi">10</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Block averaging analysis:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Converged value: </span><span class="si">{</span><span class="n">block_analysis</span><span class="o">.</span><span class="n">converged_value</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Statistical uncertainty: </span><span class="si">{</span><span class="n">block_analysis</span><span class="o">.</span><span class="n">uncertainty</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Correlation time: </span><span class="si">{</span><span class="n">block_analysis</span><span class="o">.</span><span class="n">correlation_time</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> frames&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Autocorrelation Analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calculate autocorrelation functions</span>
+<span class="n">autocorr_analysis</span> <span class="o">=</span> <span class="n">convergence_analyzer</span><span class="o">.</span><span class="n">autocorrelation_analysis</span><span class="p">(</span><span class="n">property_data</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Autocorrelation time: </span><span class="si">{</span><span class="n">autocorr_analysis</span><span class="o">.</span><span class="n">correlation_time</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> frames&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Effective sample size: </span><span class="si">{</span><span class="n">autocorr_analysis</span><span class="o">.</span><span class="n">effective_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot autocorrelation function</span>
+<span class="n">autocorr_analysis</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="s2">&quot;autocorrelation.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="error-analysis">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Error Analysis</a><a class="headerlink" href="#error-analysis" title="Link to this heading">¶</a></h3>
+<p><strong>Bootstrap Error Estimation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ErrorAnalyzer</span>
+
+<span class="c1"># Bootstrap error analysis</span>
+<span class="n">error_analyzer</span> <span class="o">=</span> <span class="n">ErrorAnalyzer</span><span class="p">()</span>
+
+<span class="n">bootstrap_results</span> <span class="o">=</span> <span class="n">error_analyzer</span><span class="o">.</span><span class="n">bootstrap_analysis</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">property_data</span><span class="p">,</span>
+    <span class="n">n_bootstrap</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="n">confidence_level</span><span class="o">=</span><span class="mf">0.95</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bootstrap error analysis:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Mean: </span><span class="si">{</span><span class="n">bootstrap_results</span><span class="o">.</span><span class="n">mean</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  95% CI: [</span><span class="si">{</span><span class="n">bootstrap_results</span><span class="o">.</span><span class="n">ci_lower</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">bootstrap_results</span><span class="o">.</span><span class="n">ci_upper</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="comparative-validation">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Comparative Validation</a><a class="headerlink" href="#comparative-validation" title="Link to this heading">¶</a></h2>
+<section id="literature-comparison">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Literature Comparison</a><a class="headerlink" href="#literature-comparison" title="Link to this heading">¶</a></h3>
+<p><strong>Experimental Data Comparison</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExperimentalComparator</span>
+
+<span class="c1"># Compare with experimental data</span>
+<span class="n">exp_comparator</span> <span class="o">=</span> <span class="n">ExperimentalComparator</span><span class="p">()</span>
+
+<span class="c1"># Load experimental reference data</span>
+<span class="n">exp_data</span> <span class="o">=</span> <span class="n">exp_comparator</span><span class="o">.</span><span class="n">load_experimental_data</span><span class="p">(</span><span class="s2">&quot;1ubq_experimental.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compare structural properties</span>
+<span class="n">structural_comparison</span> <span class="o">=</span> <span class="n">exp_comparator</span><span class="o">.</span><span class="n">compare_structure</span><span class="p">(</span>
+    <span class="n">simulation_structure</span><span class="o">=</span><span class="n">protein</span><span class="p">,</span>
+    <span class="n">experimental_data</span><span class="o">=</span><span class="n">exp_data</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Experimental comparison:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  RMSD to X-ray: </span><span class="si">{</span><span class="n">structural_comparison</span><span class="o">.</span><span class="n">rmsd_xray</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  B-factor correlation: </span><span class="si">{</span><span class="n">structural_comparison</span><span class="o">.</span><span class="n">bfactor_correlation</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Cross-Validation with Other Software</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrossValidator</span>
+
+<span class="c1"># Cross-validate with GROMACS/AMBER results</span>
+<span class="n">cross_validator</span> <span class="o">=</span> <span class="n">CrossValidator</span><span class="p">()</span>
+
+<span class="c1"># Load reference trajectory</span>
+<span class="n">reference_trajectory</span> <span class="o">=</span> <span class="n">cross_validator</span><span class="o">.</span><span class="n">load_reference</span><span class="p">(</span><span class="s2">&quot;gromacs_traj.xtc&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compare trajectories</span>
+<span class="n">comparison_report</span> <span class="o">=</span> <span class="n">cross_validator</span><span class="o">.</span><span class="n">compare_trajectories</span><span class="p">(</span>
+    <span class="n">trajectory1</span><span class="o">=</span><span class="n">trajectory</span><span class="p">,</span>
+    <span class="n">trajectory2</span><span class="o">=</span><span class="n">reference_trajectory</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cross-validation with GROMACS:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  RMSD difference: </span><span class="si">{</span><span class="n">comparison_report</span><span class="o">.</span><span class="n">rmsd_difference</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Energy difference: </span><span class="si">{</span><span class="n">comparison_report</span><span class="o">.</span><span class="n">energy_difference</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Force Field Validation</a><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p><strong>QM/MM Validation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">QMMMValidator</span>
+
+<span class="c1"># Validate against quantum mechanical calculations</span>
+<span class="n">qmmm_validator</span> <span class="o">=</span> <span class="n">QMMMValidator</span><span class="p">()</span>
+
+<span class="c1"># Select representative conformations</span>
+<span class="n">representative_frames</span> <span class="o">=</span> <span class="n">sampling_validator</span><span class="o">.</span><span class="n">select_representative_frames</span><span class="p">(</span>
+    <span class="n">trajectory</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">10</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">representative_frames</span><span class="p">):</span>
+    <span class="c1"># Calculate QM energy for small region</span>
+    <span class="n">qm_energy</span> <span class="o">=</span> <span class="n">qmmm_validator</span><span class="o">.</span><span class="n">calculate_qm_energy</span><span class="p">(</span>
+        <span class="n">structure</span><span class="o">=</span><span class="n">frame</span><span class="p">,</span>
+        <span class="n">qm_region</span><span class="o">=</span><span class="s2">&quot;active_site&quot;</span><span class="p">,</span>  <span class="c1"># Define QM region</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;B3LYP&quot;</span><span class="p">,</span>
+        <span class="n">basis_set</span><span class="o">=</span><span class="s2">&quot;6-31G*&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Calculate MM energy for same region</span>
+    <span class="n">mm_energy</span> <span class="o">=</span> <span class="n">qmmm_validator</span><span class="o">.</span><span class="n">calculate_mm_energy</span><span class="p">(</span>
+        <span class="n">structure</span><span class="o">=</span><span class="n">frame</span><span class="p">,</span>
+        <span class="n">region</span><span class="o">=</span><span class="s2">&quot;active_site&quot;</span><span class="p">,</span>
+        <span class="n">forcefield</span><span class="o">=</span><span class="n">forcefield</span>
+    <span class="p">)</span>
+
+    <span class="n">energy_diff</span> <span class="o">=</span> <span class="n">qm_energy</span> <span class="o">-</span> <span class="n">mm_energy</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Frame </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: QM-MM difference = </span><span class="si">{</span><span class="n">energy_diff</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="validation-reporting">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Validation Reporting</a><a class="headerlink" href="#validation-reporting" title="Link to this heading">¶</a></h2>
+<section id="automated-validation-reports">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Automated Validation Reports</a><a class="headerlink" href="#automated-validation-reports" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationReporter</span>
+
+<span class="c1"># Generate comprehensive validation report</span>
+<span class="n">reporter</span> <span class="o">=</span> <span class="n">ValidationReporter</span><span class="p">()</span>
+
+<span class="c1"># Compile all validation results</span>
+<span class="n">validation_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;structure_validation&#39;</span><span class="p">:</span> <span class="n">basic_issues</span><span class="p">,</span>
+    <span class="s1">&#39;equilibration_report&#39;</span><span class="p">:</span> <span class="n">report</span><span class="p">,</span>
+    <span class="s1">&#39;trajectory_validation&#39;</span><span class="p">:</span> <span class="n">integrity_report</span><span class="p">,</span>
+    <span class="s1">&#39;sampling_analysis&#39;</span><span class="p">:</span> <span class="n">sampling_report</span><span class="p">,</span>
+    <span class="s1">&#39;convergence_analysis&#39;</span><span class="p">:</span> <span class="n">block_analysis</span><span class="p">,</span>
+    <span class="s1">&#39;experimental_comparison&#39;</span><span class="p">:</span> <span class="n">structural_comparison</span>
+<span class="p">}</span>
+
+<span class="c1"># Generate report</span>
+<span class="n">html_report</span> <span class="o">=</span> <span class="n">reporter</span><span class="o">.</span><span class="n">generate_html_report</span><span class="p">(</span>
+    <span class="n">validation_data</span><span class="o">=</span><span class="n">validation_data</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;validation_report.html&quot;</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Validation report generated: validation_report.html&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Quality Metrics Dashboard</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">QualityDashboard</span>
+
+<span class="c1"># Create quality metrics dashboard</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">QualityDashboard</span><span class="p">()</span>
+
+<span class="c1"># Add metrics</span>
+<span class="n">dashboard</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="s2">&quot;Structure Quality&quot;</span><span class="p">,</span> <span class="n">structural_comparison</span><span class="o">.</span><span class="n">quality_score</span><span class="p">)</span>
+<span class="n">dashboard</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="s2">&quot;Sampling Efficiency&quot;</span><span class="p">,</span> <span class="n">sampling_report</span><span class="o">.</span><span class="n">efficiency</span><span class="p">)</span>
+<span class="n">dashboard</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="s2">&quot;Energy Conservation&quot;</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">conservation_report</span><span class="o">.</span><span class="n">drift_per_ns</span><span class="p">))</span>
+<span class="n">dashboard</span><span class="o">.</span><span class="n">add_metric</span><span class="p">(</span><span class="s2">&quot;Equilibration Status&quot;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">equilibration_score</span><span class="p">)</span>
+
+<span class="c1"># Generate dashboard</span>
+<span class="n">dashboard</span><span class="o">.</span><span class="n">create_dashboard</span><span class="p">(</span><span class="s2">&quot;quality_dashboard.html&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="validation-best-practices">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Validation Best Practices</a><a class="headerlink" href="#validation-best-practices" title="Link to this heading">¶</a></h2>
+<section id="pre-simulation-checklist">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Pre-Simulation Checklist</a><a class="headerlink" href="#pre-simulation-checklist" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Structure Preparation</strong></p>
+<ul class="simple">
+<li><p>Validate input structure geometry</p></li>
+<li><p>Check for missing atoms/residues</p></li>
+<li><p>Verify protonation states</p></li>
+<li><p>Validate force field parameters</p></li>
+</ul>
+</li>
+<li><p><strong>System Setup</strong></p>
+<ul class="simple">
+<li><p>Check box size and solvation</p></li>
+<li><p>Validate ion concentrations</p></li>
+<li><p>Verify periodic boundary conditions</p></li>
+<li><p>Test initial energy values</p></li>
+</ul>
+</li>
+<li><p><strong>Simulation Parameters</strong></p>
+<ul class="simple">
+<li><p>Validate timestep choice</p></li>
+<li><p>Check constraint settings</p></li>
+<li><p>Verify thermostat/barostat parameters</p></li>
+<li><p>Test neighbor list settings</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="during-simulation-monitoring">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">During Simulation Monitoring</a><a class="headerlink" href="#during-simulation-monitoring" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealTimeValidator</span>
+
+<span class="c1"># Set up real-time validation</span>
+<span class="n">rt_validator</span> <span class="o">=</span> <span class="n">RealTimeValidator</span><span class="p">()</span>
+<span class="n">rt_validator</span><span class="o">.</span><span class="n">add_check</span><span class="p">(</span><span class="s2">&quot;energy_drift&quot;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># kJ/mol/ns</span>
+<span class="n">rt_validator</span><span class="o">.</span><span class="n">add_check</span><span class="p">(</span><span class="s2">&quot;temperature_drift&quot;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>  <span class="c1"># K</span>
+<span class="n">rt_validator</span><span class="o">.</span><span class="n">add_check</span><span class="p">(</span><span class="s2">&quot;pressure_drift&quot;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>  <span class="c1"># bar</span>
+
+<span class="c1"># Add to simulation</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">add_validator</span><span class="p">(</span><span class="n">rt_validator</span><span class="p">)</span>
+
+<span class="c1"># Validator will automatically stop simulation if issues detected</span>
+</pre></div>
+</div>
+</section>
+<section id="post-simulation-analysis">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Post-Simulation Analysis</a><a class="headerlink" href="#post-simulation-analysis" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Trajectory Quality</strong></p>
+<ul class="simple">
+<li><p>Check for structural anomalies</p></li>
+<li><p>Validate sampling adequacy</p></li>
+<li><p>Analyze convergence properties</p></li>
+</ul>
+</li>
+<li><p><strong>Statistical Analysis</strong></p>
+<ul class="simple">
+<li><p>Perform error analysis</p></li>
+<li><p>Check correlation times</p></li>
+<li><p>Validate statistical significance</p></li>
+</ul>
+</li>
+<li><p><strong>Physical Validation</strong></p>
+<ul class="simple">
+<li><p>Compare with experimental data</p></li>
+<li><p>Cross-validate with literature</p></li>
+<li><p>Check thermodynamic consistency</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="common-validation-issues">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Common Validation Issues</a><a class="headerlink" href="#common-validation-issues" title="Link to this heading">¶</a></h2>
+<section id="structure-problems">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Structure Problems</a><a class="headerlink" href="#structure-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: High Initial Energy</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Diagnostic and fix</span>
+<span class="k">if</span> <span class="n">energy_report</span><span class="o">.</span><span class="n">energy_per_atom</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>  <span class="c1"># kJ/mol</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;High initial energy detected&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Perform more aggressive minimization</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span>
+        <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="n">convergence_tolerance</span><span class="o">=</span><span class="mf">1.0</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Check for close contacts</span>
+    <span class="n">close_contacts</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">find_close_contacts</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">close_contacts</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">close_contacts</span><span class="p">)</span><span class="si">}</span><span class="s2"> close contacts&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Issue: Simulation Instability</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stabilization protocol</span>
+<span class="n">stabilizer</span> <span class="o">=</span> <span class="n">SimulationStabilizer</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">simulation</span><span class="o">.</span><span class="n">has_instability</span><span class="p">():</span>
+    <span class="c1"># Apply stabilization measures</span>
+    <span class="n">stabilizer</span><span class="o">.</span><span class="n">reduce_timestep</span><span class="p">(</span><span class="n">factor</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">stabilizer</span><span class="o">.</span><span class="n">increase_constraints</span><span class="p">()</span>
+    <span class="n">stabilizer</span><span class="o">.</span><span class="n">add_position_restraints</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="s2">&quot;protein&quot;</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+
+    <span class="c1"># Re-equilibrate</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run_stabilization_protocol</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/structure.html"><span class="doc">Structure Handling</span></a> - Structure handling API</p></li>
+<li><p><a class="reference internal" href="../api/core.html"><span class="doc">Core Simulation Engine</span></a> - Core simulation API</p></li>
+<li><p><a class="reference internal" href="troubleshooting.html"><span class="doc">Troubleshooting Guide</span></a> - Troubleshooting guide</p></li>
+<li><p><a class="reference internal" href="../user_guide/tutorials.html"><span class="doc">Tutorials</span></a> - Simulation tutorials</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Validation and Quality Assurance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pre-simulation-validation">Pre-Simulation Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-validation">Simulation Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#statistical-validation">Statistical Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comparative-validation">Comparative Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validation-reporting">Validation Reporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validation-best-practices">Validation Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-validation-issues">Common Validation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="performance.html" title="previous chapter">Performance Optimization</a></li>
+      <li>Next: <a href="extending.html" title="next chapter">Extending ProteinMD</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/validation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

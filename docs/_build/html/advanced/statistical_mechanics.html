@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Statistical Mechanics Foundation &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Force Fields and Potential Functions" href="force_fields.html" />
+    <link rel="prev" title="Molecular Dynamics Fundamentals" href="md_fundamentals.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="statistical-mechanics-foundation">
+<h1>Statistical Mechanics Foundation<a class="headerlink" href="#statistical-mechanics-foundation" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>Statistical mechanics provides the theoretical framework connecting the microscopic dynamics observed in MD simulations to macroscopic thermodynamic properties. This connection is essential for interpreting simulation results and relating them to experimental measurements.</p>
+</section>
+<section id="classical-statistical-mechanics">
+<h2>Classical Statistical Mechanics<a class="headerlink" href="#classical-statistical-mechanics" title="Link to this heading">¶</a></h2>
+<section id="phase-space-and-ensembles">
+<h3>Phase Space and Ensembles<a class="headerlink" href="#phase-space-and-ensembles" title="Link to this heading">¶</a></h3>
+<p><strong>Phase Space</strong></p>
+<p>A system of N particles is described by a 6N-dimensional phase space, where each particle contributes 3 position and 3 momentum coordinates:</p>
+<div class="math notranslate nohighlight">
+\[\Gamma = (r_1, r_2, ..., r_N, p_1, p_2, ..., p_N)\]</div>
+<p><strong>Liouville’s Theorem</strong></p>
+<p>The phase space density <span class="math notranslate nohighlight">\(\rho(\Gamma, t)\)</span> evolves according to Liouville’s equation:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \rho}{\partial t} + \{\rho, H\} = 0\]</div>
+<p>where <span class="math notranslate nohighlight">\(\{,\}\)</span> is the Poisson bracket and H is the Hamiltonian.</p>
+<p><strong>Conservation of Phase Space Volume</strong></p>
+<div class="math notranslate nohighlight">
+\[\frac{d\rho}{dt} = 0\]</div>
+<p>This fundamental result ensures that MD trajectories preserve the phase space density.</p>
+</section>
+</section>
+<section id="statistical-ensembles">
+<h2>Statistical Ensembles<a class="headerlink" href="#statistical-ensembles" title="Link to this heading">¶</a></h2>
+<p>Different experimental conditions correspond to different statistical ensembles, each characterized by conserved quantities.</p>
+<section id="microcanonical-ensemble-nve">
+<h3>Microcanonical Ensemble (NVE)<a class="headerlink" href="#microcanonical-ensemble-nve" title="Link to this heading">¶</a></h3>
+<p><strong>Conserved Quantities:</strong> Number of particles (N), Volume (V), Energy (E)</p>
+<p><strong>Probability Distribution:</strong></p>
+<div class="math notranslate nohighlight">
+\[P(\Gamma) = \frac{1}{\Omega(N,V,E)} \delta(H(\Gamma) - E)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Omega(N,V,E)\)</span> is the density of states.</p>
+<p><strong>Entropy:</strong></p>
+<div class="math notranslate nohighlight">
+\[S = k_B \ln \Omega(N,V,E)\]</div>
+<p><strong>Applications:</strong>
+- Isolated systems
+- Validation of integrators
+- Energy conservation checks</p>
+</section>
+<section id="canonical-ensemble-nvt">
+<h3>Canonical Ensemble (NVT)<a class="headerlink" href="#canonical-ensemble-nvt" title="Link to this heading">¶</a></h3>
+<p><strong>Conserved Quantities:</strong> Number of particles (N), Volume (V), Temperature (T)</p>
+<p><strong>Probability Distribution:</strong></p>
+<div class="math notranslate nohighlight">
+\[P(\Gamma) = \frac{1}{Z(N,V,T)} \exp(-\beta H(\Gamma))\]</div>
+<p>where <span class="math notranslate nohighlight">\(\beta = 1/(k_B T)\)</span> and Z is the partition function.</p>
+<p><strong>Partition Function:</strong></p>
+<div class="math notranslate nohighlight">
+\[Z(N,V,T) = \frac{1}{N! h^{3N}} \int \exp(-\beta H(\Gamma)) d\Gamma\]</div>
+<p><strong>Free Energy:</strong></p>
+<div class="math notranslate nohighlight">
+\[F = -k_B T \ln Z\]</div>
+<p><strong>Implementation in MD:</strong>
+- Thermostat maintains constant temperature
+- Most common ensemble for biological simulations
+- Corresponds to experimental conditions with heat bath</p>
+</section>
+<section id="isothermal-isobaric-ensemble-npt">
+<h3>Isothermal-Isobaric Ensemble (NPT)<a class="headerlink" href="#isothermal-isobaric-ensemble-npt" title="Link to this heading">¶</a></h3>
+<p><strong>Conserved Quantities:</strong> Number of particles (N), Pressure (P), Temperature (T)</p>
+<p><strong>Probability Distribution:</strong></p>
+<div class="math notranslate nohighlight">
+\[P(\Gamma, V) = \frac{1}{Z(N,P,T)} \exp(-\beta[H(\Gamma) + PV])\]</div>
+<p><strong>Partition Function:</strong></p>
+<div class="math notranslate nohighlight">
+\[Z(N,P,T) = \frac{1}{N! h^{3N}} \int_0^{\infty} \int \exp(-\beta[H(\Gamma) + PV]) d\Gamma dV\]</div>
+<p><strong>Gibbs Free Energy:</strong></p>
+<div class="math notranslate nohighlight">
+\[G = -k_B T \ln Z\]</div>
+<p><strong>Implementation in MD:</strong>
+- Barostat maintains constant pressure
+- Most relevant for condensed phase systems
+- Standard conditions for most experiments</p>
+</section>
+<section id="grand-canonical-ensemble-vt">
+<h3>Grand Canonical Ensemble (μVT)<a class="headerlink" href="#grand-canonical-ensemble-vt" title="Link to this heading">¶</a></h3>
+<p><strong>Conserved Quantities:</strong> Chemical potential (μ), Volume (V), Temperature (T)</p>
+<p><strong>Applications:</strong>
+- Open systems with particle exchange
+- Adsorption studies
+- Rarely used in protein simulations</p>
+</section>
+</section>
+<section id="thermodynamic-relations">
+<h2>Thermodynamic Relations<a class="headerlink" href="#thermodynamic-relations" title="Link to this heading">¶</a></h2>
+<p>Statistical mechanics provides exact relationships between microscopic quantities and thermodynamic properties.</p>
+<section id="average-values">
+<h3>Average Values<a class="headerlink" href="#average-values" title="Link to this heading">¶</a></h3>
+<p>For any observable A, the ensemble average is:</p>
+<div class="math notranslate nohighlight">
+\[\langle A \rangle = \frac{\int A(\Gamma) P(\Gamma) d\Gamma}{\int P(\Gamma) d\Gamma}\]</div>
+<p><strong>Energy:</strong></p>
+<div class="math notranslate nohighlight">
+\[\langle E \rangle = -\frac{\partial \ln Z}{\partial \beta}\]</div>
+<p><strong>Heat Capacity:</strong></p>
+<div class="math notranslate nohighlight">
+\[C_V = \frac{\partial \langle E \rangle}{\partial T} = k_B \beta^2 \langle (\Delta E)^2 \rangle\]</div>
+<p>where <span class="math notranslate nohighlight">\(\langle (\Delta E)^2 \rangle\)</span> is the energy fluctuation.</p>
+<p><strong>Pressure:</strong></p>
+<div class="math notranslate nohighlight">
+\[\langle P \rangle = -\frac{\partial F}{\partial V} = \frac{k_B T}{V} + \frac{1}{3V} \langle \sum_i \vec{r_i} \cdot \vec{F_i} \rangle\]</div>
+</section>
+</section>
+<section id="fluctuations-and-response-functions">
+<h2>Fluctuations and Response Functions<a class="headerlink" href="#fluctuations-and-response-functions" title="Link to this heading">¶</a></h2>
+<p>Statistical mechanics relates fluctuations to experimentally measurable response functions.</p>
+<p><strong>General Fluctuation-Dissipation Relation:</strong></p>
+<div class="math notranslate nohighlight">
+\[\langle (\Delta A)^2 \rangle = k_B T^2 \frac{\partial \langle A \rangle}{\partial T}\]</div>
+<p><strong>Specific Examples:</strong></p>
+<p>Energy fluctuations → Heat capacity:</p>
+<div class="math notranslate nohighlight">
+\[C_V = \frac{\langle (\Delta E)^2 \rangle}{k_B T^2}\]</div>
+<p>Volume fluctuations → Isothermal compressibility:</p>
+<div class="math notranslate nohighlight">
+\[\kappa_T = \frac{\langle (\Delta V)^2 \rangle}{k_B T \langle V \rangle}\]</div>
+<p>Pressure fluctuations → Bulk modulus:</p>
+<div class="math notranslate nohighlight">
+\[K = \frac{1}{\kappa_T} = \frac{k_B T \langle V \rangle}{\langle (\Delta V)^2 \rangle}\]</div>
+</section>
+<section id="time-correlation-functions">
+<h2>Time Correlation Functions<a class="headerlink" href="#time-correlation-functions" title="Link to this heading">¶</a></h2>
+<p>Dynamical properties are characterized by time correlation functions, which connect equilibrium fluctuations to transport properties.</p>
+<p><strong>Autocorrelation Function:</strong></p>
+<div class="math notranslate nohighlight">
+\[C_{AA}(t) = \langle A(0) A(t) \rangle\]</div>
+<p><strong>Cross-correlation Function:</strong></p>
+<div class="math notranslate nohighlight">
+\[C_{AB}(t) = \langle A(0) B(t) \rangle\]</div>
+<p><strong>Properties:</strong>
+- <span class="math notranslate nohighlight">\(C_{AA}(0) = \langle A^2 \rangle\)</span> (maximum value)
+- <span class="math notranslate nohighlight">\(C_{AA}(\infty) = \langle A \rangle^2\)</span> (for equilibrium systems)
+- Decay time reflects characteristic relaxation processes</p>
+</section>
+<section id="linear-response-theory">
+<h2>Linear Response Theory<a class="headerlink" href="#linear-response-theory" title="Link to this heading">¶</a></h2>
+<p>Linear response theory relates equilibrium fluctuations to the system’s response to small perturbations.</p>
+<p><strong>General Linear Response:</strong></p>
+<div class="math notranslate nohighlight">
+\[\langle B(t) \rangle = \int_0^t \chi_{BA}(t-t') h_A(t') dt'\]</div>
+<p>where <span class="math notranslate nohighlight">\(h_A(t')\)</span> is a small external field and <span class="math notranslate nohighlight">\(\chi_{BA}(t)\)</span> is the response function.</p>
+<p><strong>Fluctuation-Dissipation Theorem:</strong></p>
+<div class="math notranslate nohighlight">
+\[\chi_{BA}(t) = \frac{1}{k_B T} \frac{d}{dt} C_{BA}(t)\]</div>
+<p><strong>Transport Coefficients:</strong></p>
+<p>This framework allows calculation of transport properties from equilibrium MD simulations:</p>
+<p>Diffusion coefficient:</p>
+<div class="math notranslate nohighlight">
+\[D = \frac{1}{6} \int_0^{\infty} \langle \vec{v}(0) \cdot \vec{v}(t) \rangle dt\]</div>
+<p>Viscosity:</p>
+<div class="math notranslate nohighlight">
+\[\eta = \frac{V}{k_B T} \int_0^{\infty} \langle \sigma_{xy}(0) \sigma_{xy}(t) \rangle dt\]</div>
+</section>
+<section id="free-energy-calculations">
+<h2>Free Energy Calculations<a class="headerlink" href="#free-energy-calculations" title="Link to this heading">¶</a></h2>
+<p>Free energy differences are central to understanding molecular processes but cannot be calculated directly from MD.</p>
+<p><strong>Free Energy Perturbation (FEP):</strong></p>
+<div class="math notranslate nohighlight">
+\[\Delta F = F_1 - F_0 = -k_B T \ln \langle \exp(-\beta \Delta U) \rangle_0\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Delta U = U_1 - U_0\)</span> is the potential energy difference.</p>
+<p><strong>Thermodynamic Integration (TI):</strong></p>
+<div class="math notranslate nohighlight">
+\[\Delta F = \int_0^1 \left\langle \frac{\partial U(\lambda)}{\partial \lambda} \right\rangle_\lambda d\lambda\]</div>
+<p><strong>Umbrella Sampling:</strong></p>
+<p>For processes with high energy barriers, biasing potentials are used:</p>
+<div class="math notranslate nohighlight">
+\[w_i(\xi) = -k_B T \ln P_i(\xi) + W_i(\xi) + C_i\]</div>
+<p>where <span class="math notranslate nohighlight">\(W_i(\xi)\)</span> is the biasing potential and the unbiased distribution is recovered by WHAM.</p>
+</section>
+<section id="ergodicity-and-sampling">
+<h2>Ergodicity and Sampling<a class="headerlink" href="#ergodicity-and-sampling" title="Link to this heading">¶</a></h2>
+<p>Proper sampling is crucial for obtaining reliable statistical averages from MD simulations.</p>
+<p><strong>Ergodic Hypothesis:</strong></p>
+<div class="math notranslate nohighlight">
+\[\langle A \rangle_{ensemble} = \lim_{T \to \infty} \frac{1}{T} \int_0^T A(t) dt\]</div>
+<p><strong>Requirements for Ergodicity:</strong>
+1. System must access all relevant phase space
+2. No broken ergodicity (multiple basins)
+3. Simulation time &gt;&gt; correlation times</p>
+<p><strong>Sampling Problems:</strong>
+- Energy barriers between conformations
+- Slow relaxation processes
+- Metastable states
+- Rare events</p>
+<p><strong>Enhanced Sampling Methods:</strong>
+- Replica exchange MD
+- Metadynamics
+- Accelerated MD
+- Steered MD</p>
+</section>
+<section id="temperature-coupling">
+<h2>Temperature Coupling<a class="headerlink" href="#temperature-coupling" title="Link to this heading">¶</a></h2>
+<p>Thermostats modify the equations of motion to maintain constant temperature while preserving the canonical distribution.</p>
+<p><strong>Velocity Rescaling (Berendsen):</strong></p>
+<div class="math notranslate nohighlight">
+\[v_i^{new} = v_i \sqrt{1 + \frac{\Delta t}{\tau_T} \left(\frac{T_0}{T} - 1\right)}\]</div>
+<p>Pros: Simple, stable
+Cons: Does not generate canonical ensemble</p>
+<p><strong>Nosé-Hoover Thermostat:</strong></p>
+<p>Extended Lagrangian with additional degree of freedom:</p>
+<div class="math notranslate nohighlight">
+\[\dot{v_i} = \frac{F_i}{m_i} - \zeta v_i\]</div>
+<div class="math notranslate nohighlight">
+\[\dot{\zeta} = \frac{1}{Q} \left(\sum_i m_i v_i^2 - N_f k_B T \right)\]</div>
+<p>Pros: Generates correct canonical ensemble
+Cons: More complex, can show oscillations</p>
+<p><strong>Langevin Dynamics:</strong></p>
+<div class="math notranslate nohighlight">
+\[m_i \ddot{r_i} = F_i - \gamma m_i \dot{r_i} + \sqrt{2\gamma m_i k_B T} R_i(t)\]</div>
+<p>where <span class="math notranslate nohighlight">\(R_i(t)\)</span> is white noise with <span class="math notranslate nohighlight">\(\langle R_i(t) R_j(t') \rangle = \delta_{ij} \delta(t-t')\)</span>.</p>
+<p>Pros: Natural coupling to environment
+Cons: Modified dynamics, affects diffusion</p>
+</section>
+<section id="pressure-coupling">
+<h2>Pressure Coupling<a class="headerlink" href="#pressure-coupling" title="Link to this heading">¶</a></h2>
+<p>Barostats control pressure by allowing volume fluctuations while maintaining the NPT ensemble.</p>
+<p><strong>Berendsen Barostat:</strong></p>
+<div class="math notranslate nohighlight">
+\[\frac{dV}{dt} = \frac{V}{\tau_P} \kappa_T (P_0 - P)\]</div>
+<p>Simple but does not generate correct NPT ensemble.</p>
+<p><strong>Parrinello-Rahman Barostat:</strong></p>
+<p>Allows both volume and shape changes:</p>
+<div class="math notranslate nohighlight">
+\[\ddot{h} = V W^{-1} [P - P_0]\]</div>
+<p>where h is the box matrix and W is the barostat mass.</p>
+<p><strong>Considerations:</strong>
+- Coupling time must be much larger than vibrational periods
+- Protein simulations often use semi-isotropic coupling
+- Membrane simulations require anisotropic pressure coupling</p>
+</section>
+<section id="error-analysis">
+<h2>Error Analysis<a class="headerlink" href="#error-analysis" title="Link to this heading">¶</a></h2>
+<p>Statistical errors in MD simulations arise from finite sampling.</p>
+<p><strong>Standard Error:</strong></p>
+<p>For uncorrelated samples:</p>
+<div class="math notranslate nohighlight">
+\[\sigma_{\langle A \rangle} = \frac{\sigma_A}{\sqrt{N}}\]</div>
+<p><strong>Correlation Effects:</strong></p>
+<p>For correlated data with correlation time <span class="math notranslate nohighlight">\(\tau_c\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\sigma_{\langle A \rangle} = \frac{\sigma_A}{\sqrt{N_{eff}}} = \frac{\sigma_A}{\sqrt{N/(2\tau_c + 1)}}\]</div>
+<p><strong>Block Averaging:</strong></p>
+<p>Divide trajectory into blocks and analyze block averages to estimate correlation time and statistical error.</p>
+<p><strong>Bootstrap Methods:</strong></p>
+<p>Resample trajectory frames to estimate confidence intervals for complex observables.</p>
+</section>
+<section id="practical-guidelines">
+<h2>Practical Guidelines<a class="headerlink" href="#practical-guidelines" title="Link to this heading">¶</a></h2>
+<p><strong>Simulation Length:</strong>
+- Equilibration: 5-10 correlation times
+- Production: 50-100 correlation times for good statistics
+- Monitor convergence of properties of interest</p>
+<p><strong>System Size:</strong>
+- Large enough to avoid finite size effects
+- Rule of thumb: protein should not interact with its periodic image
+- Minimum 8-10 Å buffer for solvated systems</p>
+<p><strong>Time Step:</strong>
+- 1-2 fs for systems with hydrogen atoms
+- 2-4 fs with SHAKE/RATTLE constraints
+- Monitor energy conservation and temperature</p>
+<p><strong>Temperature and Pressure:</strong>
+- Use weak coupling (large τ values) to avoid artifacts
+- Berendsen: τ = 0.1-1.0 ps
+- Nosé-Hoover: τ = 0.5-2.0 ps</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>Statistical mechanics provides the theoretical foundation for:</p>
+<ol class="arabic simple">
+<li><p><strong>Ensemble Theory</strong>: Connecting microscopic dynamics to thermodynamic quantities</p></li>
+<li><p><strong>Fluctuation-Dissipation Relations</strong>: Relating equilibrium fluctuations to response functions</p></li>
+<li><p><strong>Free Energy Methods</strong>: Calculating thermodynamic driving forces</p></li>
+<li><p><strong>Error Analysis</strong>: Quantifying statistical uncertainties</p></li>
+<li><p><strong>Enhanced Sampling</strong>: Overcoming sampling limitations</p></li>
+</ol>
+<p>Understanding these principles is essential for:
+- Choosing appropriate simulation conditions
+- Interpreting results correctly
+- Estimating statistical uncertainties
+- Designing enhanced sampling strategies</p>
+<p>The next sections will apply these concepts to specific aspects of MD simulation, including force field theory and integration algorithms.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="scientific_background.html">Scientific Background and Theory</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="scientific_background.html">Scientific Background and Theory</a><ul>
+      <li>Previous: <a href="md_fundamentals.html" title="previous chapter">Molecular Dynamics Fundamentals</a></li>
+      <li>Next: <a href="force_fields.html" title="next chapter">Force Fields and Potential Functions</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/statistical_mechanics.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

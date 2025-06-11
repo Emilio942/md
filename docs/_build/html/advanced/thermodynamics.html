@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Thermodynamics and Free Energy &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Best Practices for Molecular Dynamics Simulations" href="best_practices.html" />
+    <link rel="prev" title="Enhanced Sampling Methods" href="enhanced_sampling.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="thermodynamics-and-free-energy">
+<h1>Thermodynamics and Free Energy<a class="headerlink" href="#thermodynamics-and-free-energy" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>Thermodynamics provides the fundamental framework for understanding molecular processes and relating simulation results to experimental measurements. Free energy calculations are among the most important applications of molecular dynamics, providing quantitative predictions of binding affinities, solubilities, and reaction equilibria.</p>
+<p><strong>Key Thermodynamic Quantities:</strong></p>
+<ul class="simple">
+<li><p><strong>Free Energy (A, G)</strong>: Determines spontaneous processes and equilibrium</p></li>
+<li><p><strong>Enthalpy (H)</strong>: Heat content and bond formation energy</p></li>
+<li><p><strong>Entropy (S)</strong>: Disorder and accessible microstates</p></li>
+<li><p><strong>Chemical Potential (μ)</strong>: Driving force for particle transfer</p></li>
+</ul>
+<p><strong>Relationship to Simulation:</strong></p>
+<div class="math notranslate nohighlight">
+\[G = H - TS = U + PV - TS\]</div>
+<p>where all quantities can be computed from molecular simulations.</p>
+</section>
+<section id="fundamental-thermodynamic-relations">
+<h2>Fundamental Thermodynamic Relations<a class="headerlink" href="#fundamental-thermodynamic-relations" title="Link to this heading">¶</a></h2>
+<section id="maxwell-relations">
+<h3>Maxwell Relations<a class="headerlink" href="#maxwell-relations" title="Link to this heading">¶</a></h3>
+<p><strong>Thermodynamic Potentials:</strong></p>
+<p>Internal Energy: <span class="math notranslate nohighlight">\(dU = TdS - PdV + \mu dN\)</span></p>
+<p>Helmholtz Free Energy: <span class="math notranslate nohighlight">\(dA = -SdT - PdV + \mu dN\)</span></p>
+<p>Gibbs Free Energy: <span class="math notranslate nohighlight">\(dG = -SdT + VdP + \mu dN\)</span></p>
+<p><strong>Maxwell Relations:</strong></p>
+<div class="math notranslate nohighlight">
+\[\left(\frac{\partial T}{\partial V}\right)_S = -\left(\frac{\partial P}{\partial S}\right)_V\]</div>
+<p>These relations connect different thermodynamic derivatives and enable calculation of unmeasurable quantities from accessible ones.</p>
+</section>
+<section id="response-functions">
+<h3>Response Functions<a class="headerlink" href="#response-functions" title="Link to this heading">¶</a></h3>
+<p><strong>Heat Capacity:</strong></p>
+<div class="math notranslate nohighlight">
+\[C_V = \left(\frac{\partial U}{\partial T}\right)_V = \frac{\langle (\Delta E)^2 \rangle}{k_B T^2}\]</div>
+<p><strong>Isothermal Compressibility:</strong></p>
+<p><strong>Thermal Expansion Coefficient:</strong></p>
+</section>
+</section>
+<section id="free-energy-methods">
+<h2>Free Energy Methods<a class="headerlink" href="#free-energy-methods" title="Link to this heading">¶</a></h2>
+<section id="free-energy-perturbation-fep">
+<h3>Free Energy Perturbation (FEP)<a class="headerlink" href="#free-energy-perturbation-fep" title="Link to this heading">¶</a></h3>
+<p><strong>Basic Theory:</strong></p>
+<p>Consider transformation from state A to state B:</p>
+<p><strong>FEP Formula:</strong></p>
+<p>where <span class="math notranslate nohighlight">\(\Delta U = U_B - U_A\)</span> and the average is over configurations from state A.</p>
+<p><strong>Exponential Averaging Problem:</strong></p>
+<p>FEP requires overlap between distributions. For large perturbations, a few high-energy configurations dominate the average, leading to poor convergence.</p>
+<p><strong>Staging Strategy:</strong></p>
+<p>Break large perturbation into smaller steps:</p>
+<p><strong>Bidirectional FEP:</strong></p>
+<p>Compute both forward and backward perturbations as consistency check:</p>
+<div class="math notranslate nohighlight">
+\[\Delta A_{A \to B} = -\Delta A_{B \to A}\]</div>
+</section>
+<section id="thermodynamic-integration-ti">
+<h3>Thermodynamic Integration (TI)<a class="headerlink" href="#thermodynamic-integration-ti" title="Link to this heading">¶</a></h3>
+<p><strong>Coupling Parameter Approach:</strong></p>
+<p>Introduce parameter λ to connect states A (λ=0) and B (λ=1):</p>
+<p><strong>TI Formula:</strong></p>
+<p><strong>Advantages over FEP:</strong>
+- Linear averaging instead of exponential
+- Better numerical behavior
+- Easier error analysis
+- More robust convergence</p>
+<p><strong>Implementation Details:</strong></p>
+<p>Choose λ values (typically 11-21 points):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lambda_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span>
+<span class="n">dudl_values</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">lam</span> <span class="ow">in</span> <span class="n">lambda_values</span><span class="p">:</span>
+    <span class="n">dudl</span> <span class="o">=</span> <span class="n">simulate_and_calculate_dudl</span><span class="p">(</span><span class="n">lam</span><span class="p">)</span>
+    <span class="n">dudl_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dudl</span><span class="p">)</span>
+
+<span class="n">delta_A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">dudl_values</span><span class="p">,</span> <span class="n">lambda_values</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Integration Methods:</strong>
+- Trapezoidal rule (most common)
+- Simpson’s rule (higher accuracy)
+- Gaussian quadrature (optimal spacing)</p>
+</section>
+</section>
+<section id="alchemical-transformations">
+<h2>Alchemical Transformations<a class="headerlink" href="#alchemical-transformations" title="Link to this heading">¶</a></h2>
+<section id="particle-insertion-deletion">
+<h3>Particle Insertion/Deletion<a class="headerlink" href="#particle-insertion-deletion" title="Link to this heading">¶</a></h3>
+<p><strong>Soft-Core Potentials:</strong></p>
+<p>Standard Lennard-Jones potential becomes singular at r=0. Use soft-core form:</p>
+<div class="math notranslate nohighlight">
+\[U_{sc}(r,\lambda) = 4\epsilon\lambda^n \left[\frac{1}{(\alpha(1-\lambda)^m + (r/\sigma)^6)^2} - \frac{1}{\alpha(1-\lambda)^m + (r/\sigma)^6}\right]\]</div>
+<p><strong>Benefits:</strong>
+- Prevents numerical instabilities
+- Smooth λ-dependence
+- Better overlap between λ states</p>
+</section>
+<section id="charge-transformation">
+<h3>Charge Transformation<a class="headerlink" href="#charge-transformation" title="Link to this heading">¶</a></h3>
+<p><strong>Linear Scaling:</strong></p>
+<p><strong>Electrostatic Component:</strong></p>
+<p><strong>Long-range Corrections:</strong></p>
+<p>Electrostatic interactions require careful treatment with Ewald summation:</p>
+</section>
+</section>
+<section id="binding-free-energy-calculations">
+<h2>Binding Free Energy Calculations<a class="headerlink" href="#binding-free-energy-calculations" title="Link to this heading">¶</a></h2>
+<section id="absolute-binding-free-energies">
+<h3>Absolute Binding Free Energies<a class="headerlink" href="#absolute-binding-free-energies" title="Link to this heading">¶</a></h3>
+<p><strong>Thermodynamic Cycle:</strong></p>
+<p><strong>Challenges:</strong>
+- Large configurational changes
+- Long correlation times
+- Standard state corrections</p>
+<p><strong>Restraint-Based Methods:</strong></p>
+<p>Use restraints to maintain binding pose during alchemical transformation:</p>
+<div class="math notranslate nohighlight">
+\[\Delta G_{bind} = \Delta G_{decouple} + \Delta G_{restraint} + \Delta G_{standard}\]</div>
+</section>
+<section id="relative-binding-free-energies">
+<h3>Relative Binding Free Energies<a class="headerlink" href="#relative-binding-free-energies" title="Link to this heading">¶</a></h3>
+<p><strong>Double Decoupling:</strong></p>
+<p>Compute difference in binding free energies for two ligands:</p>
+<p><strong>Advantages:</strong>
+- Many systematic errors cancel
+- More accurate than absolute calculations
+- Widely used in drug design</p>
+<p><strong>Implementation:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">relative_binding_free_energy</span><span class="p">(</span><span class="n">ligand_A</span><span class="p">,</span> <span class="n">ligand_B</span><span class="p">):</span>
+    <span class="c1"># Transform A to B in complex</span>
+    <span class="n">dG_complex</span> <span class="o">=</span> <span class="n">thermodynamic_integration</span><span class="p">(</span>
+        <span class="n">complex_with_A</span><span class="p">,</span> <span class="n">complex_with_B</span><span class="p">)</span>
+
+    <span class="c1"># Transform A to B in solution</span>
+    <span class="n">dG_solution</span> <span class="o">=</span> <span class="n">thermodynamic_integration</span><span class="p">(</span>
+        <span class="n">ligand_A_solvated</span><span class="p">,</span> <span class="n">ligand_B_solvated</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dG_complex</span> <span class="o">-</span> <span class="n">dG_solution</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="solvation-free-energies">
+<h2>Solvation Free Energies<a class="headerlink" href="#solvation-free-energies" title="Link to this heading">¶</a></h2>
+<section id="hydration-free-energy">
+<h3>Hydration Free Energy<a class="headerlink" href="#hydration-free-energy" title="Link to this heading">¶</a></h3>
+<p><strong>Definition:</strong></p>
+<p>Free energy to transfer molecule from gas phase to aqueous solution:</p>
+<p><strong>Computational Approach:</strong></p>
+<ol class="arabic simple">
+<li><p>Turn off all interactions in solution</p></li>
+<li><p>Typically separate van der Waals and electrostatic contributions</p></li>
+<li><p>Use soft-core potentials for numerical stability</p></li>
+</ol>
+<p><strong>Typical Protocol:</strong></p>
+<p>where electrostatics are turned off first, then van der Waals interactions.</p>
+</section>
+<section id="partition-coefficients">
+<h3>Partition Coefficients<a class="headerlink" href="#partition-coefficients" title="Link to this heading">¶</a></h3>
+<p><strong>Octanol-Water Partition:</strong></p>
+<p><strong>Applications:</strong>
+- Drug ADMET properties
+- Environmental fate modeling
+- Membrane permeability prediction</p>
+</section>
+</section>
+<section id="advanced-free-energy-methods">
+<h2>Advanced Free Energy Methods<a class="headerlink" href="#advanced-free-energy-methods" title="Link to this heading">¶</a></h2>
+<section id="multistate-reweighting">
+<h3>Multistate Reweighting<a class="headerlink" href="#multistate-reweighting" title="Link to this heading">¶</a></h3>
+<p><strong>Bennett Acceptance Ratio (BAR):</strong></p>
+<p>Optimal estimator for free energy difference between two states:</p>
+<p>where <span class="math notranslate nohighlight">\(f(x) = 1/(1 + e^x)\)</span> is the Fermi function.</p>
+<p><strong>Multistate BAR (MBAR):</strong></p>
+<p>Extends BAR to multiple states simultaneously:</p>
+<p><strong>Benefits:</strong>
+- Uses all available simulation data
+- Provides optimal free energy estimates
+- Built-in error analysis</p>
+</section>
+<section id="replica-exchange-thermodynamic-integration">
+<h3>Replica Exchange Thermodynamic Integration<a class="headerlink" href="#replica-exchange-thermodynamic-integration" title="Link to this heading">¶</a></h3>
+<p><strong>Concept:</strong></p>
+<p>Combine replica exchange with thermodynamic integration for better sampling:</p>
+<p><strong>Applications:</strong>
+- Complex conformational changes
+- Systems with kinetic barriers
+- Improved convergence for difficult transformations</p>
+</section>
+</section>
+<section id="non-equilibrium-methods">
+<h2>Non-Equilibrium Methods<a class="headerlink" href="#non-equilibrium-methods" title="Link to this heading">¶</a></h2>
+<section id="jarzynski-equality">
+<h3>Jarzynski Equality<a class="headerlink" href="#jarzynski-equality" title="Link to this heading">¶</a></h3>
+<p><strong>Fast Switching:</strong></p>
+<p>For non-equilibrium processes:</p>
+<p>where W is the work performed on the system.</p>
+<p><strong>Crooks Fluctuation Theorem:</strong></p>
+<p><strong>Practical Implementation:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">jarzynski_free_energy</span><span class="p">(</span><span class="n">work_values</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate free energy using Jarzynski equality&quot;&quot;&quot;</span>
+    <span class="n">beta_work</span> <span class="o">=</span> <span class="n">work_values</span> <span class="o">/</span> <span class="p">(</span><span class="n">kB</span> <span class="o">*</span> <span class="n">temperature</span><span class="p">)</span>
+    <span class="n">max_work</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">beta_work</span><span class="p">)</span>
+
+    <span class="c1"># Use numerical tricks to avoid overflow</span>
+    <span class="n">exponentials</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">beta_work</span> <span class="o">-</span> <span class="n">max_work</span><span class="p">))</span>
+    <span class="n">average</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">exponentials</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="o">-</span><span class="n">kB</span> <span class="o">*</span> <span class="n">temperature</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">average</span><span class="p">)</span> <span class="o">-</span> <span class="n">max_work</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Challenges:</strong>
+- Requires many realizations for convergence
+- Sensitive to rare high-work trajectories
+- Bias toward low-work events</p>
+</section>
+</section>
+<section id="error-analysis-and-validation">
+<h2>Error Analysis and Validation<a class="headerlink" href="#error-analysis-and-validation" title="Link to this heading">¶</a></h2>
+<section id="statistical-uncertainty">
+<h3>Statistical Uncertainty<a class="headerlink" href="#statistical-uncertainty" title="Link to this heading">¶</a></h3>
+<p><strong>Block Averaging:</strong></p>
+<p>Divide simulation into blocks and analyze variance:</p>
+<p><strong>Bootstrap Resampling:</strong></p>
+<p>Generate synthetic datasets by resampling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_free_energy_error</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">n_bootstrap</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_bootstrap</span><span class="p">):</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">dG</span> <span class="o">=</span> <span class="n">calculate_free_energy</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dG</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Autocorrelation Analysis:</strong></p>
+<p>Account for temporal correlation in data:</p>
+<div class="math notranslate nohighlight">
+\[\tau_{corr} = 1 + 2\sum_{t=1}^{\infty} C(t)\]</div>
+<p>where C(t) is the normalized autocorrelation function.</p>
+</section>
+<section id="systematic-errors">
+<h3>Systematic Errors<a class="headerlink" href="#systematic-errors" title="Link to this heading">¶</a></h3>
+<p><strong>Finite Size Effects:</strong>
+- Periodic boundary conditions
+- Electrostatic artifacts
+- Surface effects</p>
+<p><strong>Sampling Errors:</strong>
+- Inadequate phase space exploration
+- Metastable state trapping
+- Poor overlap between states</p>
+<p><strong>Force Field Errors:</strong>
+- Parameter accuracy
+- Missing physics (polarization)
+- Transferability limitations</p>
+</section>
+<section id="validation-strategies">
+<h3>Validation Strategies<a class="headerlink" href="#validation-strategies" title="Link to this heading">¶</a></h3>
+<p><strong>Experimental Comparison:</strong>
+- Direct measurement when available
+- Consistent trends across similar systems
+- Physical reasonableness of results</p>
+<p><strong>Internal Consistency:</strong>
+- Bidirectional calculations
+- Different methods for same quantity
+- Thermodynamic cycle closure</p>
+<p><strong>Convergence Testing:</strong>
+- Simulation length dependence
+- Parameter sensitivity analysis
+- Multiple independent runs</p>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="protocol-design">
+<h3>Protocol Design<a class="headerlink" href="#protocol-design" title="Link to this heading">¶</a></h3>
+<p><strong>Free Energy Perturbation:</strong>
+- Use ≤ 2 kᵦT perturbations per step
+- Include bidirectional calculations
+- Monitor overlap between states</p>
+<p><strong>Thermodynamic Integration:</strong>
+- Use 11-21 λ points for smooth transformations
+- Concentrate points where ∂U/∂λ changes rapidly
+- Validate with different λ schedules</p>
+<p><strong>General Guidelines:</strong>
+- Always perform convergence analysis
+- Use multiple independent runs
+- Document all technical details
+- Compare with experimental data when available</p>
+</section>
+</section>
+<section id="common-applications">
+<h2>Common Applications<a class="headerlink" href="#common-applications" title="Link to this heading">¶</a></h2>
+<section id="drug-design">
+<h3>Drug Design<a class="headerlink" href="#drug-design" title="Link to this heading">¶</a></h3>
+<p><strong>Lead Optimization:</strong>
+- Relative binding free energies
+- ADMET property prediction
+- Selectivity optimization</p>
+<p><strong>Typical Accuracy:</strong>
+- 1-2 kcal/mol for relative binding
+- 2-3 kcal/mol for absolute binding
+- System-dependent performance</p>
+<p><strong>Industrial Implementation:</strong>
+- Free energy perturbation (FEP+)
+- Thermodynamic integration
+- Automated workflow tools</p>
+</section>
+<section id="environmental-chemistry">
+<h3>Environmental Chemistry<a class="headerlink" href="#environmental-chemistry" title="Link to this heading">¶</a></h3>
+<p><strong>Pollutant Fate:</strong>
+- Partition coefficients
+- Bioaccumulation factors
+- Solubility predictions</p>
+<p><strong>Atmospheric Chemistry:</strong>
+- Henry’s law constants
+- Phase partitioning
+- Aerosol interactions</p>
+</section>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>Thermodynamics and free energy calculations provide quantitative connections between molecular simulations and experimental observables:</p>
+<ol class="arabic simple">
+<li><p><strong>Fundamental Framework</strong>: Statistical mechanics connects microscopic and macroscopic properties</p></li>
+<li><p><strong>Multiple Methods</strong>: Different approaches suited for different problems</p></li>
+<li><p><strong>Rigorous Error Analysis</strong>: Essential for reliable predictions</p></li>
+<li><p><strong>Experimental Validation</strong>: Always compare with available data</p></li>
+<li><p><strong>Continuous Development</strong>: Methods continue to improve in accuracy and efficiency</p></li>
+</ol>
+<p><strong>Current Best Practices:</strong>
+- Thermodynamic integration for most applications
+- MBAR for optimal data utilization
+- Careful validation and error analysis
+- Integration with experimental measurements</p>
+<p>Free energy calculations have become increasingly reliable and are now routinely used in drug discovery, materials design, and fundamental research. Understanding the theoretical foundations and practical limitations is essential for successful application of these powerful methods.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="scientific_background.html">Scientific Background and Theory</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="scientific_background.html">Scientific Background and Theory</a><ul>
+      <li>Previous: <a href="enhanced_sampling.html" title="previous chapter">Enhanced Sampling Methods</a></li>
+      <li>Next: <a href="best_practices.html" title="next chapter">Best Practices for Molecular Dynamics Simulations</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/thermodynamics.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

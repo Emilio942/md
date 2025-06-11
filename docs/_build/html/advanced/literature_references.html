@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Literature References for Molecular Dynamics &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Performance Optimization" href="performance.html" />
+    <link rel="prev" title="Best Practices for Molecular Dynamics Simulations" href="best_practices.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="literature-references-for-molecular-dynamics">
+<h1>Literature References for Molecular Dynamics<a class="headerlink" href="#literature-references-for-molecular-dynamics" title="Link to this heading">¶</a></h1>
+<p>This section provides a comprehensive collection of literature references organized by topic to support further study in molecular dynamics simulation theory and practice.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#foundational-texts-and-reviews" id="id1">Foundational Texts and Reviews</a></p>
+<ul>
+<li><p><a class="reference internal" href="#comprehensive-textbooks" id="id2">Comprehensive Textbooks</a></p></li>
+<li><p><a class="reference internal" href="#major-review-articles" id="id3">Major Review Articles</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#force-fields-and-parameterization" id="id4">Force Fields and Parameterization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#force-field-development" id="id5">Force Field Development</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#integration-algorithms" id="id6">Integration Algorithms</a></p>
+<ul>
+<li><p><a class="reference internal" href="#fundamental-algorithms" id="id7">Fundamental Algorithms</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#enhanced-sampling-methods" id="id8">Enhanced Sampling Methods</a></p>
+<ul>
+<li><p><a class="reference internal" href="#replica-exchange-methods" id="id9">Replica Exchange Methods</a></p></li>
+<li><p><a class="reference internal" href="#metadynamics-and-free-energy-methods" id="id10">Metadynamics and Free Energy Methods</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#statistical-mechanics-and-ensemble-theory" id="id11">Statistical Mechanics and Ensemble Theory</a></p>
+<ul>
+<li><p><a class="reference internal" href="#ensemble-methods" id="id12">Ensemble Methods</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#biomolecular-applications" id="id13">Biomolecular Applications</a></p>
+<ul>
+<li><p><a class="reference internal" href="#protein-dynamics-and-folding" id="id14">Protein Dynamics and Folding</a></p></li>
+<li><p><a class="reference internal" href="#membrane-simulations" id="id15">Membrane Simulations</a></p></li>
+<li><p><a class="reference internal" href="#dna-and-rna-simulations" id="id16">DNA and RNA Simulations</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#free-energy-calculations" id="id17">Free Energy Calculations</a></p>
+<ul>
+<li><p><a class="reference internal" href="#alchemical-methods" id="id18">Alchemical Methods</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#software-and-implementation" id="id19">Software and Implementation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#md-software-packages" id="id20">MD Software Packages</a></p></li>
+<li><p><a class="reference internal" href="#performance-and-hardware" id="id21">Performance and Hardware</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#analysis-methods" id="id22">Analysis Methods</a></p>
+<ul>
+<li><p><a class="reference internal" href="#trajectory-analysis" id="id23">Trajectory Analysis</a></p></li>
+<li><p><a class="reference internal" href="#network-analysis" id="id24">Network Analysis</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#machine-learning-applications" id="id25">Machine Learning Applications</a></p>
+<ul>
+<li><p><a class="reference internal" href="#enhanced-sampling-with-ml" id="id26">Enhanced Sampling with ML</a></p></li>
+<li><p><a class="reference internal" href="#markov-state-models" id="id27">Markov State Models</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#quantum-mechanics-molecular-mechanics" id="id28">Quantum Mechanics/Molecular Mechanics</a></p>
+<ul>
+<li><p><a class="reference internal" href="#qm-mm-theory-and-implementation" id="id29">QM/MM Theory and Implementation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#specialized-topics" id="id30">Specialized Topics</a></p>
+<ul>
+<li><p><a class="reference internal" href="#coarse-grained-modeling" id="id31">Coarse-Grained Modeling</a></p></li>
+<li><p><a class="reference internal" href="#constant-ph-simulations" id="id32">Constant pH Simulations</a></p></li>
+<li><p><a class="reference internal" href="#polarizable-force-fields" id="id33">Polarizable Force Fields</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#historical-and-foundational-papers" id="id34">Historical and Foundational Papers</a></p>
+<ul>
+<li><p><a class="reference internal" href="#early-computational-physics" id="id35">Early Computational Physics</a></p></li>
+<li><p><a class="reference internal" href="#statistical-mechanics-foundations" id="id36">Statistical Mechanics Foundations</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#modern-developments-and-future-directions" id="id37">Modern Developments and Future Directions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#recent-advances" id="id38">Recent Advances</a></p></li>
+<li><p><a class="reference internal" href="#methodological-reviews" id="id39">Methodological Reviews</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#specialized-journals-and-resources" id="id40">Specialized Journals and Resources</a></p>
+<ul>
+<li><p><a class="reference internal" href="#key-journals" id="id41">Key Journals</a></p></li>
+<li><p><a class="reference internal" href="#online-resources" id="id42">Online Resources</a></p></li>
+<li><p><a class="reference internal" href="#research-groups-and-centers" id="id43">Research Groups and Centers</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="foundational-texts-and-reviews">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Foundational Texts and Reviews</a><a class="headerlink" href="#foundational-texts-and-reviews" title="Link to this heading">¶</a></h2>
+<section id="comprehensive-textbooks">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Comprehensive Textbooks</a><a class="headerlink" href="#comprehensive-textbooks" title="Link to this heading">¶</a></h3>
+<p><strong>Classical Molecular Dynamics</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Allen, M. P., &amp; Tildesley, D. J.</strong> (2017). <em>Computer Simulation of Liquids</em> (2nd ed.). Oxford University Press.</p>
+<ul class="simple">
+<li><p>The definitive textbook for molecular simulation methods</p></li>
+<li><p>Comprehensive coverage of algorithms and theory</p></li>
+<li><p>Essential reading for understanding MD fundamentals</p></li>
+</ul>
+</li>
+<li><p><strong>Frenkel, D., &amp; Smit, B.</strong> (2001). <em>Understanding Molecular Simulation: From Algorithms to Applications</em> (2nd ed.). Academic Press.</p>
+<ul class="simple">
+<li><p>Excellent balance of theory and practical applications</p></li>
+<li><p>Strong coverage of Monte Carlo and molecular dynamics</p></li>
+<li><p>Good introduction to enhanced sampling methods</p></li>
+</ul>
+</li>
+<li><p><strong>Rapaport, D. C.</strong> (2004). <em>The Art of Molecular Dynamics Simulation</em> (2nd ed.). Cambridge University Press.</p>
+<ul class="simple">
+<li><p>Practical focus with extensive code examples</p></li>
+<li><p>Good for implementation details</p></li>
+<li><p>Covers both methodology and analysis techniques</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Statistical Mechanics Foundations</strong></p>
+<ol class="arabic simple" start="4">
+<li><p><strong>McQuarrie, D. A.</strong> (2000). <em>Statistical Mechanics</em>. University Science Books.</p>
+<ul class="simple">
+<li><p>Rigorous treatment of statistical mechanical principles</p></li>
+<li><p>Essential for understanding ensemble theory</p></li>
+<li><p>Strong mathematical foundations</p></li>
+</ul>
+</li>
+<li><p><strong>Chandler, D.</strong> (1987). <em>Introduction to Modern Statistical Mechanics</em>. Oxford University Press.</p>
+<ul class="simple">
+<li><p>Clear exposition of statistical mechanical concepts</p></li>
+<li><p>Good coverage of fluctuation-dissipation theory</p></li>
+<li><p>Emphasis on understanding physical principles</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="major-review-articles">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Major Review Articles</a><a class="headerlink" href="#major-review-articles" title="Link to this heading">¶</a></h3>
+<p><strong>Methodological Reviews</strong></p>
+<ol class="arabic simple" start="6">
+<li><p><strong>Karplus, M., &amp; McCammon, J. A.</strong> (2002). Molecular dynamics simulations of biomolecules. <em>Nature Structural Biology</em>, 9(9), 646-652.</p>
+<ul class="simple">
+<li><p>Historical perspective on biomolecular MD</p></li>
+<li><p>Overview of major achievements and challenges</p></li>
+<li><p>Influential review by pioneers in the field</p></li>
+</ul>
+</li>
+<li><p><strong>Dror, R. O., Dirks, R. M., Grossman, J. P., Xu, H., &amp; Shaw, D. E.</strong> (2012). Biomolecular simulation: a computational microscope for molecular biology. <em>Annual Review of Biophysics</em>, 41, 429-452.</p>
+<ul class="simple">
+<li><p>Modern perspective on long-timescale simulations</p></li>
+<li><p>Discussion of specialized hardware (Anton)</p></li>
+<li><p>Focus on biological applications</p></li>
+</ul>
+</li>
+<li><p><strong>Hollingsworth, S. A., &amp; Dror, R. O.</strong> (2018). Molecular dynamics simulation for all. <em>Neuron</em>, 99(6), 1129-1143.</p>
+<ul class="simple">
+<li><p>Accessible introduction to MD for biologists</p></li>
+<li><p>Practical guidance for experimental researchers</p></li>
+<li><p>Overview of current capabilities and limitations</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="force-fields-and-parameterization">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Force Fields and Parameterization</a><a class="headerlink" href="#force-fields-and-parameterization" title="Link to this heading">¶</a></h2>
+<section id="force-field-development">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Force Field Development</a><a class="headerlink" href="#force-field-development" title="Link to this heading">¶</a></h3>
+<p><strong>General Force Field Theory</strong></p>
+<ol class="arabic simple" start="9">
+<li><p><strong>Jorgensen, W. L., Maxwell, D. S., &amp; Tirado-Rives, J.</strong> (1996). Development and testing of the OPLS all-atom force field on conformational energetics and properties of organic liquids. <em>Journal of the American Chemical Society</em>, 118(45), 11225-11236.</p>
+<ul class="simple">
+<li><p>Seminal paper on OPLS force field development</p></li>
+<li><p>Systematic approach to parameter optimization</p></li>
+<li><p>Validation against experimental data</p></li>
+</ul>
+</li>
+<li><p><strong>Cornell, W. D., Cieplak, P., Bayly, C. I., Gould, I. R., Merz, K. M., Ferguson, D. M., … &amp; Kollman, P. A.</strong> (1995). A second generation force field for the simulation of proteins, nucleic acids, and organic molecules. <em>Journal of the American Chemical Society</em>, 117(19), 5179-5197.</p>
+<ul class="simple">
+<li><p>Development of AMBER ff94 force field</p></li>
+<li><p>Influential approach to biomolecular parameterization</p></li>
+<li><p>Widely cited and used methodology</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Protein Force Fields</strong></p>
+<ol class="arabic simple" start="11">
+<li><p><strong>Maier, J. A., Martinez, C., Kasavajhala, K., Wickstrom, L., Hauser, K. E., &amp; Simmerling, C.</strong> (2015). ff14SB: improving the accuracy of protein side chain and backbone parameters from ff99SB. <em>Journal of Chemical Theory and Computation</em>, 11(8), 3696-3713.</p>
+<ul class="simple">
+<li><p>Modern AMBER protein force field</p></li>
+<li><p>Systematic improvement of backbone parameters</p></li>
+<li><p>Extensive validation studies</p></li>
+</ul>
+</li>
+<li><p><strong>Best, R. B., Zhu, X., Shim, J., Lopes, P. E., Mittal, J., Feig, M., &amp; MacKerell Jr, A. D.</strong> (2012). Optimization of the additive CHARMM all-atom protein force field targeting improved sampling of the backbone φ, ψ and side-chain χ1 and χ2 dihedral angles. <em>Journal of Chemical Theory and Computation</em>, 8(9), 3257-3273.</p>
+<ul class="simple">
+<li><p>CHARMM22* force field development</p></li>
+<li><p>Focus on conformational sampling improvements</p></li>
+<li><p>Validation against NMR data</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Water Models</strong></p>
+<ol class="arabic simple" start="13">
+<li><p><strong>Jorgensen, W. L., Chandrasekhar, J., Madura, J. D., Impey, R. W., &amp; Klein, M. L.</strong> (1983). Comparison of simple potential functions for simulating liquid water. <em>Journal of Chemical Physics</em>, 79(2), 926-935.</p>
+<ul class="simple">
+<li><p>Classic paper introducing TIP3P and TIP4P models</p></li>
+<li><p>Systematic comparison of water models</p></li>
+<li><p>Foundation for modern water model development</p></li>
+</ul>
+</li>
+<li><p><strong>Abascal, J. L., &amp; Vega, C.</strong> (2005). A general purpose model for the condensed phases of water: TIP4P/2005. <em>Journal of Chemical Physics</em>, 123(23), 234505.</p>
+<ul class="simple">
+<li><p>Improved TIP4P water model</p></li>
+<li><p>Better reproduction of experimental properties</p></li>
+<li><p>Widely used in modern simulations</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="integration-algorithms">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Integration Algorithms</a><a class="headerlink" href="#integration-algorithms" title="Link to this heading">¶</a></h2>
+<section id="fundamental-algorithms">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Fundamental Algorithms</a><a class="headerlink" href="#fundamental-algorithms" title="Link to this heading">¶</a></h3>
+<p><strong>Verlet Integration Family</strong></p>
+<ol class="arabic simple" start="15">
+<li><p><strong>Verlet, L.</strong> (1967). Computer “experiments” on classical fluids. I. Thermodynamical properties of Lennard-Jones molecules. <em>Physical Review</em>, 159(1), 98-103.</p>
+<ul class="simple">
+<li><p>Original Verlet algorithm paper</p></li>
+<li><p>Foundation of modern MD integration</p></li>
+<li><p>Historic significance in computational physics</p></li>
+</ul>
+</li>
+<li><p><strong>Swope, W. C., Andersen, H. C., Berens, P. H., &amp; Wilson, K. R.</strong> (1982). A computer simulation method for the calculation of equilibrium constants for the formation of physical clusters of molecules: Application to small water clusters. <em>Journal of Chemical Physics</em>, 76(1), 637-649.</p>
+<ul class="simple">
+<li><p>Introduction of velocity Verlet algorithm</p></li>
+<li><p>Improved stability and energy conservation</p></li>
+<li><p>Widely adopted in MD software</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Constraint Algorithms</strong></p>
+<ol class="arabic simple" start="17">
+<li><p><strong>Ryckaert, J. P., Ciccotti, G., &amp; Berendsen, H. J.</strong> (1977). Numerical integration of the cartesian equations of motion of a system with constraints: molecular dynamics of n-alkanes. <em>Journal of Computational Physics</em>, 23(3), 327-341.</p>
+<ul class="simple">
+<li><p>SHAKE algorithm development</p></li>
+<li><p>Essential for constraining bond lengths</p></li>
+<li><p>Allows larger timesteps in MD simulations</p></li>
+</ul>
+</li>
+<li><p><strong>Andersen, H. C.</strong> (1983). Rattle: A “velocity” version of the shake algorithm for molecular dynamics calculations. <em>Journal of Computational Physics</em>, 52(1), 24-34.</p>
+<ul class="simple">
+<li><p>RATTLE algorithm for velocity constraints</p></li>
+<li><p>Consistent with velocity Verlet integration</p></li>
+<li><p>Improved accuracy for constrained dynamics</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="enhanced-sampling-methods">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Enhanced Sampling Methods</a><a class="headerlink" href="#enhanced-sampling-methods" title="Link to this heading">¶</a></h2>
+<section id="replica-exchange-methods">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Replica Exchange Methods</a><a class="headerlink" href="#replica-exchange-methods" title="Link to this heading">¶</a></h3>
+<p><strong>Temperature Replica Exchange</strong></p>
+<ol class="arabic simple" start="19">
+<li><p><strong>Sugita, Y., &amp; Okamoto, Y.</strong> (1999). Replica-exchange molecular dynamics method for protein folding. <em>Chemical Physics Letters</em>, 314(1-2), 141-151.</p>
+<ul class="simple">
+<li><p>Introduction of replica exchange MD</p></li>
+<li><p>Revolutionary method for enhanced sampling</p></li>
+<li><p>Widely applied to protein folding studies</p></li>
+</ul>
+</li>
+<li><p><strong>Earl, D. J., &amp; Deem, M. W.</strong> (2005). Parallel tempering: theory, applications, and new perspectives. <em>Physical Chemistry Chemical Physics</em>, 7(23), 3910-3916.</p>
+<ul class="simple">
+<li><p>Comprehensive review of parallel tempering</p></li>
+<li><p>Theoretical foundations and practical applications</p></li>
+<li><p>Guidelines for optimal implementation</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Hamiltonian Replica Exchange</strong></p>
+<ol class="arabic simple" start="21">
+<li><p><strong>Fukunishi, H., Watanabe, O., &amp; Takada, S.</strong> (2002). On the Hamiltonian replica exchange method for efficient sampling of biomolecular systems: application to protein structure prediction. <em>Journal of Chemical Physics</em>, 116(20), 9058-9067.</p>
+<ul class="simple">
+<li><p>Hamiltonian replica exchange development</p></li>
+<li><p>Application to protein structure prediction</p></li>
+<li><p>Alternative to temperature-based methods</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="metadynamics-and-free-energy-methods">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Metadynamics and Free Energy Methods</a><a class="headerlink" href="#metadynamics-and-free-energy-methods" title="Link to this heading">¶</a></h3>
+<p><strong>Metadynamics</strong></p>
+<ol class="arabic simple" start="22">
+<li><p><strong>Laio, A., &amp; Parrinello, M.</strong> (2002). Escaping free-energy minima. <em>Proceedings of the National Academy of Sciences</em>, 99(20), 12562-12566.</p>
+<ul class="simple">
+<li><p>Original metadynamics paper</p></li>
+<li><p>Breakthrough in free energy landscape exploration</p></li>
+<li><p>Foundation for modern enhanced sampling</p></li>
+</ul>
+</li>
+<li><p><strong>Barducci, A., Bussi, G., &amp; Parrinello, M.</strong> (2008). Well-tempered metadynamics: a smoothly converging and tunable free-energy method. <em>Physical Review Letters</em>, 100(2), 020603.</p>
+<ul class="simple">
+<li><p>Well-tempered metadynamics development</p></li>
+<li><p>Improved convergence properties</p></li>
+<li><p>Widely adopted enhancement</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Umbrella Sampling</strong></p>
+<ol class="arabic simple" start="24">
+<li><p><strong>Torrie, G. M., &amp; Valleau, J. P.</strong> (1977). Nonphysical sampling distributions in Monte Carlo free-energy estimation: umbrella sampling. <em>Journal of Computational Physics</em>, 23(2), 187-199.</p>
+<ul class="simple">
+<li><p>Original umbrella sampling method</p></li>
+<li><p>Fundamental technique for free energy calculation</p></li>
+<li><p>Basis for many modern methods</p></li>
+</ul>
+</li>
+<li><p><strong>Kumar, S., Rosenberg, J. M., Bouzida, D., Swendsen, R. H., &amp; Kollman, P. A.</strong> (1992). The weighted histogram analysis method for free-energy calculations on biomolecules. I. The method. <em>Journal of Computational Chemistry</em>, 13(8), 1011-1021.</p>
+<ul class="simple">
+<li><p>WHAM method development</p></li>
+<li><p>Optimal combination of umbrella sampling data</p></li>
+<li><p>Standard analysis technique</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="statistical-mechanics-and-ensemble-theory">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Statistical Mechanics and Ensemble Theory</a><a class="headerlink" href="#statistical-mechanics-and-ensemble-theory" title="Link to this heading">¶</a></h2>
+<section id="ensemble-methods">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Ensemble Methods</a><a class="headerlink" href="#ensemble-methods" title="Link to this heading">¶</a></h3>
+<p><strong>Thermostats and Barostats</strong></p>
+<ol class="arabic simple" start="26">
+<li><p><strong>Nosé, S.</strong> (1984). A molecular dynamics method for simulations in the canonical ensemble. <em>Molecular Physics</em>, 52(2), 255-268.</p>
+<ul class="simple">
+<li><p>Nosé thermostat development</p></li>
+<li><p>Rigorous canonical ensemble sampling</p></li>
+<li><p>Theoretical foundation for temperature control</p></li>
+</ul>
+</li>
+<li><p><strong>Hoover, W. G.</strong> (1985). Canonical dynamics: equilibrium phase-space distributions. <em>Physical Review A</em>, 31(3), 1695-1697.</p>
+<ul class="simple">
+<li><p>Nosé-Hoover thermostat formulation</p></li>
+<li><p>Practical implementation of canonical sampling</p></li>
+<li><p>Widely used in MD simulations</p></li>
+</ul>
+</li>
+<li><p><strong>Parrinello, M., &amp; Rahman, A.</strong> (1981). Polymorphic transitions in single crystals: A new molecular dynamics method. <em>Journal of Applied Physics</em>, 52(12), 7182-7190.</p>
+<ul class="simple">
+<li><p>Parrinello-Rahman barostat development</p></li>
+<li><p>Constant pressure MD simulation</p></li>
+<li><p>Flexible unit cell dynamics</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Langevin Dynamics</strong></p>
+<ol class="arabic simple" start="29">
+<li><p><strong>Pastor, R. W., Brooks, B. R., &amp; Szabo, A.</strong> (1988). An analysis of the accuracy of Langevin and molecular dynamics algorithms. <em>Molecular Physics</em>, 65(6), 1409-1419.</p>
+<ul class="simple">
+<li><p>Analysis of Langevin dynamics accuracy</p></li>
+<li><p>Comparison with standard MD</p></li>
+<li><p>Important for understanding stochastic dynamics</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="biomolecular-applications">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Biomolecular Applications</a><a class="headerlink" href="#biomolecular-applications" title="Link to this heading">¶</a></h2>
+<section id="protein-dynamics-and-folding">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Protein Dynamics and Folding</a><a class="headerlink" href="#protein-dynamics-and-folding" title="Link to this heading">¶</a></h3>
+<p><strong>Pioneering Studies</strong></p>
+<ol class="arabic simple" start="30">
+<li><p><strong>McCammon, J. A., Gelin, B. R., &amp; Karplus, M.</strong> (1977). Dynamics of folded proteins. <em>Nature</em>, 267(5612), 585-590.</p>
+<ul class="simple">
+<li><p>First MD simulation of a protein</p></li>
+<li><p>Historic milestone in computational biology</p></li>
+<li><p>Demonstrated feasibility of biomolecular MD</p></li>
+</ul>
+</li>
+<li><p><strong>Levitt, M., &amp; Warshel, A.</strong> (1975). Computer simulation of protein folding. <em>Nature</em>, 253(5494), 694-698.</p>
+<ul class="simple">
+<li><p>Early protein folding simulation</p></li>
+<li><p>Pioneering work in computational structural biology</p></li>
+<li><p>Foundation for modern folding studies</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Modern Long-Timescale Studies</strong></p>
+<ol class="arabic simple" start="32">
+<li><p><strong>Shaw, D. E., Maragakis, P., Lindorff-Larsen, K., Piana, S., Dror, R. O., Eastwood, M. P., … &amp; Wriggers, W.</strong> (2010). Atomic-level characterization of the structural dynamics of proteins. <em>Science</em>, 330(6002), 341-346.</p>
+<ul class="simple">
+<li><p>Millisecond-timescale protein simulations</p></li>
+<li><p>Specialized hardware (Anton) applications</p></li>
+<li><p>Major advance in accessible timescales</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="membrane-simulations">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Membrane Simulations</a><a class="headerlink" href="#membrane-simulations" title="Link to this heading">¶</a></h3>
+<p><strong>Lipid Bilayer Studies</strong></p>
+<ol class="arabic simple" start="33">
+<li><p><strong>Marrink, S. J., Risselada, H. J., Yefimov, S., Tieleman, D. P., &amp; De Vries, A. H.</strong> (2007). The MARTINI force field: coarse grained model for biomolecular simulations. <em>Journal of Physical Chemistry B</em>, 111(27), 7812-7824.</p>
+<ul class="simple">
+<li><p>MARTINI coarse-grained force field</p></li>
+<li><p>Enables large-scale membrane simulations</p></li>
+<li><p>Widely used for lipid systems</p></li>
+</ul>
+</li>
+<li><p><strong>Tieleman, D. P., &amp; Berendsen, H. J.</strong> (1996). Molecular dynamics simulations of a fully hydrated dipalmitoylphosphatidylcholine bilayer with different macroscopic boundary conditions and parameters. <em>Journal of Chemical Physics</em>, 105(11), 4871-4880.</p>
+<ul class="simple">
+<li><p>Comprehensive lipid bilayer MD study</p></li>
+<li><p>Validation of simulation parameters</p></li>
+<li><p>Reference for membrane simulations</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="dna-and-rna-simulations">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">DNA and RNA Simulations</a><a class="headerlink" href="#dna-and-rna-simulations" title="Link to this heading">¶</a></h3>
+<p><strong>Nucleic Acid Force Fields</strong></p>
+<ol class="arabic simple" start="35">
+<li><p><strong>Cheatham III, T. E., Cieplak, P., &amp; Kollman, P. A.</strong> (1999). A modified version of the Cornell et al. force field with improved sugar pucker phases and helical repeat. <em>Journal of Biomolecular Structure and Dynamics</em>, 16(4), 845-862.</p>
+<ul class="simple">
+<li><p>Improved nucleic acid parameters</p></li>
+<li><p>Better representation of sugar conformations</p></li>
+<li><p>Foundation for modern RNA/DNA simulations</p></li>
+</ul>
+</li>
+<li><p><strong>Pérez, A., Marchán, I., Svozil, D., Sponer, J., Cheatham III, T. E., Laughton, C. A., &amp; Orozco, M.</strong> (2007). Refinement of the AMBER force field for nucleic acids: improving the description of α/γ conformers. <em>Biophysical Journal</em>, 92(11), 3817-3829.</p>
+<ul class="simple">
+<li><p>Parmbsc0 force field development</p></li>
+<li><p>Improved backbone conformations</p></li>
+<li><p>Better agreement with experimental data</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="free-energy-calculations">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Free Energy Calculations</a><a class="headerlink" href="#free-energy-calculations" title="Link to this heading">¶</a></h2>
+<section id="alchemical-methods">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Alchemical Methods</a><a class="headerlink" href="#alchemical-methods" title="Link to this heading">¶</a></h3>
+<p><strong>Free Energy Perturbation</strong></p>
+<ol class="arabic simple" start="37">
+<li><p><strong>Zwanzig, R. W.</strong> (1954). High‐temperature equation of state by a perturbation method. I. Nonpolar gases. <em>Journal of Chemical Physics</em>, 22(8), 1420-1426.</p>
+<ul class="simple">
+<li><p>Zwanzig equation derivation</p></li>
+<li><p>Theoretical foundation for FEP</p></li>
+<li><p>Classic statistical mechanics result</p></li>
+</ul>
+</li>
+<li><p><strong>Jorgensen, W. L., &amp; Ravimohan, C.</strong> (1985). Monte Carlo simulation of differences in free energies of hydration. <em>Journal of Chemical Physics</em>, 83(6), 3050-3054.</p>
+<ul class="simple">
+<li><p>Early application of FEP to solvation</p></li>
+<li><p>Demonstration of method viability</p></li>
+<li><p>Important validation study</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Thermodynamic Integration</strong></p>
+<ol class="arabic simple" start="39">
+<li><p><strong>Kirkwood, J. G.</strong> (1935). Statistical mechanics of fluid mixtures. <em>Journal of Chemical Physics</em>, 3(5), 300-313.</p>
+<ul class="simple">
+<li><p>Kirkwood coupling parameter method</p></li>
+<li><p>Theoretical basis for thermodynamic integration</p></li>
+<li><p>Fundamental statistical mechanics</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Bennett Acceptance Ratio</strong></p>
+<ol class="arabic simple" start="40">
+<li><p><strong>Bennett, C. H.</strong> (1976). Efficient estimation of free energy differences from Monte Carlo data. <em>Journal of Computational Physics</em>, 22(2), 245-268.</p>
+<ul class="simple">
+<li><p>Bennett acceptance ratio method</p></li>
+<li><p>Optimal free energy estimation</p></li>
+<li><p>Widely used in modern calculations</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="software-and-implementation">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Software and Implementation</a><a class="headerlink" href="#software-and-implementation" title="Link to this heading">¶</a></h2>
+<section id="md-software-packages">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">MD Software Packages</a><a class="headerlink" href="#md-software-packages" title="Link to this heading">¶</a></h3>
+<p><strong>GROMACS</strong></p>
+<ol class="arabic simple" start="41">
+<li><p><strong>Abraham, M. J., Murtola, T., Schulz, R., Páll, S., Smith, J. C., Hess, B., &amp; Lindahl, E.</strong> (2015). GROMACS: High performance molecular simulations through multi-level parallelism from laptops to supercomputers. <em>SoftwareX</em>, 1, 19-25.</p>
+<ul class="simple">
+<li><p>Modern GROMACS overview</p></li>
+<li><p>High-performance implementation details</p></li>
+<li><p>Widely used open-source package</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>AMBER</strong></p>
+<ol class="arabic simple" start="42">
+<li><p><strong>Case, D. A., Cheatham III, T. E., Darden, T., Gohlke, H., Luo, R., Merz Jr, K. M., … &amp; Woods, R. J.</strong> (2005). The Amber biomolecular simulation programs. <em>Journal of Computational Chemistry</em>, 26(16), 1668-1688.</p>
+<ul class="simple">
+<li><p>AMBER software suite overview</p></li>
+<li><p>Comprehensive biomolecular simulation tools</p></li>
+<li><p>Widely used in biological applications</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>OpenMM</strong></p>
+<ol class="arabic simple" start="43">
+<li><p><strong>Eastman, P., Swails, J., Chodera, J. D., McGibbon, R. T., Zhao, Y., Beauchamp, K. A., … &amp; Pande, V. S.</strong> (2017). OpenMM 7: Rapid development of high performance algorithms for molecular dynamics. <em>PLoS Computational Biology</em>, 13(7), e1005659.</p>
+<ul class="simple">
+<li><p>Modern OpenMM framework</p></li>
+<li><p>GPU-accelerated simulations</p></li>
+<li><p>Flexible and extensible platform</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="performance-and-hardware">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Performance and Hardware</a><a class="headerlink" href="#performance-and-hardware" title="Link to this heading">¶</a></h3>
+<p><strong>GPU Computing</strong></p>
+<ol class="arabic simple" start="44">
+<li><p><strong>Stone, J. E., Phillips, J. C., Freddolino, P. L., Hardy, D. J., Trabuco, L. G., &amp; Schulten, K.</strong> (2007). Accelerating molecular modeling applications with the CUDA programming model. <em>Journal of Computational Chemistry</em>, 28(16), 2618-2640.</p>
+<ul class="simple">
+<li><p>Early GPU acceleration work</p></li>
+<li><p>Demonstration of GPU potential for MD</p></li>
+<li><p>Foundation for modern GPU computing</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Specialized Hardware</strong></p>
+<ol class="arabic simple" start="45">
+<li><p><strong>Shaw, D. E., Deneroff, M. M., Dror, R. O., Kuskin, J. S., Larson, R. H., Salmon, J. K., … &amp; Bank, J. A.</strong> (2008). Anton, a special-purpose machine for molecular dynamics simulation. <em>Communications of the ACM</em>, 51(7), 91-97.</p>
+<ul class="simple">
+<li><p>Anton supercomputer development</p></li>
+<li><p>Specialized MD hardware design</p></li>
+<li><p>Breakthrough in simulation timescales</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="analysis-methods">
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Analysis Methods</a><a class="headerlink" href="#analysis-methods" title="Link to this heading">¶</a></h2>
+<section id="trajectory-analysis">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Trajectory Analysis</a><a class="headerlink" href="#trajectory-analysis" title="Link to this heading">¶</a></h3>
+<p><strong>Principal Component Analysis</strong></p>
+<ol class="arabic simple" start="46">
+<li><p><strong>Amadei, A., Linssen, A. B., &amp; Berendsen, H. J.</strong> (1993). Essential dynamics of proteins. <em>Proteins: Structure, Function, and Bioinformatics</em>, 17(4), 412-425.</p>
+<ul class="simple">
+<li><p>Essential dynamics/PCA for proteins</p></li>
+<li><p>Dimensionality reduction in MD analysis</p></li>
+<li><p>Widely used analysis technique</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Clustering Methods</strong></p>
+<ol class="arabic simple" start="47">
+<li><p><strong>Daura, X., Gademann, K., Jaun, B., Seebach, D., Van Gunsteren, W. F., &amp; Mark, A. E.</strong> (1999). Peptide folding: when simulation meets experiment. <em>Angewandte Chemie International Edition</em>, 38(1‐2), 236-240.</p>
+<ul class="simple">
+<li><p>Clustering analysis for MD trajectories</p></li>
+<li><p>Conformational state identification</p></li>
+<li><p>Important analysis methodology</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="network-analysis">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Network Analysis</a><a class="headerlink" href="#network-analysis" title="Link to this heading">¶</a></h3>
+<p><strong>Dynamical Networks</strong></p>
+<ol class="arabic simple" start="48">
+<li><p><strong>Sethi, A., Eargle, J., Black, A. A., &amp; Luthey-Schulten, Z.</strong> (2009). Dynamical networks in tRNA: protein complexes. <em>Proceedings of the National Academy of Sciences</em>, 106(16), 6620-6625.</p>
+<ul class="simple">
+<li><p>Network analysis of protein dynamics</p></li>
+<li><p>Allosteric communication pathways</p></li>
+<li><p>Modern analysis approach</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="machine-learning-applications">
+<h2><a class="toc-backref" href="#id25" role="doc-backlink">Machine Learning Applications</a><a class="headerlink" href="#machine-learning-applications" title="Link to this heading">¶</a></h2>
+<section id="enhanced-sampling-with-ml">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Enhanced Sampling with ML</a><a class="headerlink" href="#enhanced-sampling-with-ml" title="Link to this heading">¶</a></h3>
+<p><strong>Collective Variable Discovery</strong></p>
+<ol class="arabic simple" start="49">
+<li><p><strong>Sultan, M. M., &amp; Pande, V. S.</strong> (2018). Automated design of collective variables using supervised machine learning. <em>Journal of Chemical Physics</em>, 149(9), 094106.</p>
+<ul class="simple">
+<li><p>ML-guided collective variable selection</p></li>
+<li><p>Automated enhanced sampling</p></li>
+<li><p>Modern approach to rare event sampling</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Neural Network Potentials</strong></p>
+<ol class="arabic simple" start="50">
+<li><p><strong>Behler, J., &amp; Parrinello, M.</strong> (2007). Generalized neural-network representation of high-dimensional potential-energy surfaces. <em>Physical Review Letters</em>, 98(14), 146401.</p>
+<ul class="simple">
+<li><p>Neural network potential development</p></li>
+<li><p>ML-based force field construction</p></li>
+<li><p>Foundation for modern ML potentials</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="markov-state-models">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Markov State Models</a><a class="headerlink" href="#markov-state-models" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="51">
+<li><p><strong>Pande, V. S., Beauchamp, K., &amp; Bowman, G. R.</strong> (2010). Everything you wanted to know about Markov State Models but were afraid to ask. <em>Methods</em>, 52(1), 99-105.</p>
+<ul class="simple">
+<li><p>Comprehensive MSM overview</p></li>
+<li><p>Kinetic modeling of MD data</p></li>
+<li><p>Important analysis framework</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="quantum-mechanics-molecular-mechanics">
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Quantum Mechanics/Molecular Mechanics</a><a class="headerlink" href="#quantum-mechanics-molecular-mechanics" title="Link to this heading">¶</a></h2>
+<section id="qm-mm-theory-and-implementation">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">QM/MM Theory and Implementation</a><a class="headerlink" href="#qm-mm-theory-and-implementation" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="52">
+<li><p><strong>Warshel, A., &amp; Levitt, M.</strong> (1976). Theoretical studies of enzymic reactions: dielectric, electrostatic and steric stabilization of the carbonium ion in the reaction of lysozyme. <em>Journal of Molecular Biology</em>, 103(2), 227-249.</p>
+<ul class="simple">
+<li><p>Original QM/MM method</p></li>
+<li><p>Nobel Prize-winning work</p></li>
+<li><p>Foundation of hybrid methods</p></li>
+</ul>
+</li>
+<li><p><strong>Field, M. J., Bash, P. A., &amp; Karplus, M.</strong> (1990). A combined quantum mechanical and molecular mechanical potential for molecular dynamics simulations. <em>Journal of Computational Chemistry</em>, 11(6), 700-733.</p>
+<ul class="simple">
+<li><p>Practical QM/MM implementation</p></li>
+<li><p>MD with QM/MM potentials</p></li>
+<li><p>Important methodological development</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="specialized-topics">
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Specialized Topics</a><a class="headerlink" href="#specialized-topics" title="Link to this heading">¶</a></h2>
+<section id="coarse-grained-modeling">
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">Coarse-Grained Modeling</a><a class="headerlink" href="#coarse-grained-modeling" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="54">
+<li><p><strong>Voth, G. A.</strong> (Ed.). (2008). <em>Coarse-graining of condensed phase and biomolecular systems</em>. CRC press.</p>
+<ul class="simple">
+<li><p>Comprehensive coarse-graining methods</p></li>
+<li><p>Theory and applications</p></li>
+<li><p>Essential reference for CG modeling</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="constant-ph-simulations">
+<h3><a class="toc-backref" href="#id32" role="doc-backlink">Constant pH Simulations</a><a class="headerlink" href="#constant-ph-simulations" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="55">
+<li><p><strong>Mongan, J., Case, D. A., &amp; McCammon, J. A.</strong> (2004). Constant pH molecular dynamics in generalized Born implicit solvent. <em>Journal of Computational Chemistry</em>, 25(16), 2038-2048.</p>
+<ul class="simple">
+<li><p>Constant pH MD implementation</p></li>
+<li><p>Important for biological systems</p></li>
+<li><p>Advanced simulation technique</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="polarizable-force-fields">
+<h3><a class="toc-backref" href="#id33" role="doc-backlink">Polarizable Force Fields</a><a class="headerlink" href="#polarizable-force-fields" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="56">
+<li><p><strong>Lopes, P. E., Huang, J., Shim, J., Luo, Y., Li, H., Roux, B., &amp; MacKerell Jr, A. D.</strong> (2013). Polarizable force field for peptides and proteins based on the classical Drude oscillator. <em>Journal of Chemical Theory and Computation</em>, 9(12), 5430-5449.</p>
+<ul class="simple">
+<li><p>Drude polarizable force field</p></li>
+<li><p>Advanced electrostatic treatment</p></li>
+<li><p>Next-generation force field development</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="historical-and-foundational-papers">
+<h2><a class="toc-backref" href="#id34" role="doc-backlink">Historical and Foundational Papers</a><a class="headerlink" href="#historical-and-foundational-papers" title="Link to this heading">¶</a></h2>
+<section id="early-computational-physics">
+<h3><a class="toc-backref" href="#id35" role="doc-backlink">Early Computational Physics</a><a class="headerlink" href="#early-computational-physics" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="57">
+<li><p><strong>Alder, B. J., &amp; Wainwright, T. E.</strong> (1957). Phase transition for a hard sphere system. <em>Journal of Chemical Physics</em>, 27(5), 1208-1209.</p>
+<ul class="simple">
+<li><p>First molecular dynamics simulation</p></li>
+<li><p>Historic breakthrough in computational physics</p></li>
+<li><p>Foundation of the entire field</p></li>
+</ul>
+</li>
+<li><p><strong>Rahman, A.</strong> (1964). Correlations in the motion of atoms in liquid argon. <em>Physical Review</em>, 136(2A), A405-A411.</p>
+<ul class="simple">
+<li><p>First simulation of a realistic system</p></li>
+<li><p>Liquid argon with Lennard-Jones potential</p></li>
+<li><p>Demonstrated viability of MD for liquids</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="statistical-mechanics-foundations">
+<h3><a class="toc-backref" href="#id36" role="doc-backlink">Statistical Mechanics Foundations</a><a class="headerlink" href="#statistical-mechanics-foundations" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="59">
+<li><p><strong>Boltzmann, L.</strong> (1872). Weitere studien über das wärmegleichgewicht unter gasmolekülen. <em>Wiener Berichte</em>, 66, 275-370.</p>
+<ul class="simple">
+<li><p>Boltzmann equation and H-theorem</p></li>
+<li><p>Fundamental statistical mechanics</p></li>
+<li><p>Theoretical foundation for all MD</p></li>
+</ul>
+</li>
+<li><p><strong>Gibbs, J. W.</strong> (1902). <em>Elementary principles in statistical mechanics</em>. Yale University Press.</p>
+<ul class="simple">
+<li><p>Gibbs ensemble theory</p></li>
+<li><p>Foundation of statistical mechanics</p></li>
+<li><p>Essential theoretical background</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="modern-developments-and-future-directions">
+<h2><a class="toc-backref" href="#id37" role="doc-backlink">Modern Developments and Future Directions</a><a class="headerlink" href="#modern-developments-and-future-directions" title="Link to this heading">¶</a></h2>
+<section id="recent-advances">
+<h3><a class="toc-backref" href="#id38" role="doc-backlink">Recent Advances</a><a class="headerlink" href="#recent-advances" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="61">
+<li><p><strong>Noé, F., Olsson, S., Köhler, J., &amp; Wu, H.</strong> (2019). Boltzmann generators: Sampling equilibrium states of many-body systems with deep learning. <em>Science</em>, 365(6457), eaaw1147.</p>
+<ul class="simple">
+<li><p>Deep learning for equilibrium sampling</p></li>
+<li><p>Modern ML applications to MD</p></li>
+<li><p>Future direction for the field</p></li>
+</ul>
+</li>
+<li><p><strong>Wang, J., Olsson, S., Wehmeyer, C., Pérez, A., Charron, N. E., De Fabritiis, G., … &amp; Clementi, C.</strong> (2019). Machine learning of coarse-grained molecular dynamics force fields. <em>ACS Central Science</em>, 5(5), 755-767.</p>
+<ul class="simple">
+<li><p>ML-based coarse-grained force fields</p></li>
+<li><p>Systematic multiscale modeling</p></li>
+<li><p>Modern computational approaches</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="methodological-reviews">
+<h3><a class="toc-backref" href="#id39" role="doc-backlink">Methodological Reviews</a><a class="headerlink" href="#methodological-reviews" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="63">
+<li><p><strong>Shirts, M. R., &amp; Chodera, J. D.</strong> (2008). Statistically optimal analysis of samples from multiple equilibrium states. <em>Journal of Chemical Physics</em>, 129(12), 124105.</p>
+<ul class="simple">
+<li><p>MBAR method development</p></li>
+<li><p>Optimal statistical analysis</p></li>
+<li><p>Important for free energy calculations</p></li>
+</ul>
+</li>
+<li><p><strong>Henin, J., Fiorin, G., Chipot, C., &amp; Klein, M. L.</strong> (2010). Exploring multidimensional free energy landscapes using time-dependent biases on collective variables. <em>Journal of Chemical Theory and Computation</em>, 6(1), 35-47.</p>
+<ul class="simple">
+<li><p>Adaptive biasing force method</p></li>
+<li><p>Enhanced sampling technique</p></li>
+<li><p>Modern free energy calculations</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="specialized-journals-and-resources">
+<h2><a class="toc-backref" href="#id40" role="doc-backlink">Specialized Journals and Resources</a><a class="headerlink" href="#specialized-journals-and-resources" title="Link to this heading">¶</a></h2>
+<section id="key-journals">
+<h3><a class="toc-backref" href="#id41" role="doc-backlink">Key Journals</a><a class="headerlink" href="#key-journals" title="Link to this heading">¶</a></h3>
+<p><strong>Primary Research Journals</strong></p>
+<ul class="simple">
+<li><p><em>Journal of Chemical Physics</em> - Premier venue for MD methodology</p></li>
+<li><p><em>Journal of Chemical Theory and Computation</em> - Focus on computational methods</p></li>
+<li><p><em>Journal of Computational Chemistry</em> - Software and applications</p></li>
+<li><p><em>Biophysical Journal</em> - Biological applications</p></li>
+<li><p><em>Physical Review Letters</em> - Breakthrough results</p></li>
+<li><p><em>Nature</em>, <em>Science</em> - High-impact applications</p></li>
+</ul>
+<p><strong>Specialized Publications</strong></p>
+<ul class="simple">
+<li><p><em>Computer Physics Communications</em> - Software and code sharing</p></li>
+<li><p><em>Journal of Molecular Modeling</em> - Applied computational chemistry</p></li>
+<li><p><em>Proteins: Structure, Function, and Bioinformatics</em> - Protein simulations</p></li>
+<li><p><em>Journal of Biomolecular Structure and Dynamics</em> - Biomolecular focus</p></li>
+</ul>
+</section>
+<section id="online-resources">
+<h3><a class="toc-backref" href="#id42" role="doc-backlink">Online Resources</a><a class="headerlink" href="#online-resources" title="Link to this heading">¶</a></h3>
+<p><strong>Educational Materials</strong></p>
+<ul class="simple">
+<li><p><em>Molecular Dynamics Tutorials</em> (various universities)</p></li>
+<li><p><em>GROMACS Documentation and Tutorials</em></p></li>
+<li><p><em>AMBER Manual and Tutorials</em></p></li>
+<li><p><em>OpenMM Documentation</em></p></li>
+</ul>
+<p><strong>Databases and Repositories</strong></p>
+<ul class="simple">
+<li><p><em>Protein Data Bank (PDB)</em> - Structural data</p></li>
+<li><p><em>CHARMM-GUI</em> - System setup tools</p></li>
+<li><p><em>Martini Portal</em> - Coarse-grained models</p></li>
+<li><p><em>Force Field Repository</em> - Parameter databases</p></li>
+</ul>
+</section>
+<section id="research-groups-and-centers">
+<h3><a class="toc-backref" href="#id43" role="doc-backlink">Research Groups and Centers</a><a class="headerlink" href="#research-groups-and-centers" title="Link to this heading">¶</a></h3>
+<p><strong>Leading Research Groups</strong></p>
+<ul class="simple">
+<li><p><em>Shaw Research</em> - Long-timescale simulations</p></li>
+<li><p><em>D.E. Shaw Research</em> - Specialized hardware</p></li>
+<li><p><em>Various university groups</em> - Methodology development</p></li>
+</ul>
+<p><strong>International Collaborations</strong></p>
+<ul class="simple">
+<li><p><em>CECAM</em> - European Center for Atomic and Molecular Calculations</p></li>
+<li><p><em>MolSSI</em> - Molecular Sciences Software Institute</p></li>
+<li><p><em>BioExcel</em> - European Centre of Excellence for Computational Biomolecular Research</p></li>
+</ul>
+<p>This literature collection provides a comprehensive foundation for understanding the theory, methods, and applications of molecular dynamics simulations. The references span from foundational work to cutting-edge developments, supporting both learning and research in computational molecular science.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="scientific_background.html">Scientific Background and Theory</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="scientific_background.html">Scientific Background and Theory</a><ul>
+      <li>Previous: <a href="best_practices.html" title="previous chapter">Best Practices for Molecular Dynamics Simulations</a></li>
+      <li>Next: <a href="performance.html" title="next chapter">Performance Optimization</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/literature_references.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

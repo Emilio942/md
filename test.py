@@ -1,0 +1,646 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from matplotlib.colors import LogNorm
+import matplotlib.gridspec as gridspec
+import time
+
+class MolecularDynamicsSimulation:
+    """
+    Erweiterte Molekulardynamik-Simulation mit elektrischen und magnetischen Feldeffekten.
+    Verbessert mit:
+     - Objektorientierter Struktur
+     - Physikalisch realistischeren Konstanten
+     - Performanceoptimierungen
+     - Besserer Visualisierung
+     - Temperaturkontrolle
+    """
+    
+    # Physikalische Konstanten (in angemessenen Einheiten für Nanoskala)
+    BOLTZMANN = 1.38064852e-23  # J/K
+    VACUUM_PERMITTIVITY = 8.854e-12  # F/m
+    VACUUM_PERMEABILITY = 4 * np.pi * 1e-7  # T·m/A
+    ELEMENTARY_CHARGE = 1.602e-19  # C
+    
+    def __init__(self, 
+                 num_molecules=5, 
+                 box_size=10.0,  # nm
+                 temperature=300,  # K
+                 time_step=0.01,  # ps
+                 charge_type='uniform',  # 'uniform', 'alternating', 'random'
+                 boundary_condition='periodic',  # 'periodic', 'reflective', 'absorbing'
+                 initial_config='random'):  # 'random', 'grid', 'cluster'
+        
+        self.num_molecules = num_molecules
+        self.box_size = box_size
+        self.temperature = temperature
+        self.time_step = time_step
+        self.charge_type = charge_type
+        self.boundary_condition = boundary_condition
+        
+        # Initialisiere Zufallsgenerator für reproduzierbare Ergebnisse
+        np.random.seed(42)
+        
+        # Initialisiere Positionen und Geschwindigkeiten
+        self.initialize_configuration(initial_config)
+        
+        # Speichere Trajektorien für Analyse
+        self.trajectories = [self.positions.copy()]
+        from collections import deque
+        self.energies = deque(maxlen=5000)
+        from collections import deque
+        self.temperatures = deque(maxlen=5000)
+        
+        # Performance-Tracking
+        self.last_fps = 0
+        self.t_start = time.time()
+        self.frame_count = 0
+    
+    def initialize_configuration(self, config_type):
+        """Initialisiere Positionen und Geschwindigkeiten basierend auf der gewählten Konfiguration"""
+        if config_type == 'random':
+            self.positions = np.random.uniform(0, self.box_size, (self.num_molecules, 3))
+            
+        elif config_type == 'grid':
+            # Erzeuge ein regelmäßiges Gitter
+            n = int(np.ceil(self.num_molecules**(1/3)))
+            spacing = self.box_size / (n + 1)
+            grid_positions = []
+            
+            for i in range(1, n+1):
+                for j in range(1, n+1):
+                    for k in range(1, n+1):
+                        if len(grid_positions) < self.num_molecules:
+                            grid_positions.append([i * spacing, j * spacing, k * spacing])
+            
+            self.positions = np.array(grid_positions)
+            
+        elif config_type == 'cluster':
+            # Erzeuge ein zentrales Cluster mit etwas Abstand
+            center = np.array([self.box_size/2, self.box_size/2, self.box_size/2])
+            self.positions = center + np.random.normal(0, self.box_size/10, (self.num_molecules, 3))
+            self.positions = np.clip(self.positions, 0, self.box_size)
+        
+        # Initialisiere Ladungen
+        if self.charge_type == 'uniform':
+            self.charges = np.ones(self.num_molecules) * self.ELEMENTARY_CHARGE
+        elif self.charge_type == 'alternating':
+            self.charges = np.array([self.ELEMENTARY_CHARGE if i % 2 == 0 else -self.ELEMENTARY_CHARGE 
+                                     for i in range(self.num_molecules)])
+        elif self.charge_type == 'random':
+            self.charges = np.random.choice([self.ELEMENTARY_CHARGE, -self.ELEMENTARY_CHARGE], 
+                                           size=self.num_molecules)
+        
+        # Setze Startgeschwindigkeiten entsprechend der Maxwell-Boltzmann-Verteilung
+        self.initialize_velocities()
+    
+    def initialize_velocities(self):
+        """Initialisiere Geschwindigkeiten entsprechend der gewünschten Temperatur"""
+        # Erzeuge zufällige Geschwindigkeiten (normalverteilt)
+        self.velocities = np.random.normal(0, 1, (self.num_molecules, 3))
+        
+        # Berechne kinetische Energie und aktuelle Temperatur
+        kinetic_energy = 0.5 * np.sum(self.velocities**2)
+        current_temp = kinetic_energy / (1.5 * self.num_molecules * self.BOLTZMANN)
+        
+        # Skaliere Geschwindigkeiten, um die gewünschte Temperatur zu erreichen
+        scaling_factor = np.sqrt(self.temperature / current_temp)
+        self.velocities *= scaling_factor
+        
+        # Entferne Gesamtimpuls des Systems
+        self.velocities -= np.mean(self.velocities, axis=0)
+    
+    def electric_field(self, position1, position2, charge):
+        """Berechne das elektrische Feld an position1 aufgrund einer Ladung bei position2"""
+        r = position1 - position2
+        r_mag = np.linalg.norm(r)
+        
+        if r_mag < 1e-10:  # Vermeidet Division durch Null
+            return np.zeros(3)
+            
+        # Verwende Coulomb-Gesetz mit realistischen Konstanten
+        return charge / (4 * np.pi * self.VACUUM_PERMITTIVITY * r_mag**3) * r
+    
+    def magnetic_field(self, position, source_position, source_velocity, charge):
+        """Berechne das Magnetfeld an position aufgrund einer bewegten Ladung"""
+        r = position - source_position
+        r_mag = np.linalg.norm(r)
+        
+        if r_mag < 1e-10:
+            return np.zeros(3)
+            
+        # Magnetfeld eines bewegten Ladungsträgers (Biot-Savart-Gesetz)
+        return (self.VACUUM_PERMEABILITY / (4 * np.pi)) * (charge * np.cross(source_velocity, r) / r_mag**3)
+    
+    def calculate_electric_forces(self):
+        """Berechne die elektrischen Kräfte zwischen allen Molekülpaaren (optimiert)"""
+        forces = np.zeros_like(self.positions)
+        
+        # Verwende vektorisierte Operationen für mehr Performance
+        for i in range(self.num_molecules):
+            # Berechne alle Vektoren von i zu anderen Molekülen auf einmal
+            r_vectors = self.positions - self.positions[i]
+            
+            # Wende Minimum-Image-Konvention für periodische Randbedingungen an
+            if self.boundary_condition == 'periodic':
+                r_vectors -= np.round(r_vectors / self.box_size) * self.box_size
+                
+            # Berechne Abstände
+            r_magnitudes = np.linalg.norm(r_vectors, axis=1)
+            r_magnitudes[i] = np.inf  # Vermeide Selbstwechselwirkung
+            
+            # Berechne Kraftbeiträge (vektorisiert)
+            force_magnitudes = self.charges[i] * self.charges / (4 * np.pi * self.VACUUM_PERMITTIVITY * r_magnitudes**3)
+            force_magnitudes[i] = 0  # Keine Kraft auf sich selbst
+            
+            # Berechne Kraftvektoren
+            force_vectors = force_magnitudes[:, np.newaxis] * r_vectors
+            forces[i] = np.sum(force_vectors, axis=0)
+        
+        return forces
+    
+    def calculate_lorentz_forces(self):
+        """Berechne die Lorentz-Kräfte aufgrund der Magnetfelder der bewegten Ladungen"""
+        lorentz_forces = np.zeros_like(self.positions)
+        
+        for i in range(self.num_molecules):
+            total_B_field = np.zeros(3)
+            
+            # Summiere Magnetfelder von allen anderen Teilchen
+            for j in range(self.num_molecules):
+                if i != j:
+                    r_ij = self.positions[i] - self.positions[j]
+                    
+                    # Minimum-Image-Konvention für periodische Randbedingungen
+                    if self.boundary_condition == 'periodic':
+                        r_ij -= np.round(r_ij / self.box_size) * self.box_size
+                        
+                    total_B_field += self.magnetic_field(self.positions[i], self.positions[j], 
+                                                         self.velocities[j], self.charges[j])
+            
+            # Berechne Lorentz-Kraft: F = q(v × B)
+            lorentz_forces[i] = self.charges[i] * np.cross(self.velocities[i], total_B_field)
+            
+        return lorentz_forces
+    
+    def apply_boundary_conditions(self):
+        """Wende die gewählten Randbedingungen auf die Positionen und Geschwindigkeiten an"""
+        if self.boundary_condition == 'periodic':
+            # Periodische Randbedingungen (Teilchen erscheinen auf der gegenüberliegenden Seite)
+            self.positions = self.positions % self.box_size
+            
+        elif self.boundary_condition == 'reflective':
+            # Reflektierende Randbedingungen (Teilchen prallen ab)
+            for dim in range(3):
+                # Finde Teilchen, die den Rand überschritten haben
+                lower_bound = self.positions[:, dim] < 0
+                upper_bound = self.positions[:, dim] > self.box_size
+                
+                # Reflektiere Positionen
+                self.positions[lower_bound, dim] = -self.positions[lower_bound, dim]
+                self.positions[upper_bound, dim] = 2*self.box_size - self.positions[upper_bound, dim]
+                
+                # Kehre Geschwindigkeiten um
+                self.velocities[lower_bound, dim] = -self.velocities[lower_bound, dim]
+                self.velocities[upper_bound, dim] = -self.velocities[upper_bound, dim]
+                
+        elif self.boundary_condition == 'absorbing':
+            # Absorbierende Randbedingungen (Teilchen werden gestoppt am Rand)
+            for dim in range(3):
+                # Finde Teilchen, die den Rand überschritten haben
+                lower_bound = self.positions[:, dim] < 0
+                upper_bound = self.positions[:, dim] > self.box_size
+                
+                # Setze auf Rand
+                self.positions[lower_bound, dim] = 0
+                self.positions[upper_bound, dim] = self.box_size
+                
+                # Setze Geschwindigkeit auf Null
+                self.velocities[lower_bound, dim] = 0
+                self.velocities[upper_bound, dim] = 0
+    
+    def velocity_verlet_integration(self, forces):
+        """Implementiert den Velocity-Verlet-Algorithmus für genauere Zeitintegration"""
+        # Aktualisiere Positionen mit aktuellen Geschwindigkeiten und Kräften
+        self.positions += self.velocities * self.time_step + 0.5 * forces * self.time_step**2
+        
+        # Anwenden der Randbedingungen
+        self.apply_boundary_conditions()
+        
+        # Berechne Kräfte an neuen Positionen
+        new_forces = self.calculate_electric_forces() + self.calculate_lorentz_forces()
+        
+        # Aktualisiere Geschwindigkeiten mit gemittelten Kräften
+        self.velocities += 0.5 * (forces + new_forces) * self.time_step
+        
+        return new_forces
+    
+    def apply_thermostat(self, target_temp=None):
+        """Einfacher Berendsen-Thermostat zur Temperaturkontrolle"""
+        if target_temp is None:
+            target_temp = self.temperature
+            
+        # Berechne aktuelle kinetische Energie und Temperatur
+        kinetic_energy = 0.5 * np.sum(np.sum(self.velocities**2, axis=1))
+        current_temp = kinetic_energy / (1.5 * self.num_molecules * self.BOLTZMANN)
+        
+        # Skalierungsfaktor (mit Relaxationszeit)
+        coupling = 0.1  # Relaxationsparameter
+        scaling_factor = np.sqrt(1 + coupling * (target_temp / current_temp - 1))
+        
+        # Skaliere Geschwindigkeiten
+        self.velocities *= scaling_factor
+        
+        # Speichere Temperatur für Analyse
+        self.temperatures.append(current_temp)
+        
+        return current_temp
+    
+    def calculate_system_energy(self):
+        """Berechne die Gesamtenergie des Systems (kinetisch + potentiell)"""
+        # Kinetische Energie
+        kinetic_energy = 0.5 * np.sum(self.velocities**2)
+        
+        # Potentielle Energie (Coulomb-Wechselwirkung)
+        potential_energy = 0
+        for i in range(self.num_molecules):
+            for j in range(i+1, self.num_molecules):
+                r_ij = self.positions[j] - self.positions[i]
+                
+                # Minimum-Image-Konvention
+                if self.boundary_condition == 'periodic':
+                    r_ij -= np.round(r_ij / self.box_size) * self.box_size
+                    
+                r_mag = np.linalg.norm(r_ij)
+                potential_energy += self.charges[i] * self.charges[j] / (4 * np.pi * self.VACUUM_PERMITTIVITY * r_mag)
+        
+        total_energy = kinetic_energy + potential_energy
+        self.energies.append(total_energy)
+        
+        return total_energy, kinetic_energy, potential_energy
+    
+    def step_simulation(self):
+        # Periodic garbage collection
+        if hasattr(self, "step_count"):
+            self.step_count += 1
+            if self.step_count % 1000 == 0:
+                import gc
+                gc.collect()
+        else:
+            self.step_count = 1
+        """Führe einen Simulationsschritt aus"""
+        # Berechne Kräfte
+        forces = self.calculate_electric_forces() + self.calculate_lorentz_forces()
+        
+        # Führe Zeitintegration durch
+        self.velocity_verlet_integration(forces)
+        
+        # Optional: Temperaturkontrolle
+        current_temp = self.apply_thermostat()
+        
+        # Speichern der Trajektorie
+        self.trajectories.append(self.positions.copy())
+        
+        # Berechne Energie für Analyse
+        total_energy, kinetic, potential = self.calculate_system_energy()
+        
+        # Performance-Tracking
+        self.frame_count += 1
+        elapsed = time.time() - self.t_start
+        if elapsed > 1.0:  # Update FPS jede Sekunde
+            self.last_fps = self.frame_count / elapsed
+            self.frame_count = 0
+            self.t_start = time.time()
+        
+        return {
+            'positions': self.positions,
+            'velocities': self.velocities,
+            'temperature': current_temp,
+            'energy': {'total': total_energy, 'kinetic': kinetic, 'potential': potential},
+            'fps': self.last_fps
+        }
+    
+    def run_simulation(self, steps):
+        """Führe die Simulation für eine bestimmte Anzahl von Schritten aus"""
+        results = []
+        for _ in range(steps):
+            results.append(self.step_simulation())
+        return results
+    
+    # Visualisierungsmethoden
+    def calculate_field_grid(self, resolution=20):
+        """Berechne Felder auf einem Gitter für Visualisierung"""
+        x = np.linspace(0, self.box_size, resolution)
+        y = np.linspace(0, self.box_size, resolution)
+        z = self.box_size / 2  # Mittelebene
+        
+        X, Y = np.meshgrid(x, y)
+        E_field = np.zeros((resolution, resolution, 3))
+        B_field = np.zeros((resolution, resolution, 3))
+        
+        for i in range(resolution):
+            for j in range(resolution):
+                point = np.array([X[i, j], Y[i, j], z])
+                
+                # Berechne elektrisches Feld an diesem Punkt
+                e_total = np.zeros(3)
+                b_total = np.zeros(3)
+                
+                for k in range(self.num_molecules):
+                    r = point - self.positions[k]
+                    
+                    # Minimum-Image-Konvention
+                    if self.boundary_condition == 'periodic':
+                        r -= np.round(r / self.box_size) * self.box_size
+                        
+                    # Summiere Feldbeiträge
+                    e_total += self.electric_field(point, self.positions[k], self.charges[k])
+                    b_total += self.magnetic_field(point, self.positions[k], self.velocities[k], self.charges[k])
+                
+                E_field[i, j] = e_total
+                B_field[i, j] = b_total
+        
+        # Berechne Feldstärken
+        E_magnitude = np.linalg.norm(E_field, axis=2)
+        B_magnitude = np.linalg.norm(B_field, axis=2)
+        
+        return {
+            'X': X, 
+            'Y': Y, 
+            'E_field': E_field, 
+            'B_field': B_field,
+            'E_magnitude': E_magnitude,
+            'B_magnitude': B_magnitude
+        }
+    
+    def setup_visualization(self):
+        """Richtet die Visualisierung für die Simulation ein"""
+        # Erstelle Figure mit Grid-Layout
+        fig = plt.figure(figsize=(16, 12))
+        gs = gridspec.GridSpec(2, 3, height_ratios=[2, 1])
+        
+        # 3D-Darstellung
+        ax_3d = fig.add_subplot(gs[0, 0:2], projection='3d')
+        ax_3d.set_xlim(0, self.box_size)
+        ax_3d.set_ylim(0, self.box_size)
+        ax_3d.set_zlim(0, self.box_size)
+        ax_3d.set_xlabel('X (nm)')
+        ax_3d.set_ylabel('Y (nm)')
+        ax_3d.set_zlabel('Z (nm)')
+        ax_3d.set_title('3D Molecular Dynamics')
+        
+        # Farbgebung basierend auf Ladung
+        colors = ['red' if q < 0 else 'blue' for q in self.charges]
+        sizes = np.abs(self.charges) / self.ELEMENTARY_CHARGE * 100  # Größe proportional zur Ladung
+        
+        # Scatter-Plot für Moleküle
+        scatter = ax_3d.scatter(
+            self.positions[:, 0], 
+            self.positions[:, 1], 
+            self.positions[:, 2],
+            c=colors,
+            s=sizes,
+            alpha=0.8
+        )
+        
+        # Felder in der XY-Ebene
+        field_data = self.calculate_field_grid()
+        
+        # Elektrisches Feld
+        ax_efield = fig.add_subplot(gs[0, 2])
+        ax_efield.set_title('Electric Field Intensity')
+        ax_efield.set_xlabel('X (nm)')
+        ax_efield.set_ylabel('Y (nm)')
+        efield_plot = ax_efield.pcolormesh(
+            field_data['X'], 
+            field_data['Y'], 
+            field_data['E_magnitude'],
+            cmap='hot',
+            norm=LogNorm(vmin=max(field_data['E_magnitude'].min(), 1e-20), vmax=field_data['E_magnitude'].max())
+        )
+        plt.colorbar(efield_plot, ax=ax_efield)
+        
+        # Magnetfeld
+        ax_bfield = fig.add_subplot(gs[1, 0])
+        ax_bfield.set_title('Magnetic Field Intensity')
+        ax_bfield.set_xlabel('X (nm)')
+        ax_bfield.set_ylabel('Y (nm)')
+        bfield_plot = ax_bfield.pcolormesh(
+            field_data['X'], 
+            field_data['Y'], 
+            field_data['B_magnitude'],
+            cmap='viridis',
+            norm=LogNorm(vmin=max(field_data['B_magnitude'].min(), 1e-20), vmax=field_data['B_magnitude'].max())
+        )
+        plt.colorbar(bfield_plot, ax=ax_bfield)
+        
+        # Graph für Energie
+        ax_energy = fig.add_subplot(gs[1, 1])
+        ax_energy.set_title('System Energy')
+        ax_energy.set_xlabel('Time Step')
+        ax_energy.set_ylabel('Energy')
+        energy_line, = ax_energy.plot([], [], 'g-', label='Total Energy')
+        kinetic_line, = ax_energy.plot([], [], 'r-', label='Kinetic Energy')
+        potential_line, = ax_energy.plot([], [], 'b-', label='Potential Energy')
+        ax_energy.legend()
+        
+        # Graph für Temperatur
+        ax_temp = fig.add_subplot(gs[1, 2])
+        ax_temp.set_title('System Temperature')
+        ax_temp.set_xlabel('Time Step')
+        ax_temp.set_ylabel('Temperature (K)')
+        temp_line, = ax_temp.plot([], [], 'r-')
+        ax_temp.axhline(y=self.temperature, color='k', linestyle='--', alpha=0.5)
+        
+        plt.tight_layout()
+        
+        # Vektoren für Geschwindigkeiten im 3D-Plot
+        quiver = ax_3d.quiver(
+            self.positions[:, 0], 
+            self.positions[:, 1], 
+            self.positions[:, 2],
+            self.velocities[:, 0], 
+            self.velocities[:, 1], 
+            self.velocities[:, 2],
+            color='black',
+            length=0.5,
+            normalize=True
+        )
+        
+        # Trajektorien (vorerst leere Linien)
+        trajectory_lines = []
+        for i in range(self.num_molecules):
+            line, = ax_3d.plot([], [], [], 'k-', alpha=0.3)
+            trajectory_lines.append(line)
+        
+        # Statustext
+        status_text = ax_3d.text2D(0.02, 0.95, "", transform=ax_3d.transAxes)
+        
+        # Daten für Energie- und Temperaturplots
+        energy_data = {'time': [], 'total': [], 'kinetic': [], 'potential': []}
+        temp_data = {'time': [], 'temp': []}
+        
+        return {
+            'fig': fig,
+            'ax_3d': ax_3d,
+            'ax_efield': ax_efield,
+            'ax_bfield': ax_bfield,
+            'ax_energy': ax_energy,
+            'ax_temp': ax_temp,
+            'scatter': scatter,
+            'quiver': quiver,
+            'efield_plot': efield_plot,
+            'bfield_plot': bfield_plot,
+            'energy_line': energy_line,
+            'kinetic_line': kinetic_line,
+            'potential_line': potential_line,
+            'temp_line': temp_line,
+            'trajectory_lines': trajectory_lines,
+            'status_text': status_text,
+            'energy_data': energy_data,
+            'temp_data': temp_data
+        }
+    
+    def animate(self, frame, viz_elements):
+        """Aktualisiere die Visualisierung für jeden Frame"""
+        # Simulationsschritt ausführen
+        sim_data = self.step_simulation()
+        
+        # Aktualisiere 3D-Molekülpositionen
+        viz_elements['scatter']._offsets3d = (
+            sim_data['positions'][:, 0],
+            sim_data['positions'][:, 1],
+            sim_data['positions'][:, 2]
+        )
+        
+        # Aktualisiere Geschwindigkeitsvektoren
+        try:
+                viz_elements['quiver'].remove()
+            except:
+                pass
+        viz_elements['quiver'] = viz_elements['ax_3d'].quiver(
+            sim_data['positions'][:, 0],
+            sim_data['positions'][:, 1],
+            sim_data['positions'][:, 2],
+            sim_data['velocities'][:, 0],
+            sim_data['velocities'][:, 1],
+            sim_data['velocities'][:, 2],
+            color='black',
+            length=0.5,
+            normalize=True
+        )
+        
+        # Aktualisiere Trajektorien
+        max_trail_length = 50  # Maximale Länge der angezeigten Trajektorie
+        for i, line in enumerate(viz_elements['trajectory_lines']):
+            # Nur die letzten max_trail_length Punkte für bessere Performance anzeigen
+            start_idx = max(0, len(self.trajectories) - max_trail_length)
+            traj_data = np.array([traj[i] for traj in self.trajectories[start_idx:]])
+            line.set_data(traj_data[:, 0], traj_data[:, 1])
+            line.set_3d_properties(traj_data[:, 2])
+        
+        # Aktualisiere Felder (jedes 5. Frame für bessere Performance)
+        if frame % 5 == 0:
+            field_data = self.calculate_field_grid()
+            
+            viz_elements['efield_plot'].set_array(field_data['E_magnitude'].ravel())
+            viz_elements['bfield_plot'].set_array(field_data['B_magnitude'].ravel())
+            
+            # Aktualisiere Colorbars mit LogNorm
+            viz_elements['efield_plot'].set_norm(LogNorm(
+                vmin=max(field_data['E_magnitude'].min(), 1e-20),
+                vmax=field_data['E_magnitude'].max())
+            )
+            viz_elements['bfield_plot'].set_norm(LogNorm(
+                vmin=max(field_data['B_magnitude'].min(), 1e-20),
+                vmax=field_data['B_magnitude'].max())
+            )
+        
+        # Aktualisiere Energie-Plots
+        viz_elements['energy_data']['time'].append(frame)
+        viz_elements['energy_data']['total'].append(sim_data['energy']['total'])
+        viz_elements['energy_data']['kinetic'].append(sim_data['energy']['kinetic'])
+        viz_elements['energy_data']['potential'].append(sim_data['energy']['potential'])
+        
+        viz_elements['energy_line'].set_data(
+            viz_elements['energy_data']['time'], 
+            viz_elements['energy_data']['total']
+        )
+        viz_elements['kinetic_line'].set_data(
+            viz_elements['energy_data']['time'], 
+            viz_elements['energy_data']['kinetic']
+        )
+        viz_elements['potential_line'].set_data(
+            viz_elements['energy_data']['time'], 
+            viz_elements['energy_data']['potential']
+        )
+        
+        # Automatisches Skalieren der Achsen
+        viz_elements['ax_energy'].relim()
+        viz_elements['ax_energy'].autoscale_view()
+        
+        # Aktualisiere Temperatur-Plot
+        viz_elements['temp_data']['time'].append(frame)
+        viz_elements['temp_data']['temp'].append(sim_data['temperature'])
+        
+        viz_elements['temp_line'].set_data(
+            viz_elements['temp_data']['time'], 
+            viz_elements['temp_data']['temp']
+        )
+        
+        # Automatisches Skalieren der Achsen
+        viz_elements['ax_temp'].relim()
+        viz_elements['ax_temp'].autoscale_view()
+        
+        # Aktualisiere Status-Text
+        status_text = (
+            f"Time: {frame * self.time_step:.2f} ps\n"
+            f"Temp: {sim_data['temperature']:.1f} K\n"
+            f"FPS: {sim_data['fps']:.1f}"
+        )
+        viz_elements['status_text'].set_text(status_text)
+        
+        # Rotiere die 3D-Ansicht langsam für bessere räumliche Wahrnehmung
+        viz_elements['ax_3d'].view_init(
+            elev=30,
+            azim=frame % 360
+        )
+        
+        return (
+            viz_elements['scatter'],
+            viz_elements['quiver'],
+            *viz_elements['trajectory_lines'],
+            viz_elements['energy_line'],
+            viz_elements['kinetic_line'],
+            viz_elements['potential_line'],
+            viz_elements['temp_line'],
+            viz_elements['status_text']
+        )
+    
+    def run_animation(self, frames=200, interval=50):
+        """Führe die Simulation mit Animation aus"""
+        viz_elements = self.setup_visualization()
+        
+        ani = FuncAnimation(
+            viz_elements['fig'],
+            self.animate,
+            frames=frames,
+            interval=interval,
+            blit=False,
+            fargs=(viz_elements,)
+        )
+        
+        plt.tight_layout()
+        plt.show()
+        # Cleanup after animation
+        plt.close('all')
+        import gc
+        gc.collect()
+        
+        return ani
+
+
+# Beispiel für die Verwendung der verbesserten Simulation
+if __name__ == "__main__":
+    sim = MolecularDynamicsSimulation(num_molecules=10, box_size=10.0, temperature=300, time_step=0.01)
+    sim.run_animation(frames=200, interval=50)

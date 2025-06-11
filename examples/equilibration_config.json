@@ -1,0 +1,22 @@
+{
+  "simulation": {
+    "timestep": 0.001,
+    "temperature": 300.0,
+    "n_steps": 25000,
+    "output_frequency": 50
+  },
+  "environment": {
+    "solvent": "explicit",
+    "box_padding": 1.5
+  },
+  "analysis": {
+    "rmsd": true,
+    "hydrogen_bonds": true,
+    "radius_of_gyration": true,
+    "output_dir": "equilibration_analysis"
+  },
+  "visualization": {
+    "enabled": true,
+    "realtime": true
+  }
+}

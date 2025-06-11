@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Software Architecture &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing to ProteinMD" href="contributing.html" />
+    <link rel="prev" title="Troubleshooting Guide" href="../advanced/troubleshooting.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="software-architecture">
+<h1>Software Architecture<a class="headerlink" href="#software-architecture" title="Link to this heading">¶</a></h1>
+<p>This document describes the software architecture and design principles of ProteinMD.</p>
+<nav class="contents local" id="architecture-topics">
+<p class="topic-title">Architecture Topics</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overall-architecture" id="id1">Overall Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#system-overview" id="id2">System Overview</a></p></li>
+<li><p><a class="reference internal" href="#core-design-principles" id="id3">Core Design Principles</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#module-architecture" id="id4">Module Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#core-module-proteinmd-core" id="id5">Core Module (<cite>proteinmd.core</cite>)</a></p></li>
+<li><p><a class="reference internal" href="#structure-module-proteinmd-structure" id="id6">Structure Module (<cite>proteinmd.structure</cite>)</a></p></li>
+<li><p><a class="reference internal" href="#force-field-module-proteinmd-forcefield" id="id7">Force Field Module (<cite>proteinmd.forcefield</cite>)</a></p></li>
+<li><p><a class="reference internal" href="#analysis-module-proteinmd-analysis" id="id8">Analysis Module (<cite>proteinmd.analysis</cite>)</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#data-flow-architecture" id="id9">Data Flow Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#memory-management" id="id10">Memory Management</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#backend-architecture" id="id11">Backend Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#plugin-system" id="id12">Plugin System</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#configuration-management" id="id13">Configuration Management</a></p>
+<ul>
+<li><p><a class="reference internal" href="#configuration-system" id="id14">Configuration System</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-architecture" id="id15">Performance Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#parallel-computing" id="id16">Parallel Computing</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#error-handling-and-logging" id="id17">Error Handling and Logging</a></p>
+<ul>
+<li><p><a class="reference internal" href="#exception-hierarchy" id="id18">Exception Hierarchy</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#testing-architecture" id="id19">Testing Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#test-framework" id="id20">Test Framework</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#see-also" id="id21">See Also</a></p></li>
+</ul>
+</nav>
+<section id="overall-architecture">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overall Architecture</a><a class="headerlink" href="#overall-architecture" title="Link to this heading">¶</a></h2>
+<section id="system-overview">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">System Overview</a><a class="headerlink" href="#system-overview" title="Link to this heading">¶</a></h3>
+<p>ProteinMD follows a modular, layered architecture designed for extensibility and performance:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────────────────────────────────┐
+│                    User Interface Layer                     │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
+│  │  Command Line   │  │   Python API    │  │  GUI (future)   ││
+│  │   Interface     │  │                 │  │                 ││
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                  High-Level API Layer                      │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
+│  │   Simulation    │  │    Analysis     │  │   Sampling      ││
+│  │   Workflows     │  │    Methods      │  │   Methods       ││
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    Core Engine Layer                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
+│  │   Integrators   │  │   Force Fields  │  │   Environment   ││
+│  │   Thermostats   │  │   Parameters    │  │   Models        ││
+│  │   Barostats     │  │                 │  │                 ││
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                 Data and I/O Layer                         │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
+│  │   Structure     │  │   Trajectory    │  │   Parameter     ││
+│  │   Handling      │  │   I/O           │  │   Files         ││
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                Backend/Platform Layer                      │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐│
+│  │     OpenMM      │  │    GROMACS      │  │     Custom      ││
+│  │    Backend      │  │    Backend      │  │    Backends     ││
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<section id="core-design-principles">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Core Design Principles</a><a class="headerlink" href="#core-design-principles" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Modularity</strong>: Clear separation of concerns with well-defined interfaces</p></li>
+<li><p><strong>Extensibility</strong>: Plugin architecture for custom components</p></li>
+<li><p><strong>Performance</strong>: Efficient algorithms with GPU acceleration support</p></li>
+<li><p><strong>Usability</strong>: Intuitive APIs for both beginners and experts</p></li>
+<li><p><strong>Reproducibility</strong>: Comprehensive logging and checkpointing</p></li>
+<li><p><strong>Cross-platform</strong>: Support for major operating systems and HPC environments</p></li>
+</ol>
+</section>
+</section>
+<section id="module-architecture">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Module Architecture</a><a class="headerlink" href="#module-architecture" title="Link to this heading">¶</a></h2>
+<section id="core-module-proteinmd-core">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Core Module (<cite>proteinmd.core</cite>)</a><a class="headerlink" href="#core-module-proteinmd-core" title="Link to this heading">¶</a></h3>
+<p><strong>Central Simulation Engine</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Core architecture overview</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationEngine</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Central simulation coordinator.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observers</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add simulation component.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">Integrator</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span> <span class="o">=</span> <span class="n">component</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">System</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">component</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">Observer</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">observers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute one simulation step.&quot;&quot;&quot;</span>
+        <span class="c1"># Calculate forces</span>
+        <span class="n">forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">calculate_forces</span><span class="p">()</span>
+
+        <span class="c1"># Integrate equations of motion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="n">forces</span><span class="p">)</span>
+
+        <span class="c1"># Notify observers</span>
+        <span class="k">for</span> <span class="n">observer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">observers</span><span class="p">:</span>
+            <span class="n">observer</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Component Base Classes</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Integrator</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all integrators.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">forces</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform one integration step.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Thermostat</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for temperature control.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply temperature control.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Barostat</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for pressure control.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply pressure control.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+<section id="structure-module-proteinmd-structure">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Structure Module (<cite>proteinmd.structure</cite>)</a><a class="headerlink" href="#structure-module-proteinmd-structure" title="Link to this heading">¶</a></h3>
+<p><strong>Hierarchical Structure Representation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">StructureHierarchy</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hierarchical structure representation.</span>
+
+<span class="sd">    System -&gt; Molecules -&gt; Chains -&gt; Residues -&gt; Atoms</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span> <span class="o">=</span> <span class="n">AtomCollection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_residues</span> <span class="o">=</span> <span class="n">ResidueCollection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chains</span> <span class="o">=</span> <span class="n">ChainCollection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_molecules</span> <span class="o">=</span> <span class="n">MoleculeCollection</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_hierarchy_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get specific hierarchy level.&quot;&quot;&quot;</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;atom&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">,</span>
+            <span class="s1">&#39;residue&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_residues</span><span class="p">,</span>
+            <span class="s1">&#39;chain&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chains</span><span class="p">,</span>
+            <span class="s1">&#39;molecule&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_molecules</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">levels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Structure Validation Framework</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ValidationFramework</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extensible validation framework.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validators</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_validator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">validator</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register new validator.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">validator</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run all validators.&quot;&quot;&quot;</span>
+        <span class="n">issues</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">validator</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">validators</span><span class="p">:</span>
+            <span class="n">validator_issues</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+            <span class="n">issues</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">validator_issues</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">issues</span>
+</pre></div>
+</div>
+</section>
+<section id="force-field-module-proteinmd-forcefield">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Force Field Module (<cite>proteinmd.forcefield</cite>)</a><a class="headerlink" href="#force-field-module-proteinmd-forcefield" title="Link to this heading">¶</a></h3>
+<p><strong>Modular Force Field Architecture</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ForceFieldFramework</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Framework for force field implementations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_sets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combination_rules</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">functional_forms</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_parameter_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">param_set</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register new parameter set.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_sets</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_set</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create system with force field parameters.&quot;&quot;&quot;</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">()</span>
+
+        <span class="c1"># Assign atom types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assign_atom_types</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+
+        <span class="c1"># Add force terms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_bonded_forces</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_nonbonded_forces</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">system</span>
+</pre></div>
+</div>
+</section>
+<section id="analysis-module-proteinmd-analysis">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Analysis Module (<cite>proteinmd.analysis</cite>)</a><a class="headerlink" href="#analysis-module-proteinmd-analysis" title="Link to this heading">¶</a></h3>
+<p><strong>Analysis Pipeline Architecture</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">AnalysisPipeline</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flexible analysis pipeline.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_flow</span> <span class="o">=</span> <span class="n">DataFlowManager</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">analysis_method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add analysis step to pipeline.&quot;&quot;&quot;</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">AnalysisStep</span><span class="p">(</span><span class="n">analysis_method</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute analysis pipeline.&quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
+            <span class="c1"># Execute step</span>
+            <span class="n">step_result</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+
+            <span class="c1"># Store results</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">step</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">step_result</span>
+
+            <span class="c1"># Update data flow</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_flow</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">step_result</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-flow-architecture">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Data Flow Architecture</a><a class="headerlink" href="#data-flow-architecture" title="Link to this heading">¶</a></h2>
+<section id="memory-management">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Memory Management</a><a class="headerlink" href="#memory-management" title="Link to this heading">¶</a></h3>
+<p><strong>Efficient Memory Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MemoryManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage memory usage for large simulations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_memory_gb</span><span class="o">=</span><span class="mf">8.0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_memory</span> <span class="o">=</span> <span class="n">max_memory_gb</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># bytes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_pools</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_objects</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">WeakSet</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">allocate_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Allocate array with memory tracking.&quot;&quot;&quot;</span>
+        <span class="n">size_bytes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">itemsize</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_memory_available</span><span class="p">(</span><span class="n">size_bytes</span><span class="p">):</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_track_allocation</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">size_bytes</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">array</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">MemoryError</span><span class="p">(</span><span class="s2">&quot;Insufficient memory for allocation&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_memory_available</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">required_bytes</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if enough memory is available.&quot;&quot;&quot;</span>
+        <span class="n">current_usage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_usage</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">current_usage</span> <span class="o">+</span> <span class="n">required_bytes</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_memory</span>
+</pre></div>
+</div>
+<p><strong>Data Streaming</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TrajectoryStreamer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stream trajectory data without loading entire trajectory.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_file</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_file</span> <span class="o">=</span> <span class="n">trajectory_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Iterate over trajectory chunks.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_open_reader</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_chunk</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">chunk</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">yield</span> <span class="n">chunk</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_chunk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read chunk of frames.&quot;&quot;&quot;</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span><span class="p">):</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">read_frame</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">frames</span> <span class="k">if</span> <span class="n">frames</span> <span class="k">else</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="backend-architecture">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Backend Architecture</a><a class="headerlink" href="#backend-architecture" title="Link to this heading">¶</a></h2>
+<section id="plugin-system">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Plugin System</a><a class="headerlink" href="#plugin-system" title="Link to this heading">¶</a></h3>
+<p><strong>Backend Registration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BackendRegistry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Registry for simulation backends.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backends</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_backend</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">backend_class</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register new backend.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backends</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend_class</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_default_backend</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get backend instance.&quot;&quot;&quot;</span>
+        <span class="n">backend_name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_backend</span>
+        <span class="n">backend_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backends</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">backend_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">backend_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Backend &#39;</span><span class="si">{</span><span class="n">backend_name</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">backend_class</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_available_backends</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List available backends.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_backends</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Backend Interface</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Backend</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for simulation backends.&quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize system for simulation.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform simulation steps.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get current system state.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set system state.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p><strong>OpenMM Backend Implementation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">OpenMMBackend</span><span class="p">(</span><span class="n">Backend</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;OpenMM simulation backend.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proteinmd_system</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert ProteinMD system to OpenMM.&quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">openmm</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mm</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">openmm.app</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">app</span>
+
+        <span class="c1"># Convert system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_system</span><span class="p">(</span><span class="n">proteinmd_system</span><span class="p">)</span>
+
+        <span class="c1"># Create integrator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_integrator</span><span class="p">(</span><span class="n">proteinmd_system</span><span class="o">.</span><span class="n">integrator</span><span class="p">)</span>
+
+        <span class="c1"># Create context</span>
+        <span class="n">platform</span> <span class="o">=</span> <span class="n">mm</span><span class="o">.</span><span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="s1">&#39;CUDA&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">mm</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span><span class="p">,</span> <span class="n">platform</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_convert_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proteinmd_system</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert ProteinMD system to OpenMM system.&quot;&quot;&quot;</span>
+        <span class="c1"># Implementation details...</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration-management">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Configuration Management</a><a class="headerlink" href="#configuration-management" title="Link to this heading">¶</a></h2>
+<section id="configuration-system">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Configuration System</a><a class="headerlink" href="#configuration-system" title="Link to this heading">¶</a></h3>
+<p><strong>Hierarchical Configuration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConfigurationManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage hierarchical configuration system.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_stack</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validators</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_source</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load configuration from various sources.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config_source</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c1"># File path</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_from_file</span><span class="p">(</span><span class="n">config_source</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config_source</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Dictionary</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">config_source</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid configuration source&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Validate configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="c1"># Add to stack</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get parameter with fallback through stack.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_stack</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">default</span>
+</pre></div>
+</div>
+<p><strong>Schema Validation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConfigSchema</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration schema validation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schema</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;simulation&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)},</span>
+                <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)},</span>
+                <span class="s1">&#39;pressure&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)}</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;system&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;nonbonded_cutoff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)},</span>
+                <span class="s1">&#39;pme_tolerance&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e-8</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate configuration against schema.&quot;&quot;&quot;</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">section</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">section</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown section: </span><span class="si">{</span><span class="n">section</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">section_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">[</span><span class="n">section</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">section_schema</span><span class="p">:</span>
+                    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown parameter: </span><span class="si">{</span><span class="n">section</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">param_errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_parameter</span><span class="p">(</span>
+                        <span class="n">param</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">section_schema</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">param_errors</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">errors</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-architecture">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Performance Architecture</a><a class="headerlink" href="#performance-architecture" title="Link to this heading">¶</a></h2>
+<section id="parallel-computing">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Parallel Computing</a><a class="headerlink" href="#parallel-computing" title="Link to this heading">¶</a></h3>
+<p><strong>Task Parallelization</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TaskManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage parallel task execution.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mp</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_workers</span> <span class="o">=</span> <span class="n">n_workers</span> <span class="ow">or</span> <span class="n">mp</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_workers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">submit_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Submit task for parallel execution.&quot;&quot;&quot;</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;func&#39;</span><span class="p">:</span> <span class="n">func</span><span class="p">,</span>
+            <span class="s1">&#39;args&#39;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span>
+            <span class="s1">&#39;kwargs&#39;</span><span class="p">:</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="p">{},</span>
+            <span class="s1">&#39;future&#39;</span><span class="p">:</span> <span class="kc">None</span>
+        <span class="p">}</span>
+
+        <span class="n">future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span>
+            <span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="p">)</span>
+        <span class="n">task</span><span class="p">[</span><span class="s1">&#39;future&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">future</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">future</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">wait_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Wait for all tasks to complete.&quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s1">&#39;future&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">results</span>
+</pre></div>
+</div>
+<p><strong>GPU Computing Integration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">GPUManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage GPU resources and kernels.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">devices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_devices</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_device</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_pools</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detect_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detect available GPU devices.&quot;&quot;&quot;</span>
+        <span class="n">devices</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">getDeviceCount</span><span class="p">()):</span>
+                <span class="n">device_info</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">getDeviceProperties</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">devices</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+                    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">device_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span>
+                    <span class="s1">&#39;memory&#39;</span><span class="p">:</span> <span class="n">device_info</span><span class="p">[</span><span class="s1">&#39;totalGlobalMem&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;compute_capability&#39;</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">device_info</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">],</span>
+                        <span class="n">device_info</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">})</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">pass</span>  <span class="c1"># CuPy not available</span>
+
+        <span class="k">return</span> <span class="n">devices</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">allocate_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size_bytes</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Allocate GPU memory.&quot;&quot;&quot;</span>
+        <span class="n">device_id</span> <span class="o">=</span> <span class="n">device</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_device</span>
+
+        <span class="k">if</span> <span class="n">device_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_pools</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory_pools</span><span class="p">[</span><span class="n">device_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">GPUMemoryPool</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_pools</span><span class="p">[</span><span class="n">device_id</span><span class="p">]</span><span class="o">.</span><span class="n">allocate</span><span class="p">(</span><span class="n">size_bytes</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-handling-and-logging">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Error Handling and Logging</a><a class="headerlink" href="#error-handling-and-logging" title="Link to this heading">¶</a></h2>
+<section id="exception-hierarchy">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Exception Hierarchy</a><a class="headerlink" href="#exception-hierarchy" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ProteinMDError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base exception for ProteinMD.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationError</span><span class="p">(</span><span class="n">ProteinMDError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors during simulation execution.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">StructureError</span><span class="p">(</span><span class="n">ProteinMDError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Errors in structure handling.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ForceFieldError</span><span class="p">(</span><span class="n">ProteinMDError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Force field related errors.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ParameterError</span><span class="p">(</span><span class="n">ForceFieldError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Missing or invalid force field parameters.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">missing_parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing_parameters</span> <span class="o">=</span> <span class="n">missing_parameters</span> <span class="ow">or</span> <span class="p">[]</span>
+</pre></div>
+</div>
+<p><strong>Logging System</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ProteinMDLogger</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Centralized logging system.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;proteinmd&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context_stack</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_logging</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up logging configuration.&quot;&quot;&quot;</span>
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+            <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Console handler</span>
+        <span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+        <span class="n">console_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>
+
+        <span class="c1"># File handler</span>
+        <span class="k">if</span> <span class="n">log_file</span><span class="p">:</span>
+            <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span>
+            <span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_with_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="o">**</span><span class="n">context</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Log message with context information.&quot;&quot;&quot;</span>
+        <span class="n">full_context</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Add context from stack</span>
+        <span class="k">for</span> <span class="n">ctx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">context_stack</span><span class="p">:</span>
+            <span class="n">full_context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+
+        <span class="c1"># Add current context</span>
+        <span class="n">full_context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+
+        <span class="c1"># Format message</span>
+        <span class="k">if</span> <span class="n">full_context</span><span class="p">:</span>
+            <span class="n">context_str</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">full_context</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="n">formatted_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">context_str</span><span class="si">}</span><span class="s2">]&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">formatted_message</span> <span class="o">=</span> <span class="n">message</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">formatted_message</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing-architecture">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Testing Architecture</a><a class="headerlink" href="#testing-architecture" title="Link to this heading">¶</a></h2>
+<section id="test-framework">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Test Framework</a><a class="headerlink" href="#test-framework" title="Link to this heading">¶</a></h3>
+<p><strong>Hierarchical Testing</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ProteinMDTestCase</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base test case for ProteinMD tests.&quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUpClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up test class.&quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">test_data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;test_data&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">temp_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tearDownClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clean up test class.&quot;&quot;&quot;</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">temp_dir</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up individual test.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clean up individual test.&quot;&quot;&quot;</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span>
+        <span class="k">if</span> <span class="n">elapsed</span> <span class="o">&gt;</span> <span class="mf">10.0</span><span class="p">:</span>  <span class="c1"># Warn about slow tests</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Slow test: </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_test_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system_type</span><span class="o">=</span><span class="s2">&quot;small_protein&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create standardized test system.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestSystemFactory</span>
+
+        <span class="n">factory</span> <span class="o">=</span> <span class="n">TestSystemFactory</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">factory</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="n">system_type</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">assertSystemEqual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system1</span><span class="p">,</span> <span class="n">system2</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Assert two systems are equal within tolerance.&quot;&quot;&quot;</span>
+        <span class="c1"># Implementation for system comparison</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="contributing.html"><span class="doc">Contributing to ProteinMD</span></a> - Contributing guidelines</p></li>
+<li><p><a class="reference internal" href="testing.html"><span class="doc">Testing Framework</span></a> - Testing framework</p></li>
+<li><p><a class="reference internal" href="../api/index.html"><span class="doc">API Reference</span></a> - Complete API reference</p></li>
+<li><p><a class="reference internal" href="../advanced/extending.html"><span class="doc">Extending ProteinMD</span></a> - Extending ProteinMD</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Software Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overall-architecture">Overall Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-architecture">Module Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-flow-architecture">Data Flow Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#backend-architecture">Backend Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-management">Configuration Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-architecture">Performance Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-handling-and-logging">Error Handling and Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-architecture">Testing Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../advanced/troubleshooting.html" title="previous chapter">Troubleshooting Guide</a></li>
+      <li>Next: <a href="contributing.html" title="next chapter">Contributing to ProteinMD</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/architecture.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

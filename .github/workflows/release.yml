@@ -1,0 +1,300 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0, v1.2.3, etc.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  test-before-release:
+    name: Run Tests Before Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+        pip install pytest pytest-cov
+
+    - name: Run comprehensive tests
+      run: |
+        pytest proteinMD/tests/ --cov=proteinMD --cov-report=term --cov-fail-under=70
+        echo "All tests passed successfully"
+
+    - name: Run integration tests
+      run: |
+        python scripts/run_integration_tests.py --quick --output release_test_results.json
+        echo "Integration tests completed"
+
+  build-distribution:
+    name: Build Distribution Packages
+    needs: test-before-release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine wheel setuptools
+
+    - name: Update version in setup.py
+      if: github.event.inputs.version
+      run: |
+        sed -i 's/version="[^"]*"/version="${{ github.event.inputs.version }}"/' setup.py
+        echo "Updated version to ${{ github.event.inputs.version }}"
+
+    - name: Build source distribution
+      run: |
+        python -m build --sdist
+        echo "Source distribution built"
+
+    - name: Build wheel distribution
+      run: |
+        python -m build --wheel
+        echo "Wheel distribution built"
+
+    - name: Check distribution packages
+      run: |
+        twine check dist/*
+        echo "Distribution packages validated"
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+
+  test-installation:
+    name: Test Installation from Packages
+    needs: build-distribution
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        exclude:
+          - os: windows-latest
+            python-version: '3.8'
+          - os: macos-latest
+            python-version: '3.8'
+    
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+
+    - name: Install from wheel
+      run: |
+        pip install dist/*.whl
+        echo "Package installed from wheel"
+
+    - name: Test basic import
+      run: |
+        python -c "import proteinMD; print('ProteinMD version:', proteinMD.__version__ if hasattr(proteinMD, '__version__') else 'dev')"
+        echo "Basic import test passed"
+
+    - name: Test CLI functionality
+      run: |
+        python -c "from proteinMD.cli import ProteinMDCLI; print('CLI import successful')"
+        echo "CLI functionality test passed"
+
+  create-release:
+    name: Create GitHub Release
+    needs: [test-before-release, build-distribution, test-installation]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Get full history for changelog
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+
+    - name: Generate changelog
+      run: |
+        echo "# Release Notes" > RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION=${GITHUB_REF#refs/tags/v}
+        fi
+        
+        echo "## Version $VERSION" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        
+        # Generate changelog from commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -n "$LAST_TAG" ]; then
+          echo "### Changes since $LAST_TAG:" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD >> RELEASE_NOTES.md
+        else
+          echo "### Initial Release" >> RELEASE_NOTES.md
+          echo "- Complete molecular dynamics simulation system" >> RELEASE_NOTES.md
+          echo "- Support for protein folding simulations" >> RELEASE_NOTES.md
+          echo "- Advanced analysis tools and visualizations" >> RELEASE_NOTES.md
+          echo "- Cross-platform compatibility" >> RELEASE_NOTES.md
+        fi
+        
+        echo "" >> RELEASE_NOTES.md
+        echo "### Features:" >> RELEASE_NOTES.md
+        echo "- 🧬 Complete MD simulation pipeline" >> RELEASE_NOTES.md
+        echo "- 📊 Advanced analysis tools (RMSD, Ramachandran, etc.)" >> RELEASE_NOTES.md
+        echo "- 🎨 3D visualization and trajectory animation" >> RELEASE_NOTES.md
+        echo "- 🚀 High-performance force field implementations" >> RELEASE_NOTES.md
+        echo "- 🛠 Command-line and programmatic interfaces" >> RELEASE_NOTES.md
+        echo "- 📱 Cross-platform support (Linux, Windows, macOS)" >> RELEASE_NOTES.md
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.version && format('v{0}', github.event.inputs.version) || github.ref_name }}
+        name: ${{ github.event.inputs.version && format('ProteinMD v{0}', github.event.inputs.version) || format('ProteinMD {0}', github.ref_name) }}
+        body_path: RELEASE_NOTES.md
+        files: dist/*
+        prerelease: ${{ github.event.inputs.prerelease || false }}
+        draft: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: create-release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') && !github.event.inputs.prerelease
+    environment: pypi  # Requires environment protection rules
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+
+  publish-test-pypi:
+    name: Publish to Test PyPI
+    needs: create-release
+    runs-on: ubuntu-latest
+    if: github.event.inputs.prerelease || contains(github.ref, 'beta') || contains(github.ref, 'alpha')
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-packages
+        path: dist/
+
+    - name: Publish to Test PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/
+
+  docker-release:
+    name: Build and Push Docker Image
+    needs: create-release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Extract version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/proteinmd:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/proteinmd:${{ env.VERSION }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  notify-completion:
+    name: Notify Release Completion
+    needs: [create-release, publish-pypi, docker-release]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Release Summary
+      run: |
+        echo "# Release Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Status:" >> $GITHUB_STEP_SUMMARY
+        echo "- **GitHub Release**: ${{ needs.create-release.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **PyPI Publication**: ${{ needs.publish-pypi.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Docker Release**: ${{ needs.docker-release.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.create-release.result }}" = "success" ]; then
+          echo "✅ Release created successfully" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Release creation failed" >> $GITHUB_STEP_SUMMARY
+        fi

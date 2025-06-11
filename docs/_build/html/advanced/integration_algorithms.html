@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Integration Algorithms &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Ensemble Theory" href="ensemble_theory.html" />
+    <link rel="prev" title="Force Fields and Potential Functions" href="force_fields.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="integration-algorithms">
+<h1>Integration Algorithms<a class="headerlink" href="#integration-algorithms" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>Numerical integration of Newton’s equations of motion is the computational core of molecular dynamics simulations. The choice of integration algorithm affects both the accuracy and stability of simulations, making this a critical component of any MD implementation.</p>
+<p><strong>Key Requirements for MD Integrators:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Numerical Stability</strong>: Prevent exponential growth of errors</p></li>
+<li><p><strong>Energy Conservation</strong>: Minimize energy drift in microcanonical simulations</p></li>
+<li><p><strong>Time Reversibility</strong>: Enable detailed balance in statistical ensembles</p></li>
+<li><p><strong>Computational Efficiency</strong>: Allow reasonable time steps and fast evaluation</p></li>
+<li><p><strong>Symplectic Properties</strong>: Preserve phase space volume (Liouville’s theorem)</p></li>
+</ol>
+</section>
+<section id="the-finite-difference-approach">
+<h2>The Finite Difference Approach<a class="headerlink" href="#the-finite-difference-approach" title="Link to this heading">¶</a></h2>
+<section id="starting-point-newton-s-equations">
+<h3>Starting Point: Newton’s Equations<a class="headerlink" href="#starting-point-newton-s-equations" title="Link to this heading">¶</a></h3>
+<p>The fundamental equations we need to solve are:</p>
+<div class="math notranslate nohighlight">
+\[\frac{d^2 r_i}{dt^2} = \frac{F_i(r)}{m_i}\]</div>
+<p>where <span class="math notranslate nohighlight">\(F_i(r) = -\nabla_i U(r)\)</span> are the forces derived from the potential energy.</p>
+<p><strong>First-Order Differential Equation Form:</strong></p>
+<div class="math notranslate nohighlight">
+\[\frac{dr_i}{dt} = v_i\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{dv_i}{dt} = \frac{F_i(r)}{m_i}\]</div>
+<p>This transforms the second-order equation into a system of first-order equations.</p>
+</section>
+<section id="taylor-series-expansion">
+<h3>Taylor Series Expansion<a class="headerlink" href="#taylor-series-expansion" title="Link to this heading">¶</a></h3>
+<p>Most integration schemes are based on Taylor series expansions around the current time:</p>
+<div class="math notranslate nohighlight">
+\[r(t + \Delta t) = r(t) + v(t)\Delta t + \frac{1}{2}a(t)\Delta t^2 + \frac{1}{6}\dot{a}(t)\Delta t^3 + O(\Delta t^4)\]</div>
+<div class="math notranslate nohighlight">
+\[v(t + \Delta t) = v(t) + a(t)\Delta t + \frac{1}{2}\dot{a}(t)\Delta t^2 + O(\Delta t^3)\]</div>
+<p>The accuracy of different schemes depends on how many terms are retained and how derivatives are approximated.</p>
+</section>
+</section>
+<section id="simple-integration-schemes">
+<h2>Simple Integration Schemes<a class="headerlink" href="#simple-integration-schemes" title="Link to this heading">¶</a></h2>
+<section id="euler-s-method">
+<h3>Euler’s Method<a class="headerlink" href="#euler-s-method" title="Link to this heading">¶</a></h3>
+<p><strong>Forward Euler:</strong></p>
+<div class="math notranslate nohighlight">
+\[r(t + \Delta t) = r(t) + v(t)\Delta t\]</div>
+<div class="math notranslate nohighlight">
+\[v(t + \Delta t) = v(t) + a(t)\Delta t\]</div>
+<p><strong>Properties:</strong>
+- First-order accurate: O(Δt)
+- Simple to implement
+- Not time-reversible
+- Poor energy conservation
+- Rarely used in MD</p>
+<p><strong>Modified Euler (Midpoint Method):</strong></p>
+<div class="math notranslate nohighlight">
+\[v_{1/2} = v(t) + \frac{1}{2}a(t)\Delta t\]</div>
+<div class="math notranslate nohighlight">
+\[r(t + \Delta t) = r(t) + v_{1/2}\Delta t\]</div>
+<div class="math notranslate nohighlight">
+\[v(t + \Delta t) = v_{1/2} + \frac{1}{2}a(t + \Delta t)\Delta t\]</div>
+<p>Better stability but still not suitable for long MD simulations.</p>
+</section>
+<section id="runge-kutta-methods">
+<h3>Runge-Kutta Methods<a class="headerlink" href="#runge-kutta-methods" title="Link to this heading">¶</a></h3>
+<p><strong>Fourth-Order Runge-Kutta (RK4):</strong></p>
+<div class="math notranslate nohighlight">
+\[k_1 = \Delta t \cdot f(t, y)\]</div>
+<div class="math notranslate nohighlight">
+\[k_2 = \Delta t \cdot f(t + \Delta t/2, y + k_1/2)\]</div>
+<div class="math notranslate nohighlight">
+\[k_3 = \Delta t \cdot f(t + \Delta t/2, y + k_2/2)\]</div>
+<div class="math notranslate nohighlight">
+\[k_4 = \Delta t \cdot f(t + \Delta t, y + k_3)\]</div>
+<div class="math notranslate nohighlight">
+\[y(t + \Delta t) = y(t) + \frac{1}{6}(k_1 + 2k_2 + 2k_3 + k_4)\]</div>
+<p><strong>Properties:</strong>
+- Fourth-order accurate: O(Δt⁴)
+- Excellent for smooth problems
+- Not symplectic (energy drift over long times)
+- Computationally expensive (4 force evaluations per step)</p>
+</section>
+</section>
+<section id="the-verlet-algorithm-family">
+<h2>The Verlet Algorithm Family<a class="headerlink" href="#the-verlet-algorithm-family" title="Link to this heading">¶</a></h2>
+<p>The Verlet algorithm and its variants are the most widely used integrators in molecular dynamics due to their excellent stability and conservation properties.</p>
+<section id="basic-verlet-algorithm">
+<h3>Basic Verlet Algorithm<a class="headerlink" href="#basic-verlet-algorithm" title="Link to this heading">¶</a></h3>
+<p><strong>Derivation:</strong></p>
+<p>From Taylor expansion:</p>
+<div class="math notranslate nohighlight">
+\[r(t + \Delta t) = r(t) + v(t)\Delta t + \frac{1}{2}a(t)\Delta t^2 + O(\Delta t^3)\]</div>
+<div class="math notranslate nohighlight">
+\[r(t - \Delta t) = r(t) - v(t)\Delta t + \frac{1}{2}a(t)\Delta t^2 + O(\Delta t^3)\]</div>
+<p>Adding these equations:</p>
+<div class="math notranslate nohighlight">
+\[r(t + \Delta t) = 2r(t) - r(t - \Delta t) + a(t)\Delta t^2\]</div>
+<p><strong>Velocity Calculation:</strong></p>
+<div class="math notranslate nohighlight">
+\[v(t) = \frac{r(t + \Delta t) - r(t - \Delta t)}{2\Delta t}\]</div>
+<p><strong>Properties:</strong>
+- Second-order accurate: O(Δt²)
+- Time-reversible and symplectic
+- Excellent energy conservation
+- Requires storing positions at two time points
+- Velocities calculated from positions (not evolved directly)</p>
+<p><strong>Advantages:</strong>
+- Very stable for MD simulations
+- Simple implementation
+- Good conservation properties</p>
+<p><strong>Disadvantages:</strong>
+- Velocities known only after position update
+- Requires special startup procedure
+- Numerical precision issues with velocity calculation</p>
+</section>
+<section id="velocity-verlet-algorithm">
+<h3>Velocity Verlet Algorithm<a class="headerlink" href="#velocity-verlet-algorithm" title="Link to this heading">¶</a></h3>
+<p>The velocity Verlet algorithm addresses some limitations of basic Verlet while maintaining its excellent properties.</p>
+<p><strong>Algorithm:</strong></p>
+<div class="math notranslate nohighlight">
+\[r(t + \Delta t) = r(t) + v(t)\Delta t + \frac{1}{2}a(t)\Delta t^2\]</div>
+<div class="math notranslate nohighlight">
+\[v(t + \Delta t) = v(t) + \frac{1}{2}[a(t) + a(t + \Delta t)]\Delta t\]</div>
+<p><strong>Implementation Steps:</strong></p>
+<ol class="arabic simple">
+<li><p>Calculate new positions: <span class="math notranslate nohighlight">\(r(t + \Delta t) = r(t) + v(t)\Delta t + \frac{1}{2}a(t)\Delta t^2\)</span></p></li>
+<li><p>Calculate forces at new positions: <span class="math notranslate nohighlight">\(F(t + \Delta t) = -\nabla U(r(t + \Delta t))\)</span></p></li>
+<li><p>Calculate new accelerations: <span class="math notranslate nohighlight">\(a(t + \Delta t) = F(t + \Delta t)/m\)</span></p></li>
+<li><p>Update velocities: <span class="math notranslate nohighlight">\(v(t + \Delta t) = v(t) + \frac{1}{2}[a(t) + a(t + \Delta t)]\Delta t\)</span></p></li>
+</ol>
+<p><strong>Properties:</strong>
+- Second-order accurate: O(Δt²)
+- Time-reversible and symplectic
+- Positions and velocities available simultaneously
+- Only requires one force evaluation per step
+- Self-starting (no special initialization)</p>
+<p><strong>Code Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">velocity_verlet_step</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">velocities</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Single step of velocity Verlet integration&quot;&quot;&quot;</span>
+
+    <span class="c1"># Update positions</span>
+    <span class="n">new_positions</span> <span class="o">=</span> <span class="p">(</span><span class="n">positions</span> <span class="o">+</span> <span class="n">velocities</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">+</span>
+                    <span class="mf">0.5</span> <span class="o">*</span> <span class="n">forces</span><span class="o">/</span><span class="n">masses</span> <span class="o">*</span> <span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Calculate forces at new positions</span>
+    <span class="n">new_forces</span> <span class="o">=</span> <span class="n">calculate_forces</span><span class="p">(</span><span class="n">new_positions</span><span class="p">)</span>
+
+    <span class="c1"># Update velocities</span>
+    <span class="n">new_velocities</span> <span class="o">=</span> <span class="p">(</span><span class="n">velocities</span> <span class="o">+</span>
+                     <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">forces</span> <span class="o">+</span> <span class="n">new_forces</span><span class="p">)</span><span class="o">/</span><span class="n">masses</span> <span class="o">*</span> <span class="n">dt</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_positions</span><span class="p">,</span> <span class="n">new_velocities</span><span class="p">,</span> <span class="n">new_forces</span>
+</pre></div>
+</div>
+</section>
+<section id="leapfrog-algorithm">
+<h3>Leapfrog Algorithm<a class="headerlink" href="#leapfrog-algorithm" title="Link to this heading">¶</a></h3>
+<p>The leapfrog algorithm staggered the velocity and position updates in time, creating a very stable integration scheme.</p>
+<p><strong>Staggered Updates:</strong></p>
+<div class="math notranslate nohighlight">
+\[v(t + \Delta t/2) = v(t - \Delta t/2) + a(t)\Delta t\]</div>
+<div class="math notranslate nohighlight">
+\[r(t + \Delta t) = r(t) + v(t + \Delta t/2)\Delta t\]</div>
+<p><strong>Synchronization:</strong></p>
+<p>When synchronized velocities are needed:</p>
+<div class="math notranslate nohighlight">
+\[v(t) = \frac{1}{2}[v(t - \Delta t/2) + v(t + \Delta t/2)]\]</div>
+<p><strong>Properties:</strong>
+- Second-order accurate: O(Δt²)
+- Excellent stability and conservation
+- Natural for some thermostats and barostats
+- Velocities offset by Δt/2 from positions</p>
+<p><strong>Equivalence to Velocity Verlet:</strong></p>
+<p>The leapfrog and velocity Verlet algorithms are mathematically equivalent but differ in their implementation details and when quantities are available.</p>
+</section>
+</section>
+<section id="advanced-integration-schemes">
+<h2>Advanced Integration Schemes<a class="headerlink" href="#advanced-integration-schemes" title="Link to this heading">¶</a></h2>
+<section id="multiple-time-step-methods">
+<h3>Multiple Time Step Methods<a class="headerlink" href="#multiple-time-step-methods" title="Link to this heading">¶</a></h3>
+<p>Different interactions in molecular systems evolve on different time scales, motivating multiple time step (MTS) algorithms.</p>
+<p><strong>r-RESPA (Reversible Reference System Propagator Algorithm):</strong></p>
+<p>Separate fast (bonded) and slow (nonbonded) forces:</p>
+<div class="math notranslate nohighlight">
+\[F_{total} = F_{fast} + F_{slow}\]</div>
+<p><strong>Implementation:</strong></p>
+<ol class="arabic simple">
+<li><p>Update slow forces every n steps (large Δt)</p></li>
+<li><p>Update fast forces every step (small δt)</p></li>
+<li><p>Ensure time reversibility through operator splitting</p></li>
+</ol>
+<p><strong>Time Scale Separation:</strong>
+- Fast: bond vibrations (~10 fs)
+- Medium: angle bending (~100 fs)
+- Slow: nonbonded interactions (~1 ps)</p>
+<p><strong>Benefits:</strong>
+- Longer effective time steps
+- Computational efficiency for large systems
+- Must be carefully tuned to maintain stability</p>
+</section>
+</section>
+<section id="constraint-algorithms">
+<h2>Constraint Algorithms<a class="headerlink" href="#constraint-algorithms" title="Link to this heading">¶</a></h2>
+<p>Molecular systems often contain high-frequency vibrations (especially X-H bonds) that limit the time step. Constraint algorithms allow these degrees of freedom to be removed.</p>
+<section id="shake-algorithm">
+<h3>SHAKE Algorithm<a class="headerlink" href="#shake-algorithm" title="Link to this heading">¶</a></h3>
+<p>SHAKE constrains bond lengths to fixed values using Lagrange multipliers.</p>
+<p><strong>Constraint Equation:</strong></p>
+<div class="math notranslate nohighlight">
+\[\sigma_k = r_k^2 - d_k^2 = 0\]</div>
+<p>where <span class="math notranslate nohighlight">\(d_k\)</span> is the constrained bond length.</p>
+<p><strong>Iterative Solution:</strong></p>
+<div class="math notranslate nohighlight">
+\[r_i^{(n+1)} = r_i^{(n)} + \sum_k \lambda_k^{(n)} \frac{\partial \sigma_k}{\partial r_i}\]</div>
+<p>The Lagrange multipliers λₖ are determined iteratively to satisfy all constraints.</p>
+<p><strong>Implementation:</strong></p>
+<ol class="arabic simple">
+<li><p>Perform unconstrained Verlet step</p></li>
+<li><p>Iteratively adjust positions to satisfy constraints</p></li>
+<li><p>Typically converges in 3-5 iterations</p></li>
+</ol>
+<p><strong>Code Structure:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">shake_constraints</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">old_positions</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply SHAKE algorithm to satisfy distance constraints&quot;&quot;&quot;</span>
+
+    <span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iterations</span><span class="p">):</span>
+        <span class="n">max_deviation</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">target_distance</span> <span class="o">=</span> <span class="n">bond</span>
+            <span class="n">current_distance</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span><span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">deviation</span> <span class="o">=</span> <span class="n">current_distance</span> <span class="o">-</span> <span class="n">target_distance</span>
+
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">deviation</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tolerance</span><span class="p">:</span>
+                <span class="c1"># Adjust positions to satisfy constraint</span>
+                <span class="n">correction</span> <span class="o">=</span> <span class="n">calculate_shake_correction</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+                <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">correction</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">correction</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="n">max_deviation</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_deviation</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">deviation</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">max_deviation</span> <span class="o">&lt;</span> <span class="n">tolerance</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">positions</span>
+</pre></div>
+</div>
+</section>
+<section id="rattle-algorithm">
+<h3>RATTLE Algorithm<a class="headerlink" href="#rattle-algorithm" title="Link to this heading">¶</a></h3>
+<p>RATTLE extends SHAKE to also constrain velocities, ensuring that constraints are maintained in both position and velocity.</p>
+<p><strong>Velocity Constraints:</strong></p>
+<div class="math notranslate nohighlight">
+\[\sum_i \frac{\partial \sigma_k}{\partial r_i} \cdot v_i = 0\]</div>
+<p>This ensures that velocities are orthogonal to the constraint manifold.</p>
+<p><strong>Two-Stage Process:</strong>
+1. SHAKE: Correct positions to satisfy constraints
+2. RATTLE: Correct velocities to be consistent with constraints</p>
+<p><strong>Benefits:</strong>
+- Allows time steps of 2-4 fs with hydrogen bonds constrained
+- Better energy conservation than SHAKE alone
+- Essential for NPT simulations with constraints</p>
+</section>
+<section id="lincs-algorithm">
+<h3>LINCS Algorithm<a class="headerlink" href="#lincs-algorithm" title="Link to this heading">¶</a></h3>
+<p>LINCS (Linear Constraint Solver) provides an alternative to SHAKE that is often more stable and efficient.</p>
+<p><strong>Key Features:</strong>
+- Linear scaling with number of constraints
+- Better parallelization properties
+- More stable for highly constrained systems
+- Standard in GROMACS package</p>
+<p><strong>Matrix Formulation:</strong></p>
+<p>LINCS solves the constraint problem using matrix operations rather than iterative corrections.</p>
+</section>
+</section>
+<section id="symplectic-integrators">
+<h2>Symplectic Integrators<a class="headerlink" href="#symplectic-integrators" title="Link to this heading">¶</a></h2>
+<p>Symplectic integrators preserve the structure of Hamiltonian mechanics and are essential for long-time stability.</p>
+<section id="hamilton-s-equations">
+<h3>Hamilton’s Equations<a class="headerlink" href="#hamilton-s-equations" title="Link to this heading">¶</a></h3>
+<div class="math notranslate nohighlight">
+\[\frac{dp_i}{dt} = -\frac{\partial H}{\partial q_i}\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{dq_i}{dt} = \frac{\partial H}{\partial p_i}\]</div>
+<p><strong>Symplectic Property:</strong></p>
+<p>A transformation is symplectic if it preserves the symplectic 2-form:</p>
+<div class="math notranslate nohighlight">
+\[\sum_i dp_i \wedge dq_i = \text{invariant}\]</div>
+<p><strong>Consequences:</strong>
+- Phase space volume preservation (Liouville’s theorem)
+- Long-term stability of energy
+- Correct statistical mechanics</p>
+</section>
+<section id="operator-splitting-methods">
+<h3>Operator Splitting Methods<a class="headerlink" href="#operator-splitting-methods" title="Link to this heading">¶</a></h3>
+<p>Many symplectic integrators are based on splitting the Hamiltonian:</p>
+<div class="math notranslate nohighlight">
+\[H = T(p) + V(q)\]</div>
+<p>where T is kinetic energy and V is potential energy.</p>
+<p><strong>Strang Splitting:</strong></p>
+<div class="math notranslate nohighlight">
+\[e^{\Delta t \mathcal{L}} \approx e^{\Delta t \mathcal{L}_V/2} e^{\Delta t \mathcal{L}_T} e^{\Delta t \mathcal{L}_V/2}\]</div>
+<p>This gives the velocity Verlet algorithm, which is symplectic.</p>
+</section>
+<section id="higher-order-symplectic-integrators">
+<h3>Higher-Order Symplectic Integrators<a class="headerlink" href="#higher-order-symplectic-integrators" title="Link to this heading">¶</a></h3>
+<p><strong>Forest-Ruth Algorithm (4th order):</strong></p>
+<p>More complex splitting schemes can achieve higher-order accuracy while remaining symplectic.</p>
+<p><strong>Yoshida Construction:</strong></p>
+<p>Systematic method for constructing higher-order symplectic integrators from lower-order ones.</p>
+<p><strong>Trade-offs:</strong>
+- Higher accuracy per step
+- More force evaluations per step
+- Rarely used in practice due to computational cost</p>
+</section>
+</section>
+<section id="integration-in-different-ensembles">
+<h2>Integration in Different Ensembles<a class="headerlink" href="#integration-in-different-ensembles" title="Link to this heading">¶</a></h2>
+<section id="microcanonical-nve-ensemble">
+<h3>Microcanonical (NVE) Ensemble<a class="headerlink" href="#microcanonical-nve-ensemble" title="Link to this heading">¶</a></h3>
+<p>Standard Verlet-type integrators naturally sample the microcanonical ensemble where energy is conserved.</p>
+<p><strong>Monitoring:</strong>
+- Total energy should be constant
+- Energy drift indicates numerical problems
+- Typical drift: &lt;10⁻⁶ per time step</p>
+</section>
+<section id="canonical-nvt-ensemble">
+<h3>Canonical (NVT) Ensemble<a class="headerlink" href="#canonical-nvt-ensemble" title="Link to this heading">¶</a></h3>
+<p>Temperature control requires modification of the equations of motion.</p>
+<p><strong>Velocity Rescaling:</strong></p>
+<p>Simple but non-physical approach:</p>
+<div class="math notranslate nohighlight">
+\[v_i^{new} = v_i \sqrt{\frac{T_{target}}{T_{current}}}\]</div>
+<p><strong>Nosé-Hoover Thermostat:</strong></p>
+<p>Adds an extra degree of freedom with its own equation of motion:</p>
+<div class="math notranslate nohighlight">
+\[\frac{dr_i}{dt} = \frac{p_i}{m_i}\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{dp_i}{dt} = F_i - \zeta p_i\]</div>
+<p><strong>Integration:</strong></p>
+<p>Requires specialized integrators (e.g., Nosé-Hoover chains) to maintain symplectic properties.</p>
+</section>
+<section id="isothermal-isobaric-npt-ensemble">
+<h3>Isothermal-Isobaric (NPT) Ensemble<a class="headerlink" href="#isothermal-isobaric-npt-ensemble" title="Link to this heading">¶</a></h3>
+<p><strong>Parrinello-Rahman Barostat:</strong></p>
+<p>Allows both volume and shape fluctuations:</p>
+<div class="math notranslate nohighlight">
+\[\frac{d\mathbf{h}}{dt} = \frac{\mathbf{p}_h}{W}\]</div>
+<p>where <strong>h</strong> is the box matrix and <strong>P</strong> is the pressure tensor.</p>
+</section>
+</section>
+<section id="time-step-selection">
+<h2>Time Step Selection<a class="headerlink" href="#time-step-selection" title="Link to this heading">¶</a></h2>
+<section id="stability-criteria">
+<h3>Stability Criteria<a class="headerlink" href="#stability-criteria" title="Link to this heading">¶</a></h3>
+<p><strong>CFL Condition:</strong></p>
+<p>The time step must be smaller than the characteristic time scale of the fastest motion:</p>
+<div class="math notranslate nohighlight">
+\[\Delta t &lt; \frac{2}{\omega_{max}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\omega_{max}\)</span> is the highest vibrational frequency.</p>
+<p><strong>Practical Guidelines:</strong>
+- Without constraints: Δt ≤ 1 fs (limited by X-H vibrations)
+- With SHAKE/RATTLE: Δt ≤ 2-4 fs
+- Heavy atoms only: Δt ≤ 5-10 fs</p>
+</section>
+<section id="energy-conservation">
+<h3>Energy Conservation<a class="headerlink" href="#energy-conservation" title="Link to this heading">¶</a></h3>
+<p><strong>Acceptable Energy Drift:</strong>
+- NVE simulations: &lt;10⁻⁴ energy units per ns
+- Monitor energy conservation as quality check
+- Sudden energy changes indicate numerical problems</p>
+<p><strong>Factors Affecting Stability:</strong>
+- System size (larger systems more sensitive)
+- Temperature (higher T requires smaller Δt)
+- Pressure coupling strength
+- Constraint tolerance</p>
+</section>
+</section>
+<section id="error-analysis">
+<h2>Error Analysis<a class="headerlink" href="#error-analysis" title="Link to this heading">¶</a></h2>
+<section id="sources-of-integration-error">
+<h3>Sources of Integration Error<a class="headerlink" href="#sources-of-integration-error" title="Link to this heading">¶</a></h3>
+<p><strong>Truncation Error:</strong>
+- From finite-difference approximation
+- Depends on integration scheme order
+- Accumulates over time</p>
+<p><strong>Round-off Error:</strong>
+- From finite machine precision
+- More important for very long simulations
+- Can be reduced with higher precision arithmetic</p>
+<p><strong>Systematic Error:</strong>
+- From algorithm design choices
+- May introduce statistical bias
+- Important for free energy calculations</p>
+<p><strong>Global vs. Local Error:</strong>
+- Local error: error in single step
+- Global error: accumulated error over simulation
+- Symplectic integrators have bounded global error</p>
+</section>
+<section id="validation-and-testing">
+<h3>Validation and Testing<a class="headerlink" href="#validation-and-testing" title="Link to this heading">¶</a></h3>
+<p><strong>Energy Conservation Test:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_energy_conservation</span><span class="p">(</span><span class="n">simulator</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test energy conservation for NVE simulation&quot;&quot;&quot;</span>
+    <span class="n">initial_energy</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">calculate_total_energy</span><span class="p">()</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="n">simulator</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">simulator</span><span class="o">.</span><span class="n">calculate_total_energy</span><span class="p">())</span>
+
+    <span class="n">energy_drift</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">energies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">initial_energy</span><span class="p">)</span> <span class="o">/</span> <span class="n">initial_energy</span>
+    <span class="k">return</span> <span class="n">energy_drift</span> <span class="o">&lt;</span> <span class="mf">1e-4</span>  <span class="c1"># Acceptable drift threshold</span>
+</pre></div>
+</div>
+<p><strong>Time Reversibility Test:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_time_reversibility</span><span class="p">(</span><span class="n">simulator</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test time reversibility of integrator&quot;&quot;&quot;</span>
+    <span class="n">initial_state</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+
+    <span class="c1"># Forward integration</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="n">simulator</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="c1"># Reverse velocities and integrate backward</span>
+    <span class="n">simulator</span><span class="o">.</span><span class="n">reverse_velocities</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="n">simulator</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="n">final_state</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">state_difference</span><span class="p">(</span><span class="n">initial_state</span><span class="p">,</span> <span class="n">final_state</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tolerance</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="implementation-considerations">
+<h2>Implementation Considerations<a class="headerlink" href="#implementation-considerations" title="Link to this heading">¶</a></h2>
+<section id="computational-efficiency">
+<h3>Computational Efficiency<a class="headerlink" href="#computational-efficiency" title="Link to this heading">¶</a></h3>
+<p><strong>Force Calculation:</strong>
+- Dominates computational cost (&gt;90% typically)
+- One force evaluation per time step (velocity Verlet)
+- Parallelization critical for large systems</p>
+<p><strong>Memory Access:</strong>
+- Cache-friendly data structures important
+- Minimize memory allocations per step
+- Consider SIMD vectorization</p>
+<p><strong>Precision:</strong>
+- Single precision often sufficient for forces
+- Double precision recommended for positions
+- Mixed precision strategies for optimization</p>
+</section>
+<section id="practical-implementation">
+<h3>Practical Implementation<a class="headerlink" href="#practical-implementation" title="Link to this heading">¶</a></h3>
+<p><strong>Error Handling:</strong>
+- Check for NaN/infinity values
+- Monitor excessive forces (&gt;10⁶ typical units)
+- Graceful handling of constraint failures</p>
+<p><strong>Restart Capability:</strong>
+- Save complete state for restarts
+- Include integrator-specific variables
+- Verify exact reproducibility</p>
+<p><strong>Debugging Tools:</strong>
+- Energy monitoring
+- Force sanity checks
+- Trajectory visualization
+- Statistical analysis of conserved quantities</p>
+</section>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>Integration algorithms are the computational heart of MD simulations. Key principles:</p>
+<ol class="arabic simple">
+<li><p><strong>Symplectic Property</strong>: Essential for long-term stability and correct statistical mechanics</p></li>
+<li><p><strong>Time Reversibility</strong>: Required for detailed balance and proper ensemble sampling</p></li>
+<li><p><strong>Energy Conservation</strong>: Critical quality check for simulation reliability</p></li>
+<li><p><strong>Time Step Selection</strong>: Must balance accuracy, stability, and computational efficiency</p></li>
+<li><p><strong>Constraint Handling</strong>: Enables longer time steps by removing high-frequency motion</p></li>
+</ol>
+<p><strong>Recommended Practices:</strong></p>
+<ul class="simple">
+<li><p>Use velocity Verlet for most applications</p></li>
+<li><p>Employ SHAKE/RATTLE for hydrogen-containing systems</p></li>
+<li><p>Monitor energy conservation carefully</p></li>
+<li><p>Validate integrator implementation thoroughly</p></li>
+<li><p>Choose time step conservatively</p></li>
+</ul>
+<p><strong>Current Standards:</strong>
+- Velocity Verlet with SHAKE/RATTLE constraints
+- 2 fs time step for biological systems
+- Nosé-Hoover thermostat for canonical ensemble
+- Parrinello-Rahman barostat for NPT ensemble</p>
+<p>The choice and implementation of integration algorithms significantly affects simulation quality, making this knowledge essential for both MD developers and users. The next section will cover ensemble theory and how different integration schemes enable sampling of various statistical ensembles.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="scientific_background.html">Scientific Background and Theory</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="scientific_background.html">Scientific Background and Theory</a><ul>
+      <li>Previous: <a href="force_fields.html" title="previous chapter">Force Fields and Potential Functions</a></li>
+      <li>Next: <a href="ensemble_theory.html" title="next chapter">Ensemble Theory</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/integration_algorithms.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proteinMD.structure.protein &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for proteinMD.structure.protein</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Protein structure module for molecular dynamics simulations.</span>
+
+<span class="sd">This module provides classes and functions for representing</span>
+<span class="sd">protein structures, including residues, chains, and atoms.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Set</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># Configure logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Atom">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Atom">[docs]</a>
+<span class="k">class</span> <span class="nc">Atom</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents an individual atom in a molecular system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="Atom.__init__">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Atom.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">atom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">atom_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">element</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">mass</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">charge</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">position</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">residue_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">chain_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                 <span class="n">b_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">occupancy</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize an atom.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atom_id : int</span>
+<span class="sd">            Atom identifier</span>
+<span class="sd">        atom_name : str</span>
+<span class="sd">            Atom name (e.g., &#39;CA&#39;, &#39;N&#39;, &#39;C&#39;)</span>
+<span class="sd">        element : str</span>
+<span class="sd">            Chemical element symbol</span>
+<span class="sd">        mass : float</span>
+<span class="sd">            Atomic mass in atomic mass units (u)</span>
+<span class="sd">        charge : float</span>
+<span class="sd">            Atomic charge in elementary charge units (e)</span>
+<span class="sd">        position : np.ndarray</span>
+<span class="sd">            3D coordinates in nanometers</span>
+<span class="sd">        residue_id : int, optional</span>
+<span class="sd">            Identifier of the residue this atom belongs to</span>
+<span class="sd">        chain_id : str, optional</span>
+<span class="sd">            Identifier of the chain this atom belongs to</span>
+<span class="sd">        b_factor : float, optional</span>
+<span class="sd">            Temperature factor (B-factor) from structure</span>
+<span class="sd">        occupancy : float, optional</span>
+<span class="sd">            Occupancy from structure (0 to 1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atom_id</span> <span class="o">=</span> <span class="n">atom_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atom_name</span> <span class="o">=</span> <span class="n">atom_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="o">=</span> <span class="n">element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="n">charge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residue_id</span> <span class="o">=</span> <span class="n">residue_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">=</span> <span class="n">chain_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_factor</span> <span class="o">=</span> <span class="n">b_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">occupancy</span> <span class="o">=</span> <span class="n">occupancy</span>
+        
+        <span class="c1"># Connectivity information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonded_atoms</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># Set of atom IDs this atom is bonded to</span>
+        
+        <span class="c1"># Runtime properties (added during simulation)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">force</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Atom.add_bond">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Atom.add_bond">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_bond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a bond to another atom.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atom_id : int</span>
+<span class="sd">            ID of atom to bond with</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">atom_id</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_id</span><span class="p">:</span>            
+            <span class="bp">self</span><span class="o">.</span><span class="n">bonded_atoms</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">atom_id</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Atom.is_bonded_to">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Atom.is_bonded_to">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_bonded_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if this atom is bonded to another atom.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atom_id : int</span>
+<span class="sd">            ID of atom to check</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if atoms are bonded, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">atom_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonded_atoms</span></div>
+
+    
+<div class="viewcode-block" id="Atom.distance_to">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Atom.distance_to">[docs]</a>
+    <span class="k">def</span> <span class="nf">distance_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_atom</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate distance to another atom.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other_atom : Atom</span>
+<span class="sd">            Other atom to measure distance to</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Distance in nanometers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="n">other_atom</span><span class="o">.</span><span class="n">position</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Atom(id=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_id</span><span class="si">}</span><span class="s2">, name=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_name</span><span class="si">}</span><span class="s2">&#39;, element=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="si">}</span><span class="s2">&#39;, res_id=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_id</span><span class="si">}</span><span class="s2">, chain=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span><span class="si">}</span><span class="s2">&#39;)&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Residue">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Residue">[docs]</a>
+<span class="k">class</span> <span class="nc">Residue</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents an amino acid residue or other molecular residue.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Standard amino acid 3-letter to 1-letter code mapping</span>
+    <span class="n">THREE_TO_ONE</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;ALA&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;ARG&#39;</span><span class="p">:</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;ASN&#39;</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;ASP&#39;</span><span class="p">:</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;CYS&#39;</span><span class="p">:</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;GLN&#39;</span><span class="p">:</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;GLU&#39;</span><span class="p">:</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;GLY&#39;</span><span class="p">:</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;HIS&#39;</span><span class="p">:</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;ILE&#39;</span><span class="p">:</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;LEU&#39;</span><span class="p">:</span> <span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;LYS&#39;</span><span class="p">:</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;MET&#39;</span><span class="p">:</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;PHE&#39;</span><span class="p">:</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;PRO&#39;</span><span class="p">:</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;SER&#39;</span><span class="p">:</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> 
+        <span class="s1">&#39;THR&#39;</span><span class="p">:</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;TRP&#39;</span><span class="p">:</span> <span class="s1">&#39;W&#39;</span><span class="p">,</span> <span class="s1">&#39;TYR&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;VAL&#39;</span><span class="p">:</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HSD&#39;</span><span class="p">:</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;HSE&#39;</span><span class="p">:</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;HSP&#39;</span><span class="p">:</span> <span class="s1">&#39;H&#39;</span>  <span class="c1"># Common histidine variants</span>
+    <span class="p">}</span>
+    
+<div class="viewcode-block" id="Residue.__init__">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Residue.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">residue_id</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+                 <span class="n">residue_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">chain_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                 <span class="n">insertion_code</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                 <span class="n">is_hetero</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">one_letter_code</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a residue.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        residue_id : int or str</span>
+<span class="sd">            Residue number, optionally including insertion code</span>
+<span class="sd">        residue_name : str</span>
+<span class="sd">            Three-letter residue code (e.g., &#39;ALA&#39;, &#39;LYS&#39;)</span>
+<span class="sd">        chain_id : str, optional</span>
+<span class="sd">            Chain identifier</span>
+<span class="sd">        insertion_code : str, optional</span>
+<span class="sd">            PDB insertion code</span>
+<span class="sd">        is_hetero : bool, optional</span>
+<span class="sd">            Flag for non-standard residues</span>
+<span class="sd">        one_letter_code : str, optional</span>
+<span class="sd">            One-letter amino acid code, automatically determined if None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residue_id</span> <span class="o">=</span> <span class="n">residue_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residue_name</span> <span class="o">=</span> <span class="n">residue_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">=</span> <span class="n">chain_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insertion_code</span> <span class="o">=</span> <span class="n">insertion_code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_hetero</span> <span class="o">=</span> <span class="n">is_hetero</span>
+        
+        <span class="c1"># Store atoms in this residue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict mapping atom_name to Atom object</span>
+        
+        <span class="c1"># Get one-letter code if it&#39;s a standard amino acid</span>
+        <span class="k">if</span> <span class="n">one_letter_code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">one_letter_code</span> <span class="o">=</span> <span class="n">one_letter_code</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">one_letter_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">THREE_TO_ONE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_name</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Secondary structure assignment (H=helix, E=sheet, C=coil)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">secondary_structure</span> <span class="o">=</span> <span class="s1">&#39;C&#39;</span>  <span class="c1"># Default to coil</span>
+        
+        <span class="c1"># Additional metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+    
+<div class="viewcode-block" id="Residue.add_atom">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Residue.add_atom">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom</span><span class="p">:</span> <span class="n">Atom</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an atom to this residue.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atom : Atom</span>
+<span class="sd">            Atom to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">atom_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">residue_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_id</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span></div>
+
+    
+<div class="viewcode-block" id="Residue.get_atom">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Residue.get_atom">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Atom</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an atom by name.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atom_name : str</span>
+<span class="sd">            Name of the atom to retrieve</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Atom or None</span>
+<span class="sd">            Atom object if found, otherwise None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">atom_name</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Residue.get_backbone_atoms">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Residue.get_backbone_atoms">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_backbone_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Atom</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get backbone atoms (N, CA, C, O) of this residue.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary mapping atom names to Atom objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">backbone</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span>
+            <span class="n">atom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">atom</span><span class="p">:</span>
+                <span class="n">backbone</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span>
+        <span class="k">return</span> <span class="n">backbone</span></div>
+
+    
+<div class="viewcode-block" id="Residue.get_center_of_mass">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Residue.get_center_of_mass">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate center of mass of the residue.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Center of mass coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">weighted_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">weighted_sum</span> <span class="o">+=</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">*</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span>
+            <span class="n">total_mass</span> <span class="o">+=</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span>
+            
+        <span class="k">return</span> <span class="n">weighted_sum</span> <span class="o">/</span> <span class="n">total_mass</span> <span class="k">if</span> <span class="n">total_mass</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Residue.get_atoms_array">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Residue.get_atoms_array">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_atoms_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get arrays of positions, masses, and charges for all atoms.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Tuple of (positions, masses, charges) arrays</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">masses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">)</span>
+        <span class="n">charges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">atom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">masses</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span>
+            <span class="n">charges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">charge</span>
+            
+        <span class="k">return</span> <span class="n">positions</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">charges</span></div>
+
+    
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Residue(id=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_id</span><span class="si">}</span><span class="s2">, name=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_name</span><span class="si">}</span><span class="s2">&#39;, chain=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span><span class="si">}</span><span class="s2">&#39;, atoms=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Chain">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Chain">[docs]</a>
+<span class="k">class</span> <span class="nc">Chain</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a polypeptide chain or other molecular chain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="Chain.__init__">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Chain.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a chain.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        chain_id : str, optional</span>
+<span class="sd">            Chain identifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">=</span> <span class="n">chain_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residues</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict mapping residue_id to Residue object</span></div>
+
+    
+<div class="viewcode-block" id="Chain.add_residue">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Chain.add_residue">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_residue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue</span><span class="p">:</span> <span class="n">Residue</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a residue to this chain.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        residue : Residue</span>
+<span class="sd">            Residue to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">residue_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">residue</span>
+        <span class="n">residue</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span></div>
+
+    
+<div class="viewcode-block" id="Chain.get_residue">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Chain.get_residue">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_residue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Residue</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a residue by ID.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        residue_id : int</span>
+<span class="sd">            ID of the residue to retrieve</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Residue or None</span>
+<span class="sd">            Residue object if found, otherwise None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">residue_id</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Chain.get_sequence">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Chain.get_sequence">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the amino acid sequence of this chain.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            One-letter amino acid sequence</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Sort residues by ID to ensure correct order</span>
+        <span class="n">sorted_residues</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">residue_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">one_letter_code</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sorted_residues</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Chain.get_atoms">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Chain.get_atoms">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Atom</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all atoms in this chain.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of all Atom objects in this chain</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">atoms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">atoms</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">residue</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">atoms</span></div>
+
+    
+<div class="viewcode-block" id="Chain.__len__">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Chain.__len__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get number of residues in chain.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Number of residues</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Chain(id=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">chain_id</span><span class="si">}</span><span class="s2">&#39;, residues=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Protein">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein">[docs]</a>
+<span class="k">class</span> <span class="nc">Protein</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a protein structure with multiple chains.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="Protein.__init__">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        protein_id : str, optional</span>
+<span class="sd">            Protein identifier (e.g., PDB ID)</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Protein name or description</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protein_id</span> <span class="o">=</span> <span class="n">protein_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="k">if</span> <span class="n">name</span> <span class="k">else</span> <span class="n">protein_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chains</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict mapping chain_id to Chain object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict storing metadata</span>
+        
+        <span class="c1"># Track atoms for easy access</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict mapping atom_id to Atom object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_atom_count</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="c1"># Track sequence information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Dict mapping chain_id to sequence</span>
+        
+        <span class="c1"># Properties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center_of_mass</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    
+<div class="viewcode-block" id="Protein.add_chain">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.add_chain">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="n">Chain</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a chain to this protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        chain : Chain</span>
+<span class="sd">            Chain to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="n">chain</span><span class="o">.</span><span class="n">chain_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">chain</span>
+        
+        <span class="c1"># Add atoms to the atom list</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">atom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_atom_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># Update sequence dictionary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="p">[</span><span class="n">chain</span><span class="o">.</span><span class="n">chain_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_sequence</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="Protein.get_chain">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.get_chain">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Chain</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a chain by ID.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        chain_id : str</span>
+<span class="sd">            ID of the chain to retrieve</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Chain or None</span>
+<span class="sd">            Chain object if found, otherwise None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">chain_id</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Protein.get_atom">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.get_atom">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Atom</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an atom by ID.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atom_id : int</span>
+<span class="sd">            ID of the atom to retrieve</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Atom or None</span>
+<span class="sd">            Atom object if found, otherwise None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">atom_id</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Protein.get_positions">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.get_positions">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get positions of all atoms.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Array of positions with shape (n_atoms, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">atom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span>
+        <span class="k">return</span> <span class="n">positions</span></div>
+
+    
+<div class="viewcode-block" id="Protein.set_positions">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.set_positions">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set positions of all atoms.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positions : np.ndarray</span>
+<span class="sd">            Array of positions with shape (n_atoms, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Position array has wrong shape: expected </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">)</span><span class="si">}</span><span class="s2"> atoms, got </span><span class="si">{</span><span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">atom_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">atom_id</span><span class="p">]</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
+
+    
+<div class="viewcode-block" id="Protein.get_center_of_mass">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.get_center_of_mass">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate center of mass of the protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Center of mass coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">weighted_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">weighted_sum</span> <span class="o">+=</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">*</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span>
+            <span class="n">total_mass</span> <span class="o">+=</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span>
+            
+        <span class="k">return</span> <span class="n">weighted_sum</span> <span class="o">/</span> <span class="n">total_mass</span> <span class="k">if</span> <span class="n">total_mass</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Protein.get_atoms_array">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.get_atoms_array">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_atoms_array</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get arrays of positions, masses, charges, and IDs for all atoms.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Tuple of (positions, masses, charges, atom_ids, chain_ids)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">)</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">masses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">)</span>
+        <span class="n">charges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">)</span>
+        <span class="n">atom_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">chain_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">atom_id</span><span class="p">,</span> <span class="n">atom</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">masses</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span>
+            <span class="n">charges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">charge</span>
+            <span class="n">atom_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom_id</span><span class="p">)</span>
+            <span class="n">chain_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">chain_id</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">positions</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">charges</span><span class="p">,</span> <span class="n">atom_ids</span><span class="p">,</span> <span class="n">chain_ids</span></div>
+
+    
+<div class="viewcode-block" id="Protein.get_bonds">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.get_bonds">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_bonds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all bonds in the protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of (atom_id1, atom_id2) tuples representing bonds</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bonds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">atom_id</span><span class="p">,</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">bonded_id</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">bonded_atoms</span><span class="p">:</span>
+                <span class="c1"># Add bond only once (by ensuring atom_id &lt; bonded_id)</span>
+                <span class="k">if</span> <span class="n">atom_id</span> <span class="o">&lt;</span> <span class="n">bonded_id</span><span class="p">:</span>
+                    <span class="n">bonds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">atom_id</span><span class="p">,</span> <span class="n">bonded_id</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">bonds</span></div>
+
+    
+<div class="viewcode-block" id="Protein.translate">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.translate">[docs]</a>
+    <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Translate all atoms by a vector.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        vector : np.ndarray</span>
+<span class="sd">            3D translation vector</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">+=</span> <span class="n">vector</span></div>
+
+    
+<div class="viewcode-block" id="Protein.rotate">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.rotate">[docs]</a>
+    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotation_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rotate all atoms using a rotation matrix.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rotation_matrix : np.ndarray</span>
+<span class="sd">            3x3 rotation matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">rotation_matrix</span><span class="p">,</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Protein.calculate_properties">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.calculate_properties">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate various properties of the protein structure.</span>
+<span class="sd">        </span>
+<span class="sd">        This method computes various structural properties such as:</span>
+<span class="sd">        - Secondary structure assignments</span>
+<span class="sd">        - Solvent accessible surface area</span>
+<span class="sd">        - Hydrogen bond networks</span>
+<span class="sd">        - Center of mass</span>
+<span class="sd">        - Radius of gyration</span>
+<span class="sd">        </span>
+<span class="sd">        This should be called after the protein structure is fully loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Calculating properties for protein </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate center of mass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center_of_mass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_center_of_mass</span><span class="p">()</span>
+        
+        <span class="c1"># Calculate radius of gyration</span>
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">squared_distances_sum</span> <span class="o">=</span> <span class="mf">0.0</span>
+        
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">squared_distances_sum</span> <span class="o">+=</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">center_of_mass</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">total_mass</span> <span class="o">+=</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius_of_gyration</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">squared_distances_sum</span> <span class="o">/</span> <span class="n">total_mass</span><span class="p">)</span> <span class="k">if</span> <span class="n">total_mass</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+        
+        <span class="c1"># Analyze bond network</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analyze_bond_network</span><span class="p">()</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Protein properties calculated: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">)</span><span class="si">}</span><span class="s2"> atoms, &quot;</span> 
+                   <span class="sa">f</span><span class="s2">&quot;COM: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">center_of_mass</span><span class="si">}</span><span class="s2">, Rg: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">radius_of_gyration</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Protein.analyze_bond_network">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.analyze_bond_network">[docs]</a>
+    <span class="k">def</span> <span class="nf">analyze_bond_network</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Analyze and set up the bond network based on distance criteria.</span>
+<span class="sd">        </span>
+<span class="sd">        This is a simple distance-based approach to identify bonds.</span>
+<span class="sd">        For more accurate bonding information, a proper force field</span>
+<span class="sd">        or connectivity table should be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Analyzing bond network...&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Simple distance-based approach to find bonds</span>
+        <span class="c1"># This is a naive approach and should be replaced with proper bonding rules</span>
+        <span class="n">bond_distance_threshold</span> <span class="o">=</span> <span class="mf">0.2</span>  <span class="c1"># nm</span>
+        
+        <span class="n">positions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">atom_id</span><span class="p">,</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">positions</span><span class="p">[</span><span class="n">atom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span>
+        
+        <span class="c1"># Find bonds based on distance</span>
+        <span class="n">bonds_found</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">for</span> <span class="n">atom_id1</span><span class="p">,</span> <span class="n">pos1</span> <span class="ow">in</span> <span class="n">positions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">atom1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">atom_id1</span><span class="p">]</span>
+            <span class="n">element1</span> <span class="o">=</span> <span class="n">atom1</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">if</span> <span class="n">atom1</span><span class="o">.</span><span class="n">element</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+            
+            <span class="k">for</span> <span class="n">atom_id2</span><span class="p">,</span> <span class="n">pos2</span> <span class="ow">in</span> <span class="n">positions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">atom_id1</span> <span class="o">&gt;=</span> <span class="n">atom_id2</span><span class="p">:</span>
+                    <span class="k">continue</span>  <span class="c1"># Avoid duplicate bonds and self-bonds</span>
+                
+                <span class="n">atom2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">atom_id2</span><span class="p">]</span>
+                <span class="n">element2</span> <span class="o">=</span> <span class="n">atom2</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">if</span> <span class="n">atom2</span><span class="o">.</span><span class="n">element</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                
+                <span class="c1"># Skip if both atoms are in different chains or residues that are far apart</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">atom1</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">!=</span> <span class="n">atom2</span><span class="o">.</span><span class="n">chain_id</span> <span class="ow">or</span> 
+                    <span class="nb">abs</span><span class="p">(</span><span class="n">atom1</span><span class="o">.</span><span class="n">residue_id</span> <span class="o">-</span> <span class="n">atom2</span><span class="o">.</span><span class="n">residue_id</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="c1"># Exception for disulfide bonds (S-S)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">element1</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span> <span class="ow">and</span> <span class="n">element2</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                
+                <span class="c1"># Calculate distance</span>
+                <span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pos1</span> <span class="o">-</span> <span class="n">pos2</span><span class="p">)</span>
+                
+                <span class="c1"># Adjust bond threshold based on atoms involved</span>
+                <span class="n">adjusted_threshold</span> <span class="o">=</span> <span class="n">bond_distance_threshold</span>
+                
+                <span class="c1"># Hydrogen bonds are shorter</span>
+                <span class="k">if</span> <span class="n">element1</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span> <span class="ow">or</span> <span class="n">element2</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span><span class="p">:</span>
+                    <span class="n">adjusted_threshold</span> <span class="o">=</span> <span class="mf">0.12</span>
+                
+                <span class="c1"># Carbon-Carbon bonds</span>
+                <span class="k">elif</span> <span class="n">element1</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span> <span class="ow">and</span> <span class="n">element2</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span>
+                    <span class="n">adjusted_threshold</span> <span class="o">=</span> <span class="mf">0.16</span>
+                
+                <span class="c1"># Carbon-Nitrogen bonds</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">element1</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span> <span class="ow">and</span> <span class="n">element2</span> <span class="o">==</span> <span class="s1">&#39;N&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">element1</span> <span class="o">==</span> <span class="s1">&#39;N&#39;</span> <span class="ow">and</span> <span class="n">element2</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span><span class="p">):</span>
+                    <span class="n">adjusted_threshold</span> <span class="o">=</span> <span class="mf">0.15</span>
+                
+                <span class="c1"># Carbon-Oxygen bonds</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">element1</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span> <span class="ow">and</span> <span class="n">element2</span> <span class="o">==</span> <span class="s1">&#39;O&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">element1</span> <span class="o">==</span> <span class="s1">&#39;O&#39;</span> <span class="ow">and</span> <span class="n">element2</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span><span class="p">):</span>
+                    <span class="n">adjusted_threshold</span> <span class="o">=</span> <span class="mf">0.14</span>
+                
+                <span class="c1"># Disulfide bonds</span>
+                <span class="k">elif</span> <span class="n">element1</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span> <span class="ow">and</span> <span class="n">element2</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+                    <span class="n">adjusted_threshold</span> <span class="o">=</span> <span class="mf">0.21</span>
+                
+                <span class="c1"># Create bond if distance is within threshold</span>
+                <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;</span> <span class="n">adjusted_threshold</span><span class="p">:</span>
+                    <span class="n">atom1</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">atom_id2</span><span class="p">)</span>
+                    <span class="n">atom2</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">atom_id1</span><span class="p">)</span>
+                    <span class="n">bonds_found</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bond network analysis complete: </span><span class="si">{</span><span class="n">bonds_found</span><span class="si">}</span><span class="s2"> bonds found&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Protein.__len__">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.__len__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get number of atoms in protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Number of atoms</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">)</span></div>
+
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Atom</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get dictionary of all atoms in the protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary mapping atom_id to Atom object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span>
+    
+<div class="viewcode-block" id="Protein.add_atom">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.add_atom">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom</span><span class="p">:</span> <span class="n">Atom</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an atom directly to the protein.</span>
+<span class="sd">        </span>
+<span class="sd">        This is a convenience method that automatically creates</span>
+<span class="sd">        chains and residues as needed.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atom : Atom</span>
+<span class="sd">            Atom to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get or create chain</span>
+        <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">chain_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">chain_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">chain_id</span><span class="p">)</span>
+        
+        <span class="n">chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">chain_id</span><span class="p">]</span>
+        
+        <span class="c1"># Get or create residue</span>
+        <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">residue_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
+            <span class="c1"># Create residue with placeholder name</span>
+            <span class="n">residue_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="s1">&#39;residue_name&#39;</span><span class="p">,</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">residues</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">residue_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Residue</span><span class="p">(</span>
+                <span class="n">residue_id</span><span class="o">=</span><span class="n">atom</span><span class="o">.</span><span class="n">residue_id</span><span class="p">,</span>
+                <span class="n">residue_name</span><span class="o">=</span><span class="n">residue_name</span><span class="p">,</span>
+                <span class="n">chain_id</span><span class="o">=</span><span class="n">atom</span><span class="o">.</span><span class="n">chain_id</span>
+            <span class="p">)</span>
+        
+        <span class="n">residue</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">residues</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">residue_id</span><span class="p">]</span>
+        
+        <span class="c1"># Add atom to residue and update internal tracking</span>
+        <span class="n">residue</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">atom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_atom_count</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+    
+<div class="viewcode-block" id="Protein.add_residue">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.add_residue">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_residue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue</span><span class="p">:</span> <span class="n">Residue</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a residue to the protein.</span>
+<span class="sd">        </span>
+<span class="sd">        This is a convenience method that automatically creates</span>
+<span class="sd">        chains as needed.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        residue : Residue</span>
+<span class="sd">            Residue to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get or create chain</span>
+        <span class="k">if</span> <span class="n">residue</span><span class="o">.</span><span class="n">chain_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">chain_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">(</span><span class="n">residue</span><span class="o">.</span><span class="n">chain_id</span><span class="p">)</span>
+        
+        <span class="n">chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">chain_id</span><span class="p">]</span>
+        <span class="n">chain</span><span class="o">.</span><span class="n">add_residue</span><span class="p">(</span><span class="n">residue</span><span class="p">)</span>
+        
+        <span class="c1"># Update internal atom tracking</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">residue</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">atom_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_atom_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># Update sequence</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">chain_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">get_sequence</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="Protein.get_residue_by_id">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.get_residue_by_id">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_residue_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Residue</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a residue by ID, searching all chains.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        residue_id : int</span>
+<span class="sd">            ID of the residue to retrieve</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Residue or None</span>
+<span class="sd">            Residue object if found, otherwise None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">residue_id</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="n">residues</span><span class="p">[</span><span class="n">residue_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Protein.__repr__">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Protein.__repr__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get string representation of protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            String representation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Protein(id=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_id</span><span class="si">}</span><span class="s2">&#39;, chains=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chains</span><span class="p">)</span><span class="si">}</span><span class="s2">, atoms=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_atoms</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProteinReader">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.ProteinReader">[docs]</a>
+<span class="k">class</span> <span class="nc">ProteinReader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for protein structure readers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="ProteinReader.read_file">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.ProteinReader.read_file">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">read_file</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Protein</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read a protein structure file.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Path to the structure file</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Protein</span>
+<span class="sd">            Protein object constructed from the file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Subclasses must implement this method&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PDBReader">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.PDBReader">[docs]</a>
+<span class="k">class</span> <span class="nc">PDBReader</span><span class="p">(</span><span class="n">ProteinReader</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reader for Protein Data Bank (PDB) format files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Atomic mass lookup table (simplified)</span>
+    <span class="n">ELEMENT_MASSES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="mf">1.008</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="mf">12.011</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">:</span> <span class="mf">14.007</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">:</span> <span class="mf">15.999</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span> <span class="mf">32.06</span><span class="p">,</span>
+        <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mf">30.974</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">:</span> <span class="mf">55.845</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">:</span> <span class="mf">40.078</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">:</span> <span class="mf">65.38</span><span class="p">,</span> <span class="s1">&#39;NA&#39;</span><span class="p">:</span> <span class="mf">22.99</span><span class="p">,</span>
+        <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="mf">39.098</span><span class="p">,</span> <span class="s1">&#39;MG&#39;</span><span class="p">:</span> <span class="mf">24.305</span><span class="p">,</span> <span class="s1">&#39;CL&#39;</span><span class="p">:</span> <span class="mf">35.45</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span> <span class="mf">18.998</span><span class="p">,</span> <span class="s1">&#39;BR&#39;</span><span class="p">:</span> <span class="mf">79.904</span><span class="p">,</span>
+        <span class="s1">&#39;I&#39;</span><span class="p">:</span> <span class="mf">126.90</span>
+    <span class="p">}</span>
+    
+<div class="viewcode-block" id="PDBReader.read_file">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.PDBReader.read_file">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">read_file</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Protein</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read a PDB file and create a Protein object.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Path to the PDB file</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Protein</span>
+<span class="sd">            Protein object constructed from the PDB file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+        
+        <span class="n">current_chain</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">current_residue</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">atom_index</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;HETATM&#39;</span><span class="p">):</span>
+                    <span class="n">is_hetero</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;HETATM&#39;</span><span class="p">)</span>
+                    
+                    <span class="c1"># Parse PDB atom line</span>
+                    <span class="n">atom_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">11</span><span class="p">])</span>
+                    <span class="n">atom_name</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="n">residue_name</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="n">chain_id</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">21</span><span class="p">:</span><span class="mi">22</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="n">residue_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">22</span><span class="p">:</span><span class="mi">26</span><span class="p">])</span>
+                    <span class="n">insertion_code</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">26</span><span class="p">:</span><span class="mi">27</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    
+                    <span class="c1"># 3D coordinates in Angstroms (convert to nm)</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span>
+                    <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span>
+                    <span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
+                    
+                    <span class="c1"># Optional fields</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">occupancy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">54</span><span class="p">:</span><span class="mi">60</span><span class="p">])</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">occupancy</span> <span class="o">=</span> <span class="mf">1.0</span>
+                        
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">b_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">60</span><span class="p">:</span><span class="mi">66</span><span class="p">])</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">b_factor</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    
+                    <span class="c1"># Element symbol</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">78</span><span class="p">:</span>
+                        <span class="n">element</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">76</span><span class="p">:</span><span class="mi">78</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Guess element from atom name</span>
+                        <span class="n">element</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">atom_name</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isalpha</span><span class="p">())</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">element</span><span class="p">:</span>
+                            <span class="n">element</span> <span class="o">=</span> <span class="s1">&#39;C&#39;</span>  <span class="c1"># Default to carbon</span>
+                    
+                    <span class="c1"># Get mass from element</span>
+                    <span class="n">mass</span> <span class="o">=</span> <span class="n">PDBReader</span><span class="o">.</span><span class="n">ELEMENT_MASSES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">)</span>
+                    
+                    <span class="c1"># For now, all atoms get zero charge (would be determined by force field)</span>
+                    <span class="n">charge</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    
+                    <span class="c1"># Create atom</span>
+                    <span class="n">atom</span> <span class="o">=</span> <span class="n">Atom</span><span class="p">(</span>
+                        <span class="n">atom_id</span><span class="o">=</span><span class="n">atom_index</span><span class="p">,</span>
+                        <span class="n">atom_name</span><span class="o">=</span><span class="n">atom_name</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">=</span><span class="n">element</span><span class="p">,</span>
+                        <span class="n">mass</span><span class="o">=</span><span class="n">mass</span><span class="p">,</span>
+                        <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
+                        <span class="n">position</span><span class="o">=</span><span class="n">position</span><span class="p">,</span>
+                        <span class="n">residue_id</span><span class="o">=</span><span class="n">residue_id</span><span class="p">,</span>
+                        <span class="n">chain_id</span><span class="o">=</span><span class="n">chain_id</span><span class="p">,</span>
+                        <span class="n">b_factor</span><span class="o">=</span><span class="n">b_factor</span><span class="p">,</span>
+                        <span class="n">occupancy</span><span class="o">=</span><span class="n">occupancy</span>
+                    <span class="p">)</span>
+                    
+                    <span class="c1"># Add atom to residue/chain structure</span>
+                    <span class="k">if</span> <span class="n">current_chain</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">current_chain</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">!=</span> <span class="n">chain_id</span><span class="p">:</span>
+                        <span class="n">current_chain</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">(</span><span class="n">chain_id</span><span class="p">)</span>
+                        <span class="n">protein</span><span class="o">.</span><span class="n">add_chain</span><span class="p">(</span><span class="n">current_chain</span><span class="p">)</span>
+                    
+                    <span class="k">if</span> <span class="n">current_residue</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">current_residue</span><span class="o">.</span><span class="n">residue_id</span> <span class="o">!=</span> <span class="n">residue_id</span> <span class="ow">or</span> <span class="n">current_residue</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">!=</span> <span class="n">chain_id</span><span class="p">:</span>
+                        <span class="n">current_residue</span> <span class="o">=</span> <span class="n">Residue</span><span class="p">(</span>
+                            <span class="n">residue_id</span><span class="o">=</span><span class="n">residue_id</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="n">residue_name</span><span class="p">,</span>
+                            <span class="n">chain_id</span><span class="o">=</span><span class="n">chain_id</span><span class="p">,</span>
+                            <span class="n">insertion_code</span><span class="o">=</span><span class="n">insertion_code</span><span class="p">,</span>
+                            <span class="n">is_hetero</span><span class="o">=</span><span class="n">is_hetero</span>
+                        <span class="p">)</span>
+                        <span class="n">current_chain</span><span class="o">.</span><span class="n">add_residue</span><span class="p">(</span><span class="n">current_residue</span><span class="p">)</span>
+                    
+                    <span class="n">current_residue</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
+                    <span class="n">protein</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">atom_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span>
+                    <span class="n">atom_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                
+                <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;CONECT&#39;</span><span class="p">):</span>
+                    <span class="c1"># Parse connectivity records</span>
+                    <span class="n">fields</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">atom_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># PDB atom IDs start at 1</span>
+                        
+                        <span class="c1"># Add bonds to other atoms</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)):</span>
+                            <span class="n">bonded_atom_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># PDB atom IDs start at 1</span>
+                            <span class="k">if</span> <span class="n">atom_id</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">_atoms</span> <span class="ow">and</span> <span class="n">bonded_atom_id</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">_atoms</span><span class="p">:</span>
+                                <span class="n">protein</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">atom_id</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">bonded_atom_id</span><span class="p">)</span>
+                                <span class="n">protein</span><span class="o">.</span><span class="n">_atoms</span><span class="p">[</span><span class="n">bonded_atom_id</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">atom_id</span><span class="p">)</span>
+                
+                <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;HEADER&#39;</span><span class="p">):</span>
+                    <span class="c1"># Extract structure title</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+                        <span class="n">protein</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">10</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="c1"># Extract structure information</span>
+                    <span class="n">protein</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;pdb_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">62</span><span class="p">:</span><span class="mi">66</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="n">protein</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">10</span><span class="p">:</span><span class="mi">50</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    
+                    <span class="c1"># Try to extract date if available</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">50</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">protein</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;deposition_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">50</span><span class="p">:</span><span class="mi">59</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                
+                <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;TITLE&#39;</span><span class="p">):</span>
+                    <span class="c1"># Extract title</span>
+                    <span class="k">if</span> <span class="s1">&#39;title&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">header</span><span class="p">:</span>
+                        <span class="n">protein</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">10</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">protein</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="mi">10</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        
+        <span class="c1"># Infer bonds if not specified in CONECT records</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">protein</span><span class="o">.</span><span class="n">get_bonds</span><span class="p">():</span>
+            <span class="n">PDBReader</span><span class="o">.</span><span class="n">_infer_bonds</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+        
+        <span class="n">protein</span><span class="o">.</span><span class="n">_atom_count</span> <span class="o">=</span> <span class="n">atom_index</span>
+        <span class="k">return</span> <span class="n">protein</span></div>
+
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_infer_bonds</span><span class="p">(</span><span class="n">protein</span><span class="p">:</span> <span class="n">Protein</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Infer covalent bonds based on distance between atoms.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        protein : Protein</span>
+<span class="sd">            Protein to infer bonds for</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Bond distance thresholds by element pair (in nm)</span>
+        <span class="n">bond_thresholds</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">):</span> <span class="mf">0.154</span><span class="p">,</span>  <span class="c1"># C-C bond</span>
+            <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">):</span> <span class="mf">0.147</span><span class="p">,</span>  <span class="c1"># C-N bond</span>
+            <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">0.143</span><span class="p">,</span>  <span class="c1"># C-O bond</span>
+            <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">):</span> <span class="mf">0.182</span><span class="p">,</span>  <span class="c1"># C-S bond</span>
+            <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">):</span> <span class="mf">0.109</span><span class="p">,</span>  <span class="c1"># C-H bond</span>
+            <span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">):</span> <span class="mf">0.145</span><span class="p">,</span>  <span class="c1"># N-N bond</span>
+            <span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">):</span> <span class="mf">0.101</span><span class="p">,</span>  <span class="c1"># N-H bond</span>
+            <span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">):</span> <span class="mf">0.096</span><span class="p">,</span>  <span class="c1"># O-H bond</span>
+            <span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">):</span> <span class="mf">0.134</span><span class="p">,</span>  <span class="c1"># S-H bond</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># Margin for bond detection</span>
+        <span class="n">margin</span> <span class="o">=</span> <span class="mf">0.035</span>  <span class="c1"># nm</span>
+        
+        <span class="c1"># Add common backbone bonds first</span>
+        <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">chains</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">residues</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">residues</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">residue_id</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">residues</span><span class="p">):</span>
+                <span class="c1"># Connect backbone atoms within residue</span>
+                <span class="n">backbone</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">get_backbone_atoms</span><span class="p">()</span>
+                
+                <span class="k">if</span> <span class="s1">&#39;N&#39;</span> <span class="ow">in</span> <span class="n">backbone</span> <span class="ow">and</span> <span class="s1">&#39;CA&#39;</span> <span class="ow">in</span> <span class="n">backbone</span><span class="p">:</span>
+                    <span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+                    <span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="s1">&#39;CA&#39;</span> <span class="ow">in</span> <span class="n">backbone</span> <span class="ow">and</span> <span class="s1">&#39;C&#39;</span> <span class="ow">in</span> <span class="n">backbone</span><span class="p">:</span>
+                    <span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+                    <span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="s1">&#39;C&#39;</span> <span class="ow">in</span> <span class="n">backbone</span> <span class="ow">and</span> <span class="s1">&#39;O&#39;</span> <span class="ow">in</span> <span class="n">backbone</span><span class="p">:</span>
+                    <span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+                    <span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+                
+                <span class="c1"># Connect to next residue if it exists</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">residues</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">next_res</span> <span class="o">=</span> <span class="n">residues</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">next_backbone</span> <span class="o">=</span> <span class="n">next_res</span><span class="o">.</span><span class="n">get_backbone_atoms</span><span class="p">()</span>
+                    
+                    <span class="c1"># Peptide bond between C and N of next residue</span>
+                    <span class="k">if</span> <span class="s1">&#39;C&#39;</span> <span class="ow">in</span> <span class="n">backbone</span> <span class="ow">and</span> <span class="s1">&#39;N&#39;</span> <span class="ow">in</span> <span class="n">next_backbone</span><span class="p">:</span>
+                        <span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">next_backbone</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+                        <span class="n">next_backbone</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">backbone</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+        
+        <span class="c1"># For side chains and other atoms, use distance criteria</span>
+        <span class="n">atom_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">protein</span><span class="o">.</span><span class="n">_atoms</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_list</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">):</span>
+            <span class="n">atom_i</span> <span class="o">=</span> <span class="n">atom_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">element_i</span> <span class="o">=</span> <span class="n">atom_i</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">):</span>
+                <span class="n">atom_j</span> <span class="o">=</span> <span class="n">atom_list</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="n">element_j</span> <span class="o">=</span> <span class="n">atom_j</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                
+                <span class="c1"># Skip if atoms are in different chains or too far apart in sequence</span>
+                <span class="k">if</span> <span class="n">atom_i</span><span class="o">.</span><span class="n">chain_id</span> <span class="o">!=</span> <span class="n">atom_j</span><span class="o">.</span><span class="n">chain_id</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                    
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">atom_i</span><span class="o">.</span><span class="n">residue_id</span> <span class="o">-</span> <span class="n">atom_j</span><span class="o">.</span><span class="n">residue_id</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c1"># Make an exception for disulfide bonds</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">element_i</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span> <span class="ow">and</span> <span class="n">element_j</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span> <span class="ow">and</span> 
+                           <span class="n">atom_i</span><span class="o">.</span><span class="n">atom_name</span> <span class="o">==</span> <span class="s1">&#39;SG&#39;</span> <span class="ow">and</span> <span class="n">atom_j</span><span class="o">.</span><span class="n">atom_name</span> <span class="o">==</span> <span class="s1">&#39;SG&#39;</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                
+                <span class="c1"># Get bond threshold for this pair</span>
+                <span class="n">element_pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">element_i</span><span class="p">,</span> <span class="n">element_j</span><span class="p">)</span>
+                <span class="n">reverse_pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">element_j</span><span class="p">,</span> <span class="n">element_i</span><span class="p">)</span>
+                
+                <span class="c1"># Find the appropriate threshold</span>
+                <span class="k">if</span> <span class="n">element_pair</span> <span class="ow">in</span> <span class="n">bond_thresholds</span><span class="p">:</span>
+                    <span class="n">threshold</span> <span class="o">=</span> <span class="n">bond_thresholds</span><span class="p">[</span><span class="n">element_pair</span><span class="p">]</span> <span class="o">+</span> <span class="n">margin</span>
+                <span class="k">elif</span> <span class="n">reverse_pair</span> <span class="ow">in</span> <span class="n">bond_thresholds</span><span class="p">:</span>
+                    <span class="n">threshold</span> <span class="o">=</span> <span class="n">bond_thresholds</span><span class="p">[</span><span class="n">reverse_pair</span><span class="p">]</span> <span class="o">+</span> <span class="n">margin</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Default threshold</span>
+                    <span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.18</span>  <span class="c1"># nm, with margin</span>
+                
+                <span class="c1"># Calculate distance</span>
+                <span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">atom_i</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="n">atom_j</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+                
+                <span class="c1"># Add bond if within threshold</span>
+                <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">:</span>
+                    <span class="n">atom_i</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">atom_j</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span>
+                    <span class="n">atom_j</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">atom_i</span><span class="o">.</span><span class="n">atom_id</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Membrane">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Membrane">[docs]</a>
+<span class="k">class</span> <span class="nc">Membrane</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a lipid bilayer membrane for cellular simulations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="Membrane.__init__">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Membrane.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">x_dim</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># nm</span>
+                 <span class="n">y_dim</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>  <span class="c1"># nm</span>
+                 <span class="n">lipid_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;POPC&#39;</span><span class="p">,</span>
+                 <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span>  <span class="c1"># nm</span>
+                 <span class="n">area_per_lipid</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.65</span><span class="p">):</span>  <span class="c1"># nm²</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a lipid bilayer membrane.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x_dim : float</span>
+<span class="sd">            X dimension of membrane in nanometers</span>
+<span class="sd">        y_dim : float</span>
+<span class="sd">            Y dimension of membrane in nanometers</span>
+<span class="sd">        lipid_type : str, optional</span>
+<span class="sd">            Type of lipid molecule (e.g., &#39;POPC&#39;, &#39;DPPC&#39;)</span>
+<span class="sd">        thickness : float, optional</span>
+<span class="sd">            Membrane thickness in nanometers</span>
+<span class="sd">        area_per_lipid : float, optional</span>
+<span class="sd">            Area per lipid molecule in nm²</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span> <span class="o">=</span> <span class="n">x_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span> <span class="o">=</span> <span class="n">y_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lipid_type</span> <span class="o">=</span> <span class="n">lipid_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="n">thickness</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">area_per_lipid</span> <span class="o">=</span> <span class="n">area_per_lipid</span>
+        
+        <span class="c1"># Membrane center</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+        
+        <span class="c1"># Lipid positions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upper_leaflet</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List of lipid positions in upper leaflet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lower_leaflet</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List of lipid positions in lower leaflet</span>
+        
+        <span class="c1"># Generate the membrane structure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_membrane</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="Membrane.generate_membrane">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Membrane.generate_membrane">[docs]</a>
+    <span class="k">def</span> <span class="nf">generate_membrane</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a lipid bilayer membrane structure.</span>
+<span class="sd">        </span>
+<span class="sd">        This creates a simplified model of a membrane with lipids</span>
+<span class="sd">        positioned in a grid pattern in both leaflets.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Calculate number of lipids in each dimension</span>
+        <span class="n">num_x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_per_lipid</span><span class="p">))</span>
+        <span class="n">num_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_per_lipid</span><span class="p">))</span>
+        
+        <span class="c1"># Total number of lipids in each leaflet</span>
+        <span class="n">num_lipids</span> <span class="o">=</span> <span class="n">num_x</span> <span class="o">*</span> <span class="n">num_y</span>
+        
+        <span class="c1"># Spacing between lipids</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span> <span class="o">/</span> <span class="n">num_x</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span> <span class="o">/</span> <span class="n">num_y</span>
+        
+        <span class="c1"># Z positions of the leaflets</span>
+        <span class="n">z_upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">z_lower</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">thickness</span> <span class="o">/</span> <span class="mi">2</span>
+        
+        <span class="c1"># Generate grid positions for upper leaflet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upper_leaflet</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_x</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_y</span><span class="p">):</span>
+                <span class="c1"># Add some random perturbation (10% of spacing)</span>
+                <span class="n">perturb_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">dx</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
+                <span class="n">perturb_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">dy</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span>
+                
+                <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="n">perturb_x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dy</span> <span class="o">+</span> <span class="n">perturb_y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span> <span class="o">/</span> <span class="mi">2</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">upper_leaflet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z_upper</span><span class="p">]))</span>
+        
+        <span class="c1"># Generate grid positions for lower leaflet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lower_leaflet</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_x</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_y</span><span class="p">):</span>
+                <span class="c1"># Add some random perturbation (10% of spacing)</span>
+                <span class="n">perturb_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">dx</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
+                <span class="n">perturb_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">dy</span><span class="p">,</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">dy</span><span class="p">)</span>
+                
+                <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="n">perturb_x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dy</span> <span class="o">+</span> <span class="n">perturb_y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span> <span class="o">/</span> <span class="mi">2</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">lower_leaflet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z_lower</span><span class="p">]))</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated membrane: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lipid_type</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper_leaflet</span><span class="p">)</span><span class="si">}</span><span class="s2"> lipids per leaflet, &quot;</span>
+                   <span class="sa">f</span><span class="s2">&quot;dimensions: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Membrane.get_lipid_positions">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Membrane.get_lipid_positions">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_lipid_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get positions of all lipids in the membrane.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Tuple of upper and lower leaflet positions arrays</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper_leaflet</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower_leaflet</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Membrane.translate">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Membrane.translate">[docs]</a>
+    <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Translate the membrane by a vector.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        vector : np.ndarray</span>
+<span class="sd">            Translation vector</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">+=</span> <span class="n">vector</span>
+        
+        <span class="c1"># Translate all lipids</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper_leaflet</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">upper_leaflet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vector</span>
+            
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower_leaflet</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lower_leaflet</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vector</span></div>
+
+    
+<div class="viewcode-block" id="Membrane.contains_point">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Membrane.contains_point">[docs]</a>
+    <span class="k">def</span> <span class="nf">contains_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if a point is inside the membrane.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        point : np.ndarray</span>
+<span class="sd">            3D point coordinates</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if point is inside membrane, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Extract x, y, z coordinates</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">point</span>
+        
+        <span class="c1"># Check if point is within x-y dimensions</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span> <span class="o">/</span> <span class="mi">2</span> <span class="ow">or</span> 
+            <span class="nb">abs</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="c1"># Check if point is within z thickness</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span> <span class="o">/</span> <span class="mi">2</span></div>
+
+    
+<div class="viewcode-block" id="Membrane.get_normal_vector">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Membrane.get_normal_vector">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_normal_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the membrane normal vector at a given point.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        point : np.ndarray</span>
+<span class="sd">            3D point coordinates</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Unit normal vector (typically [0, 0, 1] for flat membranes)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For a flat membrane, normal is always in z direction</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span></div>
+
+    
+<div class="viewcode-block" id="Membrane.get_bounding_box">
+<a class="viewcode-back" href="../../../api/structure.html#proteinMD.structure.protein.Membrane.get_bounding_box">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the bounding box of the membrane.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Tuple of (min_coords, max_coords)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">half_thickness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">half_thickness</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span><span class="p">,</span> <span class="n">half_thickness</span><span class="p">])</span>
+        <span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Membrane(type=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lipid_type</span><span class="si">}</span><span class="s2">&#39;, size=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_dim</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">y_dim</span><span class="si">}</span><span class="s2"> nm, lipids=</span><span class="si">{</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_lipids_per_leaflet</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+
+<span class="c1"># A class for representing cellular environments will be implemented in the environment module</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">ProteinMD</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/cli_reference.html">CLI Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utils.html">Utilities API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

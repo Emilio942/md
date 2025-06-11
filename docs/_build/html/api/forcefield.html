@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Force Fields &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Environment Models" href="environment.html" />
+    <link rel="prev" title="Structure Handling" href="structure.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="force-fields">
+<h1>Force Fields<a class="headerlink" href="#force-fields" title="Link to this heading">¶</a></h1>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.forcefield</span></code> module provides comprehensive force field implementations for molecular dynamics simulations, including popular force fields like AMBER ff14SB and CHARMM36.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The forcefield module includes:</p>
+<ul class="simple">
+<li><p><strong>AMBER ff14SB</strong>: Complete implementation of the AMBER ff14SB protein force field</p></li>
+<li><p><strong>CHARMM36</strong>: CHARMM36 all-atom force field for proteins</p></li>
+<li><p><strong>Custom Force Fields</strong>: Framework for implementing custom force field parameters</p></li>
+<li><p><strong>Parameter Management</strong>: Automatic parameter assignment and validation</p></li>
+<li><p><strong>Non-bonded Interactions</strong>: Lennard-Jones and Coulomb force calculations</p></li>
+<li><p><strong>Bonded Interactions</strong>: Bond, angle, and dihedral potential energy terms</p></li>
+</ul>
+</section>
+<section id="quick-example">
+<h2>Quick Example<a class="headerlink" href="#quick-example" title="Link to this heading">¶</a></h2>
+<p>Basic force field setup:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.amber_ff14sb</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure.pdb_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDBParser</span>
+
+<span class="c1"># Load protein structure</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Initialize force field</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+
+<span class="c1"># Assign parameters to protein</span>
+<span class="n">forcefield</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Calculate energy and forces</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">calculate_energy</span><span class="p">(</span><span class="n">protein</span><span class="o">.</span><span class="n">get_positions</span><span class="p">())</span>
+<span class="n">forces</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">calculate_forces</span><span class="p">(</span><span class="n">protein</span><span class="o">.</span><span class="n">get_positions</span><span class="p">())</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Potential energy: </span><span class="si">{</span><span class="n">energy</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="module-proteinMD.forcefield.amber_ff14sb">
+<span id="amber-ff14sb-force-field"></span><h2>AMBER ff14SB Force Field<a class="headerlink" href="#module-proteinMD.forcefield.amber_ff14sb" title="Link to this heading">¶</a></h2>
+<p>AMBER ff14SB Parameter Database Module</p>
+<p>This module provides a complete implementation of the AMBER ff14SB force field
+with all 20 standard amino acids fully parametrized.</p>
+<p>Features:
+- Complete parameter database for ff14SB
+- Automatic parameter assignment for proteins
+- Validation against AMBER reference data
+- Performance testing and benchmarking</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.amber_ff14sb.</span></span><span class="sig-name descname"><span class="pre">AmberFF14SB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonbonded_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NonbondedMethod.PME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_long_range_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewaldErrorTolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ForceField</span></code></p>
+<p>Complete implementation of AMBER ff14SB force field.</p>
+<p>This class provides a fully functional AMBER ff14SB force field with
+all 20 standard amino acids parametrized according to the original
+ff14SB publication (Maier et al. 2015).</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonbonded_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NonbondedMethod.PME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_long_range_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewaldErrorTolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize AMBER ff14SB force field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cutoff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Cutoff distance for nonbonded interactions in nm</p></li>
+<li><p><strong>switch_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Distance at which to start switching the LJ potential</p></li>
+<li><p><strong>nonbonded_method</strong> (<em>NonbondedMethod</em><em>, </em><em>optional</em>) – Method for handling nonbonded interactions</p></li>
+<li><p><strong>use_long_range_correction</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to use a long-range correction for LJ interactions</p></li>
+<li><p><strong>ewaldErrorTolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Error tolerance for Ewald summation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.get_residue_template">
+<span class="sig-name descname"><span class="pre">get_residue_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residue_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.get_residue_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.get_residue_template" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parameter template for a specific amino acid residue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>residue_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Three-letter amino acid code (e.g., ‘ALA’, ‘VAL’)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Residue template with atoms, charges, and connectivity</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.assign_atom_parameters">
+<span class="sig-name descname"><span class="pre">assign_atom_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residue_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.assign_atom_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.assign_atom_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Assign AMBER parameters to a specific atom in a residue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Name of the atom (e.g., ‘CA’, ‘CB’, ‘N’)</p></li>
+<li><p><strong>residue_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Three-letter residue code (e.g., ‘ALA’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complete parameter set for the atom</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>AtomTypeParameters or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.get_bond_parameters">
+<span class="sig-name descname"><span class="pre">get_bond_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.get_bond_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.get_bond_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Get bond parameters for two atom types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_type1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the bond</p></li>
+<li><p><strong>atom_type2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the bond</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Bond parameters if found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>BondParameters or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.get_angle_parameters">
+<span class="sig-name descname"><span class="pre">get_angle_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.get_angle_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.get_angle_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Get angle parameters for three atom types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_type1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the angle</p></li>
+<li><p><strong>atom_type2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the angle</p></li>
+<li><p><strong>atom_type3</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the angle</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Angle parameters if found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>AngleParameters or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.get_dihedral_parameters">
+<span class="sig-name descname"><span class="pre">get_dihedral_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.get_dihedral_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.get_dihedral_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Get dihedral parameters for four atom types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_type1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the dihedral</p></li>
+<li><p><strong>atom_type2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the dihedral</p></li>
+<li><p><strong>atom_type3</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the dihedral</p></li>
+<li><p><strong>atom_type4</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the dihedral</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dihedral parameters if found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DihedralParameters or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.validate_protein_parameters">
+<span class="sig-name descname"><span class="pre">validate_protein_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_structure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.validate_protein_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.validate_protein_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Validate all force field parameters for a protein structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>protein_structure</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><em>object</em></a>) – Protein structure object with atoms and residues</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Validation results with missing parameters and errors</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.create_simulation_system">
+<span class="sig-name descname"><span class="pre">create_simulation_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_vectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.create_simulation_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.create_simulation_system" title="Link to this definition">¶</a></dt>
+<dd><p>Create a complete simulation system with force field parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>protein_structure</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><em>object</em></a>) – Protein structure object</p></li>
+<li><p><strong>box_vectors</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Periodic box vectors</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complete system ready for simulation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ForceFieldSystem</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.AmberFF14SB.benchmark_against_amber">
+<span class="sig-name descname"><span class="pre">benchmark_against_amber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_proteins</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.benchmark_against_amber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB.benchmark_against_amber" title="Link to this definition">¶</a></dt>
+<dd><p>Benchmark this implementation against reference AMBER simulations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>test_proteins</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – List of test protein PDB codes or file paths</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Benchmark results with energy comparisons and deviations</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="proteinMD.forcefield.amber_ff14sb.create_amber_ff14sb">
+<span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.amber_ff14sb.</span></span><span class="sig-name descname"><span class="pre">create_amber_ff14sb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#create_amber_ff14sb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.amber_ff14sb.create_amber_ff14sb" title="Link to this definition">¶</a></dt>
+<dd><p>Create an AMBER ff14SB force field instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments passed to AmberFF14SB constructor</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Configured AMBER ff14SB force field</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB" title="proteinMD.forcefield.amber_ff14sb.AmberFF14SB">AmberFF14SB</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="main-force-field-class">
+<h3>Main Force Field Class<a class="headerlink" href="#main-force-field-class" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.amber_ff14sb.</span></span><span class="sig-name descname"><span class="pre">AmberFF14SB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonbonded_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NonbondedMethod.PME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_long_range_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewaldErrorTolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ForceField</span></code></p>
+<p>Complete implementation of AMBER ff14SB force field.</p>
+<p>This class provides a fully functional AMBER ff14SB force field with
+all 20 standard amino acids parametrized according to the original
+ff14SB publication (Maier et al. 2015).</p>
+<p><strong>Examples</strong></p>
+<p>Basic usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize AMBER ff14SB force field</span>
+<span class="n">ff</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+
+<span class="c1"># Assign parameters to protein</span>
+<span class="n">ff</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Calculate total energy</span>
+<span class="n">total_energy</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">calculate_energy</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Advanced configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configure force field options</span>
+<span class="n">ff</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">(</span>
+    <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>                    <span class="c1"># 1.2 nm cutoff</span>
+    <span class="n">switch_distance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>           <span class="c1"># 1.0 nm switch distance</span>
+    <span class="n">use_pme</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>                  <span class="c1"># Use PME for electrostatics</span>
+    <span class="n">pme_alpha</span><span class="o">=</span><span class="mf">0.31</span><span class="p">,</span>                <span class="c1"># PME alpha parameter</span>
+    <span class="n">pme_grid_spacing</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>          <span class="c1"># PME grid spacing</span>
+    <span class="n">constraint_tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>     <span class="c1"># Constraint tolerance</span>
+    <span class="n">hydrogen_mass</span><span class="o">=</span><span class="mf">1.5</span>              <span class="c1"># Hydrogen mass for mass repartitioning</span>
+<span class="p">)</span>
+
+<span class="c1"># Load custom parameters</span>
+<span class="n">ff</span><span class="o">.</span><span class="n">load_custom_parameters</span><span class="p">(</span><span class="s2">&quot;custom_residues.frcmod&quot;</span><span class="p">)</span>
+
+<span class="c1"># Assign parameters with validation</span>
+<span class="n">ff</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonbonded_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NonbondedMethod.PME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_long_range_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewaldErrorTolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Initialize AMBER ff14SB force field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cutoff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Cutoff distance for nonbonded interactions in nm</p></li>
+<li><p><strong>switch_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Distance at which to start switching the LJ potential</p></li>
+<li><p><strong>nonbonded_method</strong> (<em>NonbondedMethod</em><em>, </em><em>optional</em>) – Method for handling nonbonded interactions</p></li>
+<li><p><strong>use_long_range_correction</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to use a long-range correction for LJ interactions</p></li>
+<li><p><strong>ewaldErrorTolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Error tolerance for Ewald summation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_residue_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residue_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.get_residue_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get the parameter template for a specific amino acid residue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>residue_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Three-letter amino acid code (e.g., ‘ALA’, ‘VAL’)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Residue template with atoms, charges, and connectivity</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">assign_atom_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residue_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.assign_atom_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Assign AMBER parameters to a specific atom in a residue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Name of the atom (e.g., ‘CA’, ‘CB’, ‘N’)</p></li>
+<li><p><strong>residue_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Three-letter residue code (e.g., ‘ALA’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complete parameter set for the atom</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>AtomTypeParameters or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_bond_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.get_bond_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get bond parameters for two atom types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_type1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the bond</p></li>
+<li><p><strong>atom_type2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the bond</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Bond parameters if found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>BondParameters or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_angle_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.get_angle_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get angle parameters for three atom types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_type1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the angle</p></li>
+<li><p><strong>atom_type2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the angle</p></li>
+<li><p><strong>atom_type3</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the angle</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Angle parameters if found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>AngleParameters or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_dihedral_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.get_dihedral_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get dihedral parameters for four atom types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_type1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the dihedral</p></li>
+<li><p><strong>atom_type2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the dihedral</p></li>
+<li><p><strong>atom_type3</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the dihedral</p></li>
+<li><p><strong>atom_type4</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Atom types for the dihedral</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dihedral parameters if found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DihedralParameters or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">validate_protein_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_structure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.validate_protein_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Validate all force field parameters for a protein structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>protein_structure</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><em>object</em></a>) – Protein structure object with atoms and residues</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Validation results with missing parameters and errors</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">create_simulation_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_vectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.create_simulation_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Create a complete simulation system with force field parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>protein_structure</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><em>object</em></a>) – Protein structure object</p></li>
+<li><p><strong>box_vectors</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Periodic box vectors</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complete system ready for simulation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ForceFieldSystem</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">benchmark_against_amber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_proteins</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/amber_ff14sb.html#AmberFF14SB.benchmark_against_amber"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Benchmark this implementation against reference AMBER simulations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>test_proteins</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – List of test protein PDB codes or file paths</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Benchmark results with energy comparisons and deviations</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="parameter-classes">
+<h3>Parameter Classes<a class="headerlink" href="#parameter-classes" title="Link to this heading">¶</a></h3>
+</section>
+</section>
+<section id="module-proteinMD.forcefield.charmm36">
+<span id="charmm36-force-field"></span><h2>CHARMM36 Force Field<a class="headerlink" href="#module-proteinMD.forcefield.charmm36" title="Link to this heading">¶</a></h2>
+<p>CHARMM36 Force Field Implementation</p>
+<p>This module provides a complete implementation of the CHARMM36 force field
+for protein simulations with comprehensive parameter support.</p>
+<p>Features:
+- Complete CHARMM36 parameter database
+- PSF file format support
+- Automatic parameter assignment for proteins
+- Performance comparable to AMBER implementation
+- Full compatibility with CHARMM topology files</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.charmm36.</span></span><span class="sig-name descname"><span class="pre">CHARMMAtomTypeParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMMAtomTypeParameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>CHARMM atom type parameters.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.atom_type">
+<span class="sig-name descname"><span class="pre">atom_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.atom_type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.mass">
+<span class="sig-name descname"><span class="pre">mass</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.mass" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.sigma">
+<span class="sig-name descname"><span class="pre">sigma</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.sigma" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.epsilon">
+<span class="sig-name descname"><span class="pre">epsilon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.epsilon" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMBondParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.charmm36.</span></span><span class="sig-name descname"><span class="pre">CHARMMBondParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMMBondParameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMBondParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>CHARMM bond parameters.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMBondParameters.atom_types">
+<span class="sig-name descname"><span class="pre">atom_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMBondParameters.atom_types" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMBondParameters.k">
+<span class="sig-name descname"><span class="pre">k</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMBondParameters.k" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMBondParameters.r0">
+<span class="sig-name descname"><span class="pre">r0</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMBondParameters.r0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMBondParameters.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMBondParameters.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMBondParameters.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMBondParameters.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAngleParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.charmm36.</span></span><span class="sig-name descname"><span class="pre">CHARMMAngleParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMMAngleParameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAngleParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>CHARMM angle parameters.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAngleParameters.atom_types">
+<span class="sig-name descname"><span class="pre">atom_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAngleParameters.atom_types" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAngleParameters.k">
+<span class="sig-name descname"><span class="pre">k</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAngleParameters.k" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAngleParameters.theta0">
+<span class="sig-name descname"><span class="pre">theta0</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAngleParameters.theta0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAngleParameters.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAngleParameters.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMAngleParameters.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMAngleParameters.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMDihedralParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.charmm36.</span></span><span class="sig-name descname"><span class="pre">CHARMMDihedralParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMMDihedralParameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMDihedralParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>CHARMM dihedral parameters.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMDihedralParameters.atom_types">
+<span class="sig-name descname"><span class="pre">atom_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMDihedralParameters.atom_types" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMDihedralParameters.k">
+<span class="sig-name descname"><span class="pre">k</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMDihedralParameters.k" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMDihedralParameters.n">
+<span class="sig-name descname"><span class="pre">n</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMDihedralParameters.n" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMDihedralParameters.phase">
+<span class="sig-name descname"><span class="pre">phase</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMDihedralParameters.phase" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMDihedralParameters.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMDihedralParameters.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMMDihedralParameters.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMMDihedralParameters.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.PSFParser">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.charmm36.</span></span><span class="sig-name descname"><span class="pre">PSFParser</span></span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#PSFParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.PSFParser" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Parser for CHARMM PSF (Protein Structure File) format.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.PSFParser.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#PSFParser.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.PSFParser.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.PSFParser.parse_psf_file">
+<span class="sig-name descname"><span class="pre">parse_psf_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#PSFParser.parse_psf_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.PSFParser.parse_psf_file" title="Link to this definition">¶</a></dt>
+<dd><p>Parse a PSF file and extract topology information.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.charmm36.</span></span><span class="sig-name descname"><span class="pre">CHARMM36</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonbonded_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NonbondedMethod.PME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_long_range_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewaldErrorTolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ForceField</span></code></p>
+<p>Complete implementation of CHARMM36 force field.</p>
+<p>This class provides a fully functional CHARMM36 force field with
+comprehensive parameter support and PSF file compatibility.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonbonded_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NonbondedMethod.PME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_long_range_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewaldErrorTolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize CHARMM36 force field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cutoff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Cutoff distance for nonbonded interactions in nm</p></li>
+<li><p><strong>switch_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Distance at which to start switching the LJ potential</p></li>
+<li><p><strong>nonbonded_method</strong> (<em>NonbondedMethod</em><em>, </em><em>optional</em>) – Method for handling nonbonded interactions</p></li>
+<li><p><strong>use_long_range_correction</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to use a long-range correction for LJ interactions</p></li>
+<li><p><strong>ewaldErrorTolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Error tolerance for Ewald summation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36.load_psf_topology">
+<span class="sig-name descname"><span class="pre">load_psf_topology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psf_filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.load_psf_topology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36.load_psf_topology" title="Link to this definition">¶</a></dt>
+<dd><p>Load topology from CHARMM PSF file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>psf_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Path to PSF file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Parsed topology information</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36.validate_protein_parameters">
+<span class="sig-name descname"><span class="pre">validate_protein_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.validate_protein_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36.validate_protein_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that all required parameters are available for a protein.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>protein_data</strong> (<em>Dict</em>) – Protein structure data with atoms and connectivity</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Validation results with missing parameters and coverage statistics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36.assign_parameters_to_protein">
+<span class="sig-name descname"><span class="pre">assign_parameters_to_protein</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.assign_parameters_to_protein"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36.assign_parameters_to_protein" title="Link to this definition">¶</a></dt>
+<dd><p>Assign CHARMM36 parameters to a protein structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>protein_data</strong> (<em>Dict</em>) – Protein structure data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Protein data with assigned force field parameters</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36.benchmark_against_reference">
+<span class="sig-name descname"><span class="pre">benchmark_against_reference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_proteins</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.benchmark_against_reference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36.benchmark_against_reference" title="Link to this definition">¶</a></dt>
+<dd><p>Benchmark CHARMM36 implementation against reference data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>test_proteins</strong> (<em>List</em><em>[</em><em>Dict</em><em>]</em>) – List of test protein structures</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Benchmark results and performance metrics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36.get_amino_acid_residue">
+<span class="sig-name descname"><span class="pre">get_amino_acid_residue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residue_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.get_amino_acid_residue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36.get_amino_acid_residue" title="Link to this definition">¶</a></dt>
+<dd><p>Get amino acid residue template by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>residue_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Three-letter amino acid code</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Residue template or None if not found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36.get_supported_residues">
+<span class="sig-name descname"><span class="pre">get_supported_residues</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.get_supported_residues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36.get_supported_residues" title="Link to this definition">¶</a></dt>
+<dd><p>Get list of supported amino acid residues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of supported three-letter amino acid codes</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.forcefield.charmm36.CHARMM36.create_simulation_system">
+<span class="sig-name descname"><span class="pre">create_simulation_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.create_simulation_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.forcefield.charmm36.CHARMM36.create_simulation_system" title="Link to this definition">¶</a></dt>
+<dd><p>Create a complete simulation system with CHARMM36 parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>protein_data</strong> (<em>Dict</em>) – Protein structure data</p></li>
+<li><p><strong>**kwargs</strong> – Additional simulation parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complete simulation system</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="charmm-implementation">
+<h3>CHARMM Implementation<a class="headerlink" href="#charmm-implementation" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.charmm36.</span></span><span class="sig-name descname"><span class="pre">CHARMM36</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonbonded_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NonbondedMethod.PME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_long_range_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewaldErrorTolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ForceField</span></code></p>
+<p>Complete implementation of CHARMM36 force field.</p>
+<p>This class provides a fully functional CHARMM36 force field with
+comprehensive parameter support and PSF file compatibility.</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.charmm36</span><span class="w"> </span><span class="kn">import</span> <span class="n">CHARMM36</span>
+
+<span class="c1"># Initialize CHARMM36 force field</span>
+<span class="n">ff</span> <span class="o">=</span> <span class="n">CHARMM36</span><span class="p">()</span>
+
+<span class="c1"># Load protein structure file (PSF format)</span>
+<span class="n">ff</span><span class="o">.</span><span class="n">load_psf</span><span class="p">(</span><span class="s2">&quot;protein.psf&quot;</span><span class="p">)</span>
+
+<span class="c1"># Assign parameters</span>
+<span class="n">ff</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Calculate energy components</span>
+<span class="n">energy_components</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">calculate_energy_components</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bond energy: </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;bond&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Angle energy: </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;angle&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dihedral energy: </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;dihedral&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nonbonded energy: </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;nonbonded&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">switch_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonbonded_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">NonbondedMethod.PME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_long_range_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewaldErrorTolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize CHARMM36 force field.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cutoff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Cutoff distance for nonbonded interactions in nm</p></li>
+<li><p><strong>switch_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Distance at which to start switching the LJ potential</p></li>
+<li><p><strong>nonbonded_method</strong> (<em>NonbondedMethod</em><em>, </em><em>optional</em>) – Method for handling nonbonded interactions</p></li>
+<li><p><strong>use_long_range_correction</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to use a long-range correction for LJ interactions</p></li>
+<li><p><strong>ewaldErrorTolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Error tolerance for Ewald summation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">load_psf_topology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psf_filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.load_psf_topology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd><p>Load topology from CHARMM PSF file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>psf_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Path to PSF file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Parsed topology information</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">validate_protein_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.validate_protein_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<dd><p>Validate that all required parameters are available for a protein.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>protein_data</strong> (<em>Dict</em>) – Protein structure data with atoms and connectivity</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Validation results with missing parameters and coverage statistics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">assign_parameters_to_protein</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.assign_parameters_to_protein"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
+<dd><p>Assign CHARMM36 parameters to a protein structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>protein_data</strong> (<em>Dict</em>) – Protein structure data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Protein data with assigned force field parameters</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">benchmark_against_reference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_proteins</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.benchmark_against_reference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
+<dd><p>Benchmark CHARMM36 implementation against reference data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>test_proteins</strong> (<em>List</em><em>[</em><em>Dict</em><em>]</em>) – List of test protein structures</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Benchmark results and performance metrics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">get_amino_acid_residue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residue_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.get_amino_acid_residue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id6" title="Link to this definition">¶</a></dt>
+<dd><p>Get amino acid residue template by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>residue_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Three-letter amino acid code</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Residue template or None if not found</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">get_supported_residues</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.get_supported_residues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
+<dd><p>Get list of supported amino acid residues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of supported three-letter amino acid codes</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">create_simulation_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protein_data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/forcefield/charmm36.html#CHARMM36.create_simulation_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
+<dd><p>Create a complete simulation system with CHARMM36 parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>protein_data</strong> (<em>Dict</em>) – Protein structure data</p></li>
+<li><p><strong>**kwargs</strong> – Additional simulation parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Complete simulation system</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.forcefield.custom">
+<span id="custom-force-fields"></span><h2>Custom Force Fields<a class="headerlink" href="#module-proteinMD.forcefield.custom" title="Link to this heading">¶</a></h2>
+<section id="custom-force-field-framework">
+<h3>Custom Force Field Framework<a class="headerlink" href="#custom-force-field-framework" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.custom.CustomForceField">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.custom.</span></span><span class="sig-name descname"><span class="pre">CustomForceField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.custom.CustomForceField" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.custom</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomForceField</span>
+
+<span class="c1"># Create custom force field</span>
+<span class="n">custom_ff</span> <span class="o">=</span> <span class="n">CustomForceField</span><span class="p">()</span>
+
+<span class="c1"># Load parameters from file</span>
+<span class="n">custom_ff</span><span class="o">.</span><span class="n">load_parameters</span><span class="p">(</span><span class="s2">&quot;my_forcefield.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># Or define parameters programmatically</span>
+<span class="n">custom_ff</span><span class="o">.</span><span class="n">add_atom_type</span><span class="p">(</span><span class="s2">&quot;MY&quot;</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">custom_ff</span><span class="o">.</span><span class="n">add_bond_parameter</span><span class="p">(</span><span class="s2">&quot;MY&quot;</span><span class="p">,</span> <span class="s2">&quot;CT&quot;</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">r0</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
+
+<span class="c1"># Use like any other force field</span>
+<span class="n">custom_ff</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="n">custom_ff</span><span class="o">.</span><span class="n">calculate_energy</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="parameter-file-formats">
+<h3>Parameter File Formats<a class="headerlink" href="#parameter-file-formats" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.custom.ParameterLoader">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.custom.</span></span><span class="sig-name descname"><span class="pre">ParameterLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.custom.ParameterLoader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">loader</span> <span class="o">=</span> <span class="n">ParameterLoader</span><span class="p">()</span>
+
+<span class="c1"># Load different parameter file formats</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load_amber_frcmod</span><span class="p">(</span><span class="s2">&quot;custom.frcmod&quot;</span><span class="p">)</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load_charmm_prm</span><span class="p">(</span><span class="s2">&quot;custom.prm&quot;</span><span class="p">)</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="s2">&quot;custom.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># Apply to force field</span>
+<span class="n">custom_ff</span><span class="o">.</span><span class="n">set_parameters</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.forcefield.nonbonded">
+<span id="non-bonded-interactions"></span><h2>Non-bonded Interactions<a class="headerlink" href="#module-proteinMD.forcefield.nonbonded" title="Link to this heading">¶</a></h2>
+<section id="lennard-jones-interactions">
+<h3>Lennard-Jones Interactions<a class="headerlink" href="#lennard-jones-interactions" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.nonbonded.LennardJonesCalculator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.nonbonded.</span></span><span class="sig-name descname"><span class="pre">LennardJonesCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.nonbonded.LennardJonesCalculator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.nonbonded</span><span class="w"> </span><span class="kn">import</span> <span class="n">LennardJonesCalculator</span>
+
+<span class="n">lj_calc</span> <span class="o">=</span> <span class="n">LennardJonesCalculator</span><span class="p">(</span>
+    <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>                <span class="c1"># 1.2 nm cutoff</span>
+    <span class="n">switch_distance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>       <span class="c1"># Start switching at 1.0 nm</span>
+    <span class="n">use_switching</span><span class="o">=</span><span class="kc">True</span>         <span class="c1"># Use switching function</span>
+<span class="p">)</span>
+
+<span class="c1"># Calculate LJ energy and forces</span>
+<span class="n">lj_energy</span><span class="p">,</span> <span class="n">lj_forces</span> <span class="o">=</span> <span class="n">lj_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span>
+    <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span>
+    <span class="n">atom_types</span><span class="o">=</span><span class="n">atom_types</span><span class="p">,</span>
+    <span class="n">lj_parameters</span><span class="o">=</span><span class="n">lj_params</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="electrostatic-interactions">
+<h3>Electrostatic Interactions<a class="headerlink" href="#electrostatic-interactions" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.nonbonded.CoulombCalculator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.nonbonded.</span></span><span class="sig-name descname"><span class="pre">CoulombCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.nonbonded.CoulombCalculator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.nonbonded</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoulombCalculator</span>
+
+<span class="n">coulomb_calc</span> <span class="o">=</span> <span class="n">CoulombCalculator</span><span class="p">(</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pme&quot;</span><span class="p">,</span>              <span class="c1"># Use PME method</span>
+    <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>                <span class="c1"># Real-space cutoff</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.31</span><span class="p">,</span>                <span class="c1"># PME alpha parameter</span>
+    <span class="n">grid_spacing</span><span class="o">=</span><span class="mf">0.1</span>           <span class="c1"># PME grid spacing</span>
+<span class="p">)</span>
+
+<span class="c1"># Calculate electrostatic energy and forces</span>
+<span class="n">elec_energy</span><span class="p">,</span> <span class="n">elec_forces</span> <span class="o">=</span> <span class="n">coulomb_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span>
+    <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span>
+    <span class="n">charges</span><span class="o">=</span><span class="n">charges</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.forcefield.bonded">
+<span id="bonded-interactions"></span><h2>Bonded Interactions<a class="headerlink" href="#module-proteinMD.forcefield.bonded" title="Link to this heading">¶</a></h2>
+<section id="bond-potentials">
+<h3>Bond Potentials<a class="headerlink" href="#bond-potentials" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.bonded.BondCalculator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.bonded.</span></span><span class="sig-name descname"><span class="pre">BondCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.bonded.BondCalculator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.bonded</span><span class="w"> </span><span class="kn">import</span> <span class="n">BondCalculator</span>
+
+<span class="n">bond_calc</span> <span class="o">=</span> <span class="n">BondCalculator</span><span class="p">()</span>
+
+<span class="c1"># Calculate bond energy and forces</span>
+<span class="n">bond_energy</span><span class="p">,</span> <span class="n">bond_forces</span> <span class="o">=</span> <span class="n">bond_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span>
+    <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span>
+    <span class="n">bond_list</span><span class="o">=</span><span class="n">bonds</span><span class="p">,</span>
+    <span class="n">bond_parameters</span><span class="o">=</span><span class="n">bond_params</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="angle-potentials">
+<h3>Angle Potentials<a class="headerlink" href="#angle-potentials" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.bonded.AngleCalculator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.bonded.</span></span><span class="sig-name descname"><span class="pre">AngleCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.bonded.AngleCalculator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.bonded</span><span class="w"> </span><span class="kn">import</span> <span class="n">AngleCalculator</span>
+
+<span class="n">angle_calc</span> <span class="o">=</span> <span class="n">AngleCalculator</span><span class="p">()</span>
+
+<span class="c1"># Calculate angle energy and forces</span>
+<span class="n">angle_energy</span><span class="p">,</span> <span class="n">angle_forces</span> <span class="o">=</span> <span class="n">angle_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span>
+    <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span>
+    <span class="n">angle_list</span><span class="o">=</span><span class="n">angles</span><span class="p">,</span>
+    <span class="n">angle_parameters</span><span class="o">=</span><span class="n">angle_params</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="dihedral-potentials">
+<h3>Dihedral Potentials<a class="headerlink" href="#dihedral-potentials" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.bonded.DihedralCalculator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.bonded.</span></span><span class="sig-name descname"><span class="pre">DihedralCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.bonded.DihedralCalculator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.bonded</span><span class="w"> </span><span class="kn">import</span> <span class="n">DihedralCalculator</span>
+
+<span class="n">dihedral_calc</span> <span class="o">=</span> <span class="n">DihedralCalculator</span><span class="p">()</span>
+
+<span class="c1"># Calculate dihedral energy and forces</span>
+<span class="n">dihedral_energy</span><span class="p">,</span> <span class="n">dihedral_forces</span> <span class="o">=</span> <span class="n">dihedral_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span>
+    <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span>
+    <span class="n">dihedral_list</span><span class="o">=</span><span class="n">dihedrals</span><span class="p">,</span>
+    <span class="n">dihedral_parameters</span><span class="o">=</span><span class="n">dihedral_params</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.forcefield.validation">
+<span id="parameter-validation"></span><h2>Parameter Validation<a class="headerlink" href="#module-proteinMD.forcefield.validation" title="Link to this heading">¶</a></h2>
+<section id="force-field-validation">
+<h3>Force Field Validation<a class="headerlink" href="#force-field-validation" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.forcefield.validation.ForceFieldValidator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.forcefield.validation.</span></span><span class="sig-name descname"><span class="pre">ForceFieldValidator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.forcefield.validation.ForceFieldValidator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForceFieldValidator</span>
+
+<span class="n">validator</span> <span class="o">=</span> <span class="n">ForceFieldValidator</span><span class="p">()</span>
+
+<span class="c1"># Validate force field assignment</span>
+<span class="n">is_valid</span><span class="p">,</span> <span class="n">issues</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">forcefield</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter issue: </span><span class="si">{</span><span class="n">issue</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check for missing parameters</span>
+<span class="n">missing_params</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">find_missing_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">forcefield</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">missing_params</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing parameters: </span><span class="si">{</span><span class="n">missing_params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="common-usage-patterns">
+<h2>Common Usage Patterns<a class="headerlink" href="#common-usage-patterns" title="Link to this heading">¶</a></h2>
+<section id="complete-force-field-setup">
+<h3>Complete Force Field Setup<a class="headerlink" href="#complete-force-field-setup" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.amber_ff14sb</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForceFieldValidator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure.pdb_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDBParser</span>
+
+<span class="c1"># Load protein</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Setup force field</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">(</span>
+    <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+    <span class="n">use_pme</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">pme_grid_spacing</span><span class="o">=</span><span class="mf">0.1</span>
+<span class="p">)</span>
+
+<span class="c1"># Assign and validate parameters</span>
+<span class="n">forcefield</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="n">validator</span> <span class="o">=</span> <span class="n">ForceFieldValidator</span><span class="p">()</span>
+<span class="n">is_valid</span><span class="p">,</span> <span class="n">issues</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">forcefield</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">is_valid</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Force field parameters successfully assigned!&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Parameter issues found:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">issue</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Calculate initial energy</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="n">protein</span><span class="o">.</span><span class="n">get_positions</span><span class="p">()</span>
+<span class="n">energy</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">calculate_energy</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial potential energy: </span><span class="si">{</span><span class="n">energy</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="energy-component-analysis">
+<h3>Energy Component Analysis<a class="headerlink" href="#energy-component-analysis" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calculate detailed energy breakdown</span>
+<span class="n">energy_components</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">calculate_energy_components</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Energy Components:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Bond energy:      </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;bond&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Angle energy:     </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;angle&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Dihedral energy:  </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;dihedral&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Lennard-Jones:    </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;lj&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Electrostatic:    </span><span class="si">{</span><span class="n">energy_components</span><span class="p">[</span><span class="s1">&#39;electrostatic&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total energy:     </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">energy_components</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="custom-parameter-modification">
+<h3>Custom Parameter Modification<a class="headerlink" href="#custom-parameter-modification" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Modify specific parameters</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">parameters</span>
+
+<span class="c1"># Change LJ parameters for a specific atom type</span>
+<span class="n">ct_type</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get_atom_type</span><span class="p">(</span><span class="s2">&quot;CT&quot;</span><span class="p">)</span>  <span class="c1"># sp3 carbon</span>
+<span class="n">ct_type</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">*=</span> <span class="mf">1.1</span>  <span class="c1"># Increase well depth by 10%</span>
+
+<span class="c1"># Add custom bond parameter</span>
+<span class="n">params</span><span class="o">.</span><span class="n">add_bond_parameter</span><span class="p">(</span>
+    <span class="n">atom_type1</span><span class="o">=</span><span class="s2">&quot;CT&quot;</span><span class="p">,</span>
+    <span class="n">atom_type2</span><span class="o">=</span><span class="s2">&quot;MY&quot;</span><span class="p">,</span>  <span class="c1"># Custom atom type</span>
+    <span class="n">k</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span>         <span class="c1"># Force constant (kJ/mol/nm²)</span>
+    <span class="n">r0</span><span class="o">=</span><span class="mf">0.15</span>           <span class="c1"># Equilibrium length (nm)</span>
+<span class="p">)</span>
+
+<span class="c1"># Update force field with modified parameters</span>
+<span class="n">forcefield</span><span class="o">.</span><span class="n">update_parameters</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="force-field-comparison">
+<h3>Force Field Comparison<a class="headerlink" href="#force-field-comparison" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.amber_ff14sb</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.charmm36</span><span class="w"> </span><span class="kn">import</span> <span class="n">CHARMM36</span>
+
+<span class="c1"># Compare different force fields</span>
+<span class="n">amber_ff</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+<span class="n">charmm_ff</span> <span class="o">=</span> <span class="n">CHARMM36</span><span class="p">()</span>
+
+<span class="c1"># Assign parameters</span>
+<span class="n">amber_ff</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="n">charmm_ff</span><span class="o">.</span><span class="n">assign_parameters</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Calculate energies</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="n">protein</span><span class="o">.</span><span class="n">get_positions</span><span class="p">()</span>
+<span class="n">amber_energy</span> <span class="o">=</span> <span class="n">amber_ff</span><span class="o">.</span><span class="n">calculate_energy</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="n">charmm_energy</span> <span class="o">=</span> <span class="n">charmm_ff</span><span class="o">.</span><span class="n">calculate_energy</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AMBER ff14SB energy: </span><span class="si">{</span><span class="n">amber_energy</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CHARMM36 energy:     </span><span class="si">{</span><span class="n">charmm_energy</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Difference:          </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">amber_energy</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">charmm_energy</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-optimization">
+<h3>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Optimize force calculations for performance</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">(</span>
+    <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>                    <span class="c1"># Smaller cutoff for speed</span>
+    <span class="n">use_pme</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>                 <span class="c1"># Use simple cutoff instead of PME</span>
+    <span class="n">neighbor_list_cutoff</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>      <span class="c1"># Neighbor list buffer</span>
+    <span class="n">neighbor_list_update_freq</span><span class="o">=</span><span class="mi">20</span>   <span class="c1"># Update every 20 steps</span>
+<span class="p">)</span>
+
+<span class="c1"># Enable parallel force calculation</span>
+<span class="n">forcefield</span><span class="o">.</span><span class="n">set_parallel_calculation</span><span class="p">(</span><span class="n">n_threads</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Use single precision for speed (if accuracy allows)</span>
+<span class="n">forcefield</span><span class="o">.</span><span class="n">set_precision</span><span class="p">(</span><span class="s2">&quot;single&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="core.html"><span class="doc">Core Simulation Engine</span></a> - Core simulation engine that uses force fields</p></li>
+<li><p><a class="reference internal" href="structure.html"><span class="doc">Structure Handling</span></a> - Protein structures that force fields operate on</p></li>
+<li><p><a class="reference internal" href="environment.html"><span class="doc">Environment Models</span></a> - Environment models (water, boundaries)</p></li>
+<li><p><a class="reference internal" href="../user_guide/tutorials.html"><span class="doc">Tutorials</span></a> - Force field setup tutorials</p></li>
+<li><p><a class="reference internal" href="../advanced/extending.html"><span class="doc">Extending ProteinMD</span></a> - Implementing custom force fields</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure Handling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Force Fields</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.forcefield.amber_ff14sb">AMBER ff14SB Force Field</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.forcefield.amber_ff14sb.AmberFF14SB"><code class="docutils literal notranslate"><span class="pre">AmberFF14SB</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.forcefield.amber_ff14sb.create_amber_ff14sb"><code class="docutils literal notranslate"><span class="pre">create_amber_ff14sb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main-force-field-class">Main Force Field Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-classes">Parameter Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.forcefield.charmm36">CHARMM36 Force Field</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters"><code class="docutils literal notranslate"><span class="pre">CHARMMAtomTypeParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.forcefield.charmm36.CHARMMBondParameters"><code class="docutils literal notranslate"><span class="pre">CHARMMBondParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.forcefield.charmm36.CHARMMAngleParameters"><code class="docutils literal notranslate"><span class="pre">CHARMMAngleParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.forcefield.charmm36.CHARMMDihedralParameters"><code class="docutils literal notranslate"><span class="pre">CHARMMDihedralParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.forcefield.charmm36.PSFParser"><code class="docutils literal notranslate"><span class="pre">PSFParser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.forcefield.charmm36.CHARMM36"><code class="docutils literal notranslate"><span class="pre">CHARMM36</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#charmm-implementation">CHARMM Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.forcefield.custom">Custom Force Fields</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#custom-force-field-framework">Custom Force Field Framework</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-file-formats">Parameter File Formats</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.forcefield.nonbonded">Non-bonded Interactions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lennard-jones-interactions">Lennard-Jones Interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#electrostatic-interactions">Electrostatic Interactions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.forcefield.bonded">Bonded Interactions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bond-potentials">Bond Potentials</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#angle-potentials">Angle Potentials</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dihedral-potentials">Dihedral Potentials</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.forcefield.validation">Parameter Validation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#force-field-validation">Force Field Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#complete-force-field-setup">Complete Force Field Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#energy-component-analysis">Energy Component Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#custom-parameter-modification">Custom Parameter Modification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#force-field-comparison">Force Field Comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-optimization">Performance Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/scientific_background.html">Scientific Background and Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="structure.html" title="previous chapter">Structure Handling</a></li>
+      <li>Next: <a href="environment.html" title="next chapter">Environment Models</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/api/forcefield.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

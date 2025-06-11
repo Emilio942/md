@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>CLI Reference &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Tutorials" href="tutorials.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="cli-reference">
+<h1>CLI Reference<a class="headerlink" href="#cli-reference" title="Link to this heading">¶</a></h1>
+<p>ProteinMD provides a comprehensive command-line interface for running simulations,
+analyzing trajectories, and managing workflows without writing Python code.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The CLI is designed for:</p>
+<ul class="simple">
+<li><p><strong>Quick simulations</strong> - Run standard MD with minimal setup</p></li>
+<li><p><strong>Batch processing</strong> - Process multiple structures automatically</p></li>
+<li><p><strong>Pipeline integration</strong> - Easy integration with HPC job schedulers</p></li>
+<li><p><strong>Reproducible workflows</strong> - Template-based simulation setup</p></li>
+</ul>
+</section>
+<section id="installation-and-setup">
+<h2>Installation and Setup<a class="headerlink" href="#installation-and-setup" title="Link to this heading">¶</a></h2>
+<p>The CLI is installed automatically with ProteinMD:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+<p>Verify installation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="o">--</span><span class="n">version</span>
+<span class="n">proteinmd</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+</section>
+<section id="global-options">
+<h2>Global Options<a class="headerlink" href="#global-options" title="Link to this heading">¶</a></h2>
+<p>All commands support these global options:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="p">[</span><span class="n">GLOBAL_OPTIONS</span><span class="p">]</span> <span class="n">COMMAND</span> <span class="p">[</span><span class="n">COMMAND_OPTIONS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Global Options:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--verbose,</span> <span class="pre">-v</span></code></dt><dd><p>Increase verbosity (use -vv for debug output)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--quiet,</span> <span class="pre">-q</span></code></dt><dd><p>Suppress output except errors</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">FILE</span></code></dt><dd><p>Use custom configuration file</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--output-dir</span> <span class="pre">DIR</span></code></dt><dd><p>Set output directory (default: current directory)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--temp-dir</span> <span class="pre">DIR</span></code></dt><dd><p>Set temporary directory (default: system temp)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--log-file</span> <span class="pre">FILE</span></code></dt><dd><p>Write logs to file</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--no-color</span></code></dt><dd><p>Disable colored output</p>
+</dd>
+</dl>
+</section>
+<section id="commands-overview">
+<h2>Commands Overview<a class="headerlink" href="#commands-overview" title="Link to this heading">¶</a></h2>
+<section id="core-commands">
+<h3>Core Commands<a class="headerlink" href="#core-commands" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">simulate</span></code></dt><dd><p>Run molecular dynamics simulations</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">analyze</span></code></dt><dd><p>Analyze trajectory data</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">convert</span></code></dt><dd><p>Convert between file formats</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">validate</span></code></dt><dd><p>Validate structures and parameters</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">benchmark</span></code></dt><dd><p>Performance benchmarking</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">workflow</span></code></dt><dd><p>Run predefined workflows</p>
+</dd>
+</dl>
+</section>
+<section id="utility-commands">
+<h3>Utility Commands<a class="headerlink" href="#utility-commands" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">examples</span></code></dt><dd><p>Download example files and tutorials</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">config</span></code></dt><dd><p>Manage configuration settings</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">info</span></code></dt><dd><p>System information and diagnostics</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">clean</span></code></dt><dd><p>Clean temporary and cache files</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="simulate-run-md-simulations">
+<h2>simulate - Run MD Simulations<a class="headerlink" href="#simulate-run-md-simulations" title="Link to this heading">¶</a></h2>
+<p>Run molecular dynamics simulations with automatic setup.</p>
+<section id="basic-usage">
+<h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">INPUT</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">INPUT</span></code></dt><dd><p>Input structure file (PDB, MOL2, etc.)</p>
+</dd>
+</dl>
+<p><strong>Basic Options:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--steps</span> <span class="pre">INTEGER</span></code></dt><dd><p>Number of simulation steps (default: 100000)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--timestep</span> <span class="pre">FLOAT</span></code></dt><dd><p>Integration timestep in fs (default: 2.0)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--temperature</span> <span class="pre">FLOAT</span></code></dt><dd><p>Simulation temperature in K (default: 300.0)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--pressure</span> <span class="pre">FLOAT</span></code></dt><dd><p>Simulation pressure in atm (default: 1.0)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--output</span> <span class="pre">DIR</span></code></dt><dd><p>Output directory (default: ./simulation_output)</p>
+</dd>
+</dl>
+</section>
+<section id="force-field-options">
+<h3>Force Field Options<a class="headerlink" href="#force-field-options" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">--forcefield</span> <span class="pre">NAME</span></code></dt><dd><p>Force field to use (default: amber14sb)</p>
+<p>Choices: amber14sb, amber99sb-ildn, charmm36, gromos54a7</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--water-model</span> <span class="pre">NAME</span></code></dt><dd><p>Water model (default: tip3p)</p>
+<p>Choices: tip3p, tip4p, tip5p, spc, spce</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--ff-params</span> <span class="pre">FILE</span></code></dt><dd><p>Custom force field parameter file</p>
+</dd>
+</dl>
+</section>
+<section id="environment-options">
+<h3>Environment Options<a class="headerlink" href="#environment-options" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">--solvent-type</span> <span class="pre">TYPE</span></code></dt><dd><p>Solvent environment (default: explicit)</p>
+<p>Choices: explicit, implicit, vacuum</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--box-size</span> <span class="pre">FLOAT</span></code></dt><dd><p>Cubic box size in nm (default: auto)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--box-shape</span> <span class="pre">SHAPE</span></code></dt><dd><p>Box shape (default: cubic)</p>
+<p>Choices: cubic, rectangular, dodecahedron, octahedron</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--padding</span> <span class="pre">FLOAT</span></code></dt><dd><p>Minimum distance to box edge in nm (default: 1.0)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--ion-concentration</span> <span class="pre">FLOAT</span></code></dt><dd><p>Salt concentration in M (default: 0.15)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--neutralize</span></code></dt><dd><p>Add counterions to neutralize system</p>
+</dd>
+</dl>
+</section>
+<section id="simulation-control">
+<h3>Simulation Control<a class="headerlink" href="#simulation-control" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">--minimize-steps</span> <span class="pre">INTEGER</span></code></dt><dd><p>Energy minimization steps (default: 1000)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--equilibration-steps</span> <span class="pre">INTEGER</span></code></dt><dd><p>Equilibration steps (default: 100000)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--production-steps</span> <span class="pre">INTEGER</span></code></dt><dd><p>Production MD steps (default: 500000)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--ensemble</span> <span class="pre">ENSEMBLE</span></code></dt><dd><p>Simulation ensemble (default: npt)</p>
+<p>Choices: nve, nvt, npt, nph</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--thermostat</span> <span class="pre">TYPE</span></code></dt><dd><p>Temperature control method (default: langevin)</p>
+<p>Choices: langevin, nose-hoover, andersen, berendsen</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--barostat</span> <span class="pre">TYPE</span></code></dt><dd><p>Pressure control method (default: monte-carlo)</p>
+<p>Choices: monte-carlo, parrinello-rahman, berendsen</p>
+</dd>
+</dl>
+</section>
+<section id="output-options">
+<h3>Output Options<a class="headerlink" href="#output-options" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">--save-frequency</span> <span class="pre">INTEGER</span></code></dt><dd><p>Save trajectory every N steps (default: 1000)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--energy-frequency</span> <span class="pre">INTEGER</span></code></dt><dd><p>Save energy every N steps (default: 100)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--checkpoint-frequency</span> <span class="pre">INTEGER</span></code></dt><dd><p>Save checkpoint every N steps (default: 10000)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--trajectory-format</span> <span class="pre">FORMAT</span></code></dt><dd><p>Trajectory file format (default: dcd)</p>
+<p>Choices: dcd, xtc, trr, netcdf, pdb</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--precision</span> <span class="pre">PRECISION</span></code></dt><dd><p>Coordinate precision (default: mixed)</p>
+<p>Choices: single, double, mixed</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--compress</span></code></dt><dd><p>Compress trajectory files</p>
+</dd>
+</dl>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h3>
+<p><strong>Basic protein simulation:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">steps</span> <span class="mi">1000000</span>
+</pre></div>
+</div>
+<p><strong>High-temperature simulation:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">temperature</span> <span class="mi">350</span> \
+    <span class="o">--</span><span class="n">steps</span> <span class="mi">2000000</span> \
+    <span class="o">--</span><span class="n">output</span> <span class="n">high_temp_sim</span>
+</pre></div>
+</div>
+<p><strong>Implicit solvent simulation:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">solvent</span><span class="o">-</span><span class="nb">type</span> <span class="n">implicit</span> \
+    <span class="o">--</span><span class="n">steps</span> <span class="mi">5000000</span>
+</pre></div>
+</div>
+<p><strong>Custom force field:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">forcefield</span> <span class="n">charmm36</span> \
+    <span class="o">--</span><span class="n">water</span><span class="o">-</span><span class="n">model</span> <span class="n">tip4p</span> \
+    <span class="o">--</span><span class="n">ion</span><span class="o">-</span><span class="n">concentration</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<p><strong>Membrane protein simulation:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">membrane_protein</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">environment</span> <span class="n">membrane</span> \
+    <span class="o">--</span><span class="n">lipid</span><span class="o">-</span><span class="nb">type</span> <span class="n">popc</span> \
+    <span class="o">--</span><span class="n">steps</span> <span class="mi">10000000</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="analyze-trajectory-analysis">
+<h2>analyze - Trajectory Analysis<a class="headerlink" href="#analyze-trajectory-analysis" title="Link to this heading">¶</a></h2>
+<p>Analyze molecular dynamics trajectories with built-in tools.</p>
+<section id="id1">
+<h3>Basic Usage<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">analyze</span> <span class="n">TRAJECTORY</span> <span class="n">TOPOLOGY</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">TRAJECTORY</span></code></dt><dd><p>Trajectory file (DCD, XTC, TRR, etc.)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TOPOLOGY</span></code></dt><dd><p>Topology/structure file (PDB, GRO, PSF, etc.)</p>
+</dd>
+</dl>
+<p><strong>Analysis Options:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--rmsd</span></code></dt><dd><p>Calculate root mean square deviation</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--rmsf</span></code></dt><dd><p>Calculate root mean square fluctuation</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--radius-of-gyration</span></code></dt><dd><p>Calculate radius of gyration</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--secondary-structure</span></code></dt><dd><p>Analyze secondary structure</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--hydrogen-bonds</span></code></dt><dd><p>Analyze hydrogen bonding</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--contacts</span></code></dt><dd><p>Calculate contact maps</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--distances</span></code></dt><dd><p>Calculate specific distances</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--angles</span></code></dt><dd><p>Calculate specific angles</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--dihedrals</span></code></dt><dd><p>Calculate dihedral angles</p>
+</dd>
+</dl>
+</section>
+<section id="selection-options">
+<h3>Selection Options<a class="headerlink" href="#selection-options" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--selection</span> <span class="pre">TEXT</span></code></dt><dd><p>Atom selection for analysis (default: protein)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--reference-frame</span> <span class="pre">INTEGER</span></code></dt><dd><p>Reference frame for RMSD (default: 0)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--start-frame</span> <span class="pre">INTEGER</span></code></dt><dd><p>First frame to analyze (default: 0)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--end-frame</span> <span class="pre">INTEGER</span></code></dt><dd><p>Last frame to analyze (default: -1)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--stride</span> <span class="pre">INTEGER</span></code></dt><dd><p>Frame stride for analysis (default: 1)</p>
+</dd>
+</dl>
+</section>
+<section id="id2">
+<h3>Output Options<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">--output-prefix</span> <span class="pre">TEXT</span></code></dt><dd><p>Prefix for output files (default: analysis)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--plot</span></code></dt><dd><p>Generate plots for analyses</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--format</span> <span class="pre">FORMAT</span></code></dt><dd><p>Output data format (default: txt)</p>
+<p>Choices: txt, csv, json, hdf5</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--interactive</span></code></dt><dd><p>Launch interactive analysis session</p>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h3>Examples<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<p><strong>Basic RMSD analysis:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">analyze</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">topology</span><span class="o">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">rmsd</span> <span class="o">--</span><span class="n">plot</span>
+</pre></div>
+</div>
+<p><strong>Comprehensive analysis:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">analyze</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">topology</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">rmsd</span> <span class="o">--</span><span class="n">rmsf</span> <span class="o">--</span><span class="n">secondary</span><span class="o">-</span><span class="n">structure</span> \
+    <span class="o">--</span><span class="n">hydrogen</span><span class="o">-</span><span class="n">bonds</span> <span class="o">--</span><span class="n">plot</span>
+</pre></div>
+</div>
+<p><strong>Backbone analysis:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">analyze</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">topology</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">rmsd</span> <span class="o">--</span><span class="n">selection</span> <span class="s2">&quot;backbone&quot;</span> \
+    <span class="o">--</span><span class="n">reference</span><span class="o">-</span><span class="n">frame</span> <span class="mi">100</span>
+</pre></div>
+</div>
+<p><strong>Time window analysis:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">analyze</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">topology</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">rmsd</span> <span class="o">--</span><span class="n">start</span><span class="o">-</span><span class="n">frame</span> <span class="mi">1000</span> <span class="o">--</span><span class="n">end</span><span class="o">-</span><span class="n">frame</span> <span class="mi">5000</span> \
+    <span class="o">--</span><span class="n">stride</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p><strong>Custom distance analysis:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">analyze</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">topology</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">distances</span> \
+    <span class="o">--</span><span class="n">distance</span><span class="o">-</span><span class="n">pairs</span> <span class="s2">&quot;resid 10 and name CA&quot;</span> <span class="s2">&quot;resid 50 and name CA&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="convert-file-format-conversion">
+<h2>convert - File Format Conversion<a class="headerlink" href="#convert-file-format-conversion" title="Link to this heading">¶</a></h2>
+<p>Convert between different molecular file formats.</p>
+<section id="id4">
+<h3>Basic Usage<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">convert</span> <span class="n">INPUT</span> <span class="n">OUTPUT</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">INPUT</span></code></dt><dd><p>Input file</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">OUTPUT</span></code></dt><dd><p>Output file (format detected from extension)</p>
+</dd>
+</dl>
+<p><strong>Options:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--input-format</span> <span class="pre">FORMAT</span></code></dt><dd><p>Explicitly specify input format</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">FORMAT</span></code></dt><dd><p>Explicitly specify output format</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--selection</span> <span class="pre">TEXT</span></code></dt><dd><p>Convert only selected atoms</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--frame</span> <span class="pre">INTEGER</span></code></dt><dd><p>Convert specific frame (trajectories)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--start-frame</span> <span class="pre">INTEGER</span></code></dt><dd><p>First frame to convert</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--end-frame</span> <span class="pre">INTEGER</span></code></dt><dd><p>Last frame to convert</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--stride</span> <span class="pre">INTEGER</span></code></dt><dd><p>Frame stride</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--remove-water</span></code></dt><dd><p>Remove water molecules</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--remove-ions</span></code></dt><dd><p>Remove ions</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--remove-hydrogens</span></code></dt><dd><p>Remove hydrogen atoms</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--center</span></code></dt><dd><p>Center coordinates</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--align-to</span> <span class="pre">FILE</span></code></dt><dd><p>Align structure to reference</p>
+</dd>
+</dl>
+</section>
+<section id="id5">
+<h3>Examples<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<p><strong>Structure format conversion:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">convert</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> <span class="n">protein</span><span class="o">.</span><span class="n">mol2</span>
+</pre></div>
+</div>
+<p><strong>Trajectory format conversion:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">convert</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">xtc</span> \
+    <span class="o">--</span><span class="n">start</span><span class="o">-</span><span class="n">frame</span> <span class="mi">100</span> <span class="o">--</span><span class="n">stride</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p><strong>Extract protein only:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">convert</span> <span class="nb">complex</span><span class="o">.</span><span class="n">pdb</span> <span class="n">protein_only</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">selection</span> <span class="s2">&quot;protein&quot;</span> <span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">water</span>
+</pre></div>
+</div>
+<p><strong>Trajectory to PDB frames:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">convert</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dcd</span> <span class="n">frames</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">stride</span> <span class="mi">100</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="workflow-predefined-workflows">
+<h2>workflow - Predefined Workflows<a class="headerlink" href="#workflow-predefined-workflows" title="Link to this heading">¶</a></h2>
+<p>Run complete simulation and analysis workflows from templates.</p>
+<section id="id6">
+<h3>Basic Usage<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">workflow</span> <span class="n">TEMPLATE</span> <span class="n">INPUT</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">TEMPLATE</span></code></dt><dd><p>Workflow template name or file</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">INPUT</span></code></dt><dd><p>Input structure file</p>
+</dd>
+</dl>
+<p><strong>Built-in Templates:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">protein_folding</span></code></dt><dd><p>Complete protein folding study</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ligand_binding</span></code></dt><dd><p>Protein-ligand binding analysis</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">membrane_protein</span></code></dt><dd><p>Membrane protein simulation</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">free_energy</span></code></dt><dd><p>Free energy perturbation calculation</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">enhanced_sampling</span></code></dt><dd><p>Enhanced sampling with REMD</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">stability_analysis</span></code></dt><dd><p>Protein stability assessment</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">conformational_sampling</span></code></dt><dd><p>Conformational space exploration</p>
+</dd>
+</dl>
+</section>
+<section id="custom-workflows">
+<h3>Custom Workflows<a class="headerlink" href="#custom-workflows" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--workflow-file</span> <span class="pre">FILE</span></code></dt><dd><p>Use custom workflow YAML file</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--parameters</span> <span class="pre">FILE</span></code></dt><dd><p>Override workflow parameters</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--steps</span> <span class="pre">SECTION:VALUE</span></code></dt><dd><p>Override specific workflow steps</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--dry-run</span></code></dt><dd><p>Show workflow steps without running</p>
+</dd>
+</dl>
+</section>
+<section id="id7">
+<h3>Examples<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<p><strong>Protein folding study:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">workflow</span> <span class="n">protein_folding</span> <span class="n">unfolded</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">output</span> <span class="n">folding_study</span>
+</pre></div>
+</div>
+<p><strong>Custom workflow:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">workflow</span> <span class="n">custom_workflow</span><span class="o">.</span><span class="n">yaml</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">parameters</span> <span class="n">my_params</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p><strong>Free energy calculation:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">workflow</span> <span class="n">free_energy</span> <span class="nb">complex</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">steps</span> <span class="s2">&quot;lambda_windows:21&quot;</span> \
+    <span class="o">--</span><span class="n">steps</span> <span class="s2">&quot;simulation_time:5ns&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="batch-batch-processing">
+<h2>batch - Batch Processing<a class="headerlink" href="#batch-batch-processing" title="Link to this heading">¶</a></h2>
+<p>Process multiple structures or trajectories in parallel.</p>
+<section id="id8">
+<h3>Basic Usage<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">batch</span> <span class="n">COMMAND</span> <span class="n">INPUT_DIR</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Arguments:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">COMMAND</span></code></dt><dd><p>Command to run in batch (simulate, analyze, convert)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">INPUT_DIR</span></code></dt><dd><p>Directory containing input files</p>
+</dd>
+</dl>
+<p><strong>Options:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--pattern</span> <span class="pre">PATTERN</span></code></dt><dd><p>File pattern to match (default: <a href="#id9"><span class="problematic" id="id10">*</span></a>.pdb)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--output-dir</span> <span class="pre">DIR</span></code></dt><dd><p>Output directory (default: batch_output)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--parallel</span> <span class="pre">INTEGER</span></code></dt><dd><p>Number of parallel processes (default: auto)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--resume</span></code></dt><dd><p>Resume interrupted batch job</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--force</span></code></dt><dd><p>Overwrite existing results</p>
+</dd>
+</dl>
+</section>
+<section id="id11">
+<h3>Examples<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<p><strong>Batch simulation:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">batch</span> <span class="n">simulate</span> <span class="n">structures</span><span class="o">/</span> \
+    <span class="o">--</span><span class="n">pattern</span> <span class="s2">&quot;*.pdb&quot;</span> \
+    <span class="o">--</span><span class="n">parallel</span> <span class="mi">8</span> \
+    <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">dir</span> <span class="n">batch_simulations</span>
+</pre></div>
+</div>
+<p><strong>Batch analysis:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">batch</span> <span class="n">analyze</span> <span class="n">trajectories</span><span class="o">/</span> \
+    <span class="o">--</span><span class="n">pattern</span> <span class="s2">&quot;*.dcd&quot;</span> \
+    <span class="o">--</span><span class="n">topology</span> <span class="n">reference</span><span class="o">.</span><span class="n">pdb</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="validate-structure-validation">
+<h2>validate - Structure Validation<a class="headerlink" href="#validate-structure-validation" title="Link to this heading">¶</a></h2>
+<p>Validate protein structures and simulation parameters.</p>
+<section id="id12">
+<h3>Basic Usage<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">validate</span> <span class="n">INPUT</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Validation Checks:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--structure</span></code></dt><dd><p>Check structure integrity</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--stereochemistry</span></code></dt><dd><p>Validate bond lengths, angles</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--clashes</span></code></dt><dd><p>Detect atomic clashes</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--missing-atoms</span></code></dt><dd><p>Find missing heavy atoms</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--hydrogens</span></code></dt><dd><p>Check hydrogen placement</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--force-field</span></code></dt><dd><p>Validate force field assignment</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--waters</span></code></dt><dd><p>Check water molecules</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--fix</span></code></dt><dd><p>Attempt to fix issues automatically</p>
+</dd>
+</dl>
+</section>
+<section id="id13">
+<h3>Examples<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
+<p><strong>Complete structure validation:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">validate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">structure</span> <span class="o">--</span><span class="n">stereochemistry</span> <span class="o">--</span><span class="n">clashes</span>
+</pre></div>
+</div>
+<p><strong>Fix structure issues:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">validate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">fix</span> \
+    <span class="o">--</span><span class="n">output</span> <span class="n">protein_fixed</span><span class="o">.</span><span class="n">pdb</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration-management">
+<h2>Configuration Management<a class="headerlink" href="#configuration-management" title="Link to this heading">¶</a></h2>
+<section id="config-manage-settings">
+<h3>config - Manage Settings<a class="headerlink" href="#config-manage-settings" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">config</span> <span class="n">COMMAND</span> <span class="p">[</span><span class="n">OPTIONS</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Commands:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">show</span></code></dt><dd><p>Display current configuration</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">KEY</span> <span class="pre">VALUE</span></code></dt><dd><p>Set configuration value</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">get</span> <span class="pre">KEY</span></code></dt><dd><p>Get configuration value</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">reset</span></code></dt><dd><p>Reset to default configuration</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">path</span></code></dt><dd><p>Show configuration file path</p>
+</dd>
+</dl>
+</section>
+<section id="id14">
+<h3>Examples<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Show all settings</span>
+<span class="n">proteinmd</span> <span class="n">config</span> <span class="n">show</span>
+
+<span class="c1"># Set default force field</span>
+<span class="n">proteinmd</span> <span class="n">config</span> <span class="nb">set</span> <span class="n">default</span><span class="o">.</span><span class="n">forcefield</span> <span class="n">amber14sb</span>
+
+<span class="c1"># Set number of threads</span>
+<span class="n">proteinmd</span> <span class="n">config</span> <span class="nb">set</span> <span class="n">performance</span><span class="o">.</span><span class="n">threads</span> <span class="mi">8</span>
+
+<span class="c1"># Reset configuration</span>
+<span class="n">proteinmd</span> <span class="n">config</span> <span class="n">reset</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="workflow-templates">
+<h2>Workflow Templates<a class="headerlink" href="#workflow-templates" title="Link to this heading">¶</a></h2>
+<section id="creating-custom-workflows">
+<h3>Creating Custom Workflows<a class="headerlink" href="#creating-custom-workflows" title="Link to this heading">¶</a></h3>
+<p>Create a YAML workflow file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Custom</span><span class="nv"> </span><span class="s">Protein</span><span class="nv"> </span><span class="s">Analysis&quot;</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Custom</span><span class="nv"> </span><span class="s">workflow</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">protein</span><span class="nv"> </span><span class="s">stability</span><span class="nv"> </span><span class="s">analysis&quot;</span>
+
+<span class="nt">parameters</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300.0</span>
+<span class="w">  </span><span class="nt">simulation_time</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10ns&quot;</span>
+<span class="w">  </span><span class="nt">analysis_stride</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+
+<span class="nt">steps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;energy_minimization&quot;</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;minimize&quot;</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;equilibration&quot;</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;equilibrate&quot;</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">ensemble</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;nvt&quot;</span>
+<span class="w">      </span><span class="nt">steps</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100000</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;production&quot;</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;simulate&quot;</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">steps</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">simulation_time</span><span class="nv"> </span><span class="s">|</span><span class="nv"> </span><span class="s">to_steps</span><span class="nv"> </span><span class="s">}}&quot;</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;analysis&quot;</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;analyze&quot;</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">analyses</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;rmsd&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;rmsf&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;secondary_structure&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">stride</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;{{</span><span class="nv"> </span><span class="s">analysis_stride</span><span class="nv"> </span><span class="s">}}&quot;</span>
+</pre></div>
+</div>
+<p>Run custom workflow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">workflow</span> <span class="n">my_workflow</span><span class="o">.</span><span class="n">yaml</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="hpc-integration">
+<h2>HPC Integration<a class="headerlink" href="#hpc-integration" title="Link to this heading">¶</a></h2>
+<section id="job-scheduler-integration">
+<h3>Job Scheduler Integration<a class="headerlink" href="#job-scheduler-integration" title="Link to this heading">¶</a></h3>
+<p><strong>SLURM example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --job-name=proteinmd</span>
+<span class="c1">#SBATCH --nodes=1</span>
+<span class="c1">#SBATCH --ntasks=8</span>
+<span class="c1">#SBATCH --gres=gpu:1</span>
+<span class="c1">#SBATCH --time=24:00:00</span>
+
+module<span class="w"> </span>load<span class="w"> </span>proteinMD
+
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--steps<span class="w"> </span><span class="m">10000000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span><span class="nv">$SLURM_JOB_ID</span>
+</pre></div>
+</div>
+<p><strong>PBS example:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#PBS -N proteinmd</span>
+<span class="c1">#PBS -l nodes=1:ppn=8:gpus=1</span>
+<span class="c1">#PBS -l walltime=24:00:00</span>
+
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$PBS_O_WORKDIR</span>
+proteinmd<span class="w"> </span>simulate<span class="w"> </span>protein.pdb<span class="w"> </span>--steps<span class="w"> </span><span class="m">10000000</span>
+</pre></div>
+</div>
+</section>
+<section id="array-jobs">
+<h3>Array Jobs<a class="headerlink" href="#array-jobs" title="Link to this heading">¶</a></h3>
+<p>Run multiple simulations as array job:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --array=1-100</span>
+<span class="c1">#SBATCH --job-name=proteinmd_array</span>
+
+<span class="nv">INPUT_FILE</span><span class="o">=</span><span class="s2">&quot;structures/protein_</span><span class="si">${</span><span class="nv">SLURM_ARRAY_TASK_ID</span><span class="si">}</span><span class="s2">.pdb&quot;</span>
+<span class="nv">OUTPUT_DIR</span><span class="o">=</span><span class="s2">&quot;simulation_</span><span class="si">${</span><span class="nv">SLURM_ARRAY_TASK_ID</span><span class="si">}</span><span class="s2">&quot;</span>
+
+proteinmd<span class="w"> </span>simulate<span class="w"> </span><span class="nv">$INPUT_FILE</span><span class="w"> </span>--output<span class="w"> </span><span class="nv">$OUTPUT_DIR</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="environment-variables">
+<h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading">¶</a></h2>
+<p>ProteinMD CLI respects these environment variables:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">PROTEINMD_DATA_DIR</span></code></dt><dd><p>Default data directory</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PROTEINMD_CONFIG_FILE</span></code></dt><dd><p>Configuration file path</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PROTEINMD_THREADS</span></code></dt><dd><p>Number of CPU threads</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PROTEINMD_GPU_DEVICE</span></code></dt><dd><p>GPU device ID</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PROTEINMD_LOG_LEVEL</span></code></dt><dd><p>Logging level (DEBUG, INFO, WARNING, ERROR)</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PROTEINMD_TEMP_DIR</span></code></dt><dd><p>Temporary file directory</p>
+</dd>
+</dl>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
+<section id="common-issues">
+<h3>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading">¶</a></h3>
+<p><strong>Command not found:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check installation</span>
+<span class="n">pip</span> <span class="n">show</span> <span class="n">proteinMD</span>
+
+<span class="c1"># Reinstall if needed</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">force</span><span class="o">-</span><span class="n">reinstall</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+<p><strong>Permission errors:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check file permissions</span>
+<span class="n">ls</span> <span class="o">-</span><span class="n">la</span> <span class="n">input_file</span><span class="o">.</span><span class="n">pdb</span>
+
+<span class="c1"># Set output directory</span>
+<span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">output</span> <span class="o">~/</span><span class="n">simulations</span><span class="o">/</span>
+</pre></div>
+</div>
+<p><strong>Memory issues:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reduce precision for large systems</span>
+<span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">large_system</span><span class="o">.</span><span class="n">pdb</span> \
+    <span class="o">--</span><span class="n">precision</span> <span class="n">single</span> \
+    <span class="o">--</span><span class="n">save</span><span class="o">-</span><span class="n">frequency</span> <span class="mi">10000</span>
+</pre></div>
+</div>
+<p><strong>GPU errors:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check GPU availability</span>
+<span class="n">proteinmd</span> <span class="n">info</span> <span class="o">--</span><span class="n">gpu</span>
+
+<span class="c1"># Force CPU platform</span>
+<span class="n">proteinmd</span> <span class="n">simulate</span> <span class="n">protein</span><span class="o">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">platform</span> <span class="n">CPU</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="getting-help">
+<h2>Getting Help<a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<p><strong>Command help:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="o">--</span><span class="n">help</span>
+<span class="n">proteinmd</span> <span class="n">simulate</span> <span class="o">--</span><span class="n">help</span>
+<span class="n">proteinmd</span> <span class="n">analyze</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+<p><strong>System information:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">info</span>
+</pre></div>
+</div>
+<p><strong>Example files:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proteinmd</span> <span class="n">examples</span> <span class="o">--</span><span class="nb">list</span>
+<span class="n">proteinmd</span> <span class="n">examples</span> <span class="o">--</span><span class="n">download</span> <span class="n">tutorial_1</span>
+</pre></div>
+</div>
+<p><strong>Documentation:</strong></p>
+<ul class="simple">
+<li><p>Full API documentation: <a class="reference internal" href="../api/core.html"><span class="doc">Core Simulation Engine</span></a></p></li>
+<li><p>Tutorials: <a class="reference internal" href="tutorials.html"><span class="doc">Tutorials</span></a></p></li>
+<li><p>Troubleshooting: <a class="reference internal" href="../advanced/troubleshooting.html"><span class="doc">Troubleshooting Guide</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-and-setup">Installation and Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#commands-overview">Commands Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulate-run-md-simulations">simulate - Run MD Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analyze-trajectory-analysis">analyze - Trajectory Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#convert-file-format-conversion">convert - File Format Conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-predefined-workflows">workflow - Predefined Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-batch-processing">batch - Batch Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validate-structure-validation">validate - Structure Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-management">Configuration Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-templates">Workflow Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hpc-integration">HPC Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="tutorials.html" title="previous chapter">Tutorials</a></li>
+      <li>Next: <a href="examples.html" title="next chapter">Examples</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/user_guide/cli_reference.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

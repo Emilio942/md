@@ -1,0 +1,29 @@
+{
+  "simulation": {
+    "timestep": 0.002,
+    "temperature": 300.0,
+    "n_steps": 50000,
+    "output_frequency": 100
+  },
+  "sampling": {
+    "method": "steered_md",
+    "pulling_velocity": 0.005,
+    "spring_constant": 1000.0,
+    "coordinate_type": "com_distance",
+    "atom_groups": {
+      "group1": [1, 2, 3, 4, 5],
+      "group2": [96, 97, 98, 99, 100]
+    }
+  },
+  "analysis": {
+    "force_curves": true,
+    "work_calculation": true,
+    "jarzynski_analysis": true,
+    "output_dir": "steered_md_analysis"
+  },
+  "visualization": {
+    "enabled": true,
+    "force_plots": true,
+    "work_plots": true
+  }
+}

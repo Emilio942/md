@@ -1,0 +1,24 @@
+{
+  "simulation": {
+    "timestep": 0.002,
+    "temperature": 300.0,
+    "n_steps": 100000,
+    "output_frequency": 200
+  },
+  "sampling": {
+    "method": "umbrella_sampling",
+    "windows": 20,
+    "force_constant": 1000.0,
+    "coordinate_type": "distance",
+    "coordinate_range": [0.5, 3.0]
+  },
+  "analysis": {
+    "pmf_calculation": true,
+    "wham_analysis": true,
+    "output_dir": "free_energy_analysis"
+  },
+  "visualization": {
+    "enabled": true,
+    "pmf_plots": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "environment": {
+    "solvent": "implicit",
+    "gb_model": "gb_obc"
+  },
+  "simulation": {
+    "timestep": 0.004,
+    "temperature": 300.0,
+    "n_steps": 20000
+  },
+  "analysis": {
+    "rmsd": true,
+    "ramachandran": true,
+    "secondary_structure": true
+  }
+}

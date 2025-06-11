@@ -1,0 +1,193 @@
+{
+  "metadata": {
+    "force_field_name": "Simple Protein Force Field",
+    "description": "A simple custom force field for protein simulation",
+    "created_by": "proteinMD CustomForceField",
+    "format_version": "1.0",
+    "units": {
+      "mass": "amu",
+      "charge": "elementary_charge",
+      "length": "nm",
+      "energy": "kJ/mol",
+      "angle": "radians"
+    }
+  },
+  "atom_types": [
+    {
+      "name": "CA",
+      "mass": 12.01,
+      "charge": 0.0,
+      "sigma": 0.339967,
+      "epsilon": 0.359824,
+      "description": "Carbon alpha in protein backbone"
+    },
+    {
+      "name": "CB",
+      "mass": 12.01,
+      "charge": 0.0,
+      "sigma": 0.339967,
+      "epsilon": 0.359824,
+      "description": "Carbon beta in amino acid side chains"
+    },
+    {
+      "name": "NH",
+      "mass": 14.007,
+      "charge": -0.4,
+      "sigma": 0.325,
+      "epsilon": 0.71128,
+      "description": "Nitrogen in amide groups"
+    },
+    {
+      "name": "OH",
+      "mass": 15.999,
+      "charge": -0.6,
+      "sigma": 0.30664,
+      "epsilon": 0.88281,
+      "description": "Oxygen in carbonyl groups"
+    },
+    {
+      "name": "HN",
+      "mass": 1.008,
+      "charge": 0.4,
+      "sigma": 0.10691,
+      "epsilon": 0.06568,
+      "description": "Hydrogen bonded to nitrogen"
+    },
+    {
+      "name": "HC",
+      "mass": 1.008,
+      "charge": 0.0,
+      "sigma": 0.24718,
+      "epsilon": 0.06568,
+      "description": "Hydrogen bonded to carbon"
+    }
+  ],
+  "bond_types": [
+    {
+      "atom_types": ["CA", "CB"],
+      "length": 0.1529,
+      "k": 259408.0,
+      "description": "CA-CB single bond"
+    },
+    {
+      "atom_types": ["CA", "NH"],
+      "length": 0.1449,
+      "k": 282001.6,
+      "description": "CA-NH amide bond"
+    },
+    {
+      "atom_types": ["CA", "OH"],
+      "length": 0.1229,
+      "k": 476976.0,
+      "description": "CA-OH carbonyl bond"
+    },
+    {
+      "atom_types": ["NH", "HN"],
+      "length": 0.1010,
+      "k": 363171.2,
+      "description": "NH-HN bond"
+    },
+    {
+      "atom_types": ["CA", "HC"],
+      "length": 0.1090,
+      "k": 284512.0,
+      "description": "CA-HC bond"
+    },
+    {
+      "atom_types": ["CB", "HC"],
+      "length": 0.1090,
+      "k": 284512.0,
+      "description": "CB-HC bond"
+    }
+  ],
+  "angle_types": [
+    {
+      "atom_types": ["NH", "CA", "CB"],
+      "angle": 1.9146,
+      "k": 418.4,
+      "description": "NH-CA-CB angle"
+    },
+    {
+      "atom_types": ["NH", "CA", "OH"],
+      "angle": 2.0944,
+      "k": 669.44,
+      "description": "NH-CA-OH angle"
+    },
+    {
+      "atom_types": ["CB", "CA", "OH"],
+      "angle": 2.0944,
+      "k": 669.44,
+      "description": "CB-CA-OH angle"
+    },
+    {
+      "atom_types": ["CA", "NH", "HN"],
+      "angle": 2.0944,
+      "k": 292.88,
+      "description": "CA-NH-HN angle"
+    },
+    {
+      "atom_types": ["CA", "CB", "HC"],
+      "angle": 1.9106,
+      "k": 292.88,
+      "description": "CA-CB-HC angle"
+    },
+    {
+      "atom_types": ["HC", "CB", "HC"],
+      "angle": 1.8762,
+      "k": 276.14,
+      "description": "HC-CB-HC angle"
+    }
+  ],
+  "dihedral_types": [
+    {
+      "atom_types": ["NH", "CA", "CB", "HC"],
+      "periodicity": 3,
+      "phase": 0.0,
+      "k": 0.6276,
+      "description": "Backbone-sidechain dihedral"
+    },
+    {
+      "atom_types": ["OH", "CA", "NH", "HN"],
+      "periodicity": 2,
+      "phase": 3.14159,
+      "k": 8.368,
+      "description": "Amide dihedral"
+    },
+    {
+      "atom_types": ["CA", "CB", "HC", "HC"],
+      "periodicity": 3,
+      "phase": 0.0,
+      "k": 0.6276,
+      "description": "Methyl rotation"
+    }
+  ],
+  "residue_templates": [
+    {
+      "name": "ALA",
+      "description": "Alanine residue template",
+      "atoms": [
+        {"name": "N", "type": "NH", "charge": -0.4},
+        {"name": "H", "type": "HN", "charge": 0.4},
+        {"name": "CA", "type": "CA", "charge": 0.0},
+        {"name": "HA", "type": "HC", "charge": 0.0},
+        {"name": "CB", "type": "CB", "charge": 0.0},
+        {"name": "HB1", "type": "HC", "charge": 0.0},
+        {"name": "HB2", "type": "HC", "charge": 0.0},
+        {"name": "HB3", "type": "HC", "charge": 0.0},
+        {"name": "C", "type": "CA", "charge": 0.0},
+        {"name": "O", "type": "OH", "charge": -0.6}
+      ],
+      "bonds": [
+        ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+        ["CB", "HB1"], ["CB", "HB2"], ["CB", "HB3"], ["C", "O"]
+      ],
+      "angles": [
+        ["H", "N", "CA"], ["N", "CA", "HA"], ["N", "CA", "CB"], ["N", "CA", "C"],
+        ["HA", "CA", "CB"], ["HA", "CA", "C"], ["CB", "CA", "C"],
+        ["CA", "CB", "HB1"], ["CA", "CB", "HB2"], ["CA", "CB", "HB3"],
+        ["HB1", "CB", "HB2"], ["HB1", "CB", "HB3"], ["HB2", "CB", "HB3"],
+        ["CA", "C", "O"]
+      ]
+    }
+  ]
+}

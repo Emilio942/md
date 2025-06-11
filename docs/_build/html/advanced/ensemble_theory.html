@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Ensemble Theory &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Enhanced Sampling Methods" href="enhanced_sampling.html" />
+    <link rel="prev" title="Integration Algorithms" href="integration_algorithms.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="ensemble-theory">
+<h1>Ensemble Theory<a class="headerlink" href="#ensemble-theory" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>Statistical ensembles provide the theoretical framework for connecting molecular dynamics simulations to experimental measurements. Different ensembles correspond to different experimental conditions and require specific simulation protocols to sample correctly.</p>
+<p><strong>Key Concepts:</strong></p>
+<ul class="simple">
+<li><p><strong>Ensemble</strong>: Collection of all possible microstates consistent with imposed constraints</p></li>
+<li><p><strong>Macrostate</strong>: Experimentally observable quantities (T, P, V, etc.)</p></li>
+<li><p><strong>Microstate</strong>: Complete specification of all particle positions and momenta</p></li>
+<li><p><strong>Ensemble Average</strong>: Theoretical prediction for experimental observables</p></li>
+</ul>
+</section>
+<section id="statistical-ensembles-in-md">
+<h2>Statistical Ensembles in MD<a class="headerlink" href="#statistical-ensembles-in-md" title="Link to this heading">¶</a></h2>
+<section id="microcanonical-ensemble-nve">
+<h3>Microcanonical Ensemble (NVE)<a class="headerlink" href="#microcanonical-ensemble-nve" title="Link to this heading">¶</a></h3>
+<p><strong>Fixed Quantities:</strong> N (particles), V (volume), E (energy)</p>
+<p><strong>Physical Meaning:</strong> Isolated system with no heat or work exchange</p>
+<p><strong>Probability Distribution:</strong></p>
+<div class="math notranslate nohighlight">
+\[P(\Gamma) = \frac{\delta(H(\Gamma) - E)}{\Omega(N,V,E)}\]</div>
+<p><strong>Implementation:</strong>
+- Standard Verlet-type integrators
+- No thermostat or barostat
+- Energy should be perfectly conserved</p>
+<p><strong>Applications:</strong>
+- Validating force fields and integrators
+- Studying intrinsic system dynamics
+- Short equilibration runs</p>
+</section>
+<section id="canonical-ensemble-nvt">
+<h3>Canonical Ensemble (NVT)<a class="headerlink" href="#canonical-ensemble-nvt" title="Link to this heading">¶</a></h3>
+<p><strong>Fixed Quantities:</strong> N (particles), V (volume), T (temperature)</p>
+<p><strong>Physical Meaning:</strong> System in contact with heat reservoir</p>
+<p><strong>Probability Distribution:</strong></p>
+<div class="math notranslate nohighlight">
+\[P(\Gamma) = \frac{e^{-\beta H(\Gamma)}}{Z(N,V,T)}\]</div>
+<p><strong>Partition Function:</strong></p>
+<div class="math notranslate nohighlight">
+\[Z(N,V,T) = \int e^{-\beta H(\Gamma)} d\Gamma\]</div>
+<p><strong>Implementation:</strong> Requires thermostat to maintain constant temperature</p>
+</section>
+<section id="isothermal-isobaric-ensemble-npt">
+<h3>Isothermal-Isobaric Ensemble (NPT)<a class="headerlink" href="#isothermal-isobaric-ensemble-npt" title="Link to this heading">¶</a></h3>
+<p><strong>Fixed Quantities:</strong> N (particles), P (pressure), T (temperature)</p>
+<p><strong>Physical Meaning:</strong> System in contact with heat and pressure reservoirs</p>
+<p><strong>Probability Distribution:</strong></p>
+<div class="math notranslate nohighlight">
+\[P(\Gamma,V) = \frac{e^{-\beta[H(\Gamma) + PV]}}{Z(N,P,T)}\]</div>
+<p><strong>Implementation:</strong> Requires both thermostat and barostat</p>
+</section>
+<section id="grand-canonical-ensemble-vt">
+<h3>Grand Canonical Ensemble (μVT)<a class="headerlink" href="#grand-canonical-ensemble-vt" title="Link to this heading">¶</a></h3>
+<p><strong>Fixed Quantities:</strong> μ (chemical potential), V (volume), T (temperature)</p>
+<p><strong>Applications:</strong> Systems with particle exchange (rare in biomolecular MD)</p>
+</section>
+</section>
+<section id="temperature-control-algorithms">
+<h2>Temperature Control Algorithms<a class="headerlink" href="#temperature-control-algorithms" title="Link to this heading">¶</a></h2>
+<section id="velocity-rescaling-methods">
+<h3>Velocity Rescaling Methods<a class="headerlink" href="#velocity-rescaling-methods" title="Link to this heading">¶</a></h3>
+<p><strong>Simple Rescaling:</strong></p>
+<div class="math notranslate nohighlight">
+\[v_i^{new} = v_i \sqrt{\frac{T_0}{T_{current}}}\]</div>
+<p><strong>Problems:</strong>
+- Instantaneous temperature change
+- Unphysical dynamics
+- Does not generate canonical distribution</p>
+<p><strong>Berendsen Thermostat:</strong></p>
+<div class="math notranslate nohighlight">
+\[\frac{dT}{dt} = \frac{T_0 - T}{\tau_T}\]</div>
+<p><strong>Implementation:</strong></p>
+<div class="math notranslate nohighlight">
+\[v_i^{new} = v_i \sqrt{1 + \frac{\Delta t}{\tau_T}\left(\frac{T_0}{T} - 1\right)}\]</div>
+<p><strong>Properties:</strong>
+- Exponential approach to target temperature
+- Stable and easy to implement
+- Does not generate canonical ensemble
+- Good for equilibration</p>
+</section>
+<section id="stochastic-methods">
+<h3>Stochastic Methods<a class="headerlink" href="#stochastic-methods" title="Link to this heading">¶</a></h3>
+<p><strong>Langevin Dynamics:</strong></p>
+<div class="math notranslate nohighlight">
+\[m_i \ddot{r}_i = F_i - \gamma m_i \dot{r}_i + \sqrt{2\gamma m_i k_B T} R_i(t)\]</div>
+<p>where:
+- γ is the friction coefficient
+- R_i(t) is white noise: ⟨R_i(t)R_j(t’)⟩ = δ_ij δ(t-t’)</p>
+<p><strong>Properties:</strong>
+- Generates canonical ensemble
+- Natural coupling to environment
+- Affects diffusion properties
+- Requires careful choice of γ</p>
+<p><strong>Stochastic Velocity Rescaling:</strong></p>
+<p>Combines Berendsen-like exponential relaxation with stochastic noise to generate correct canonical distribution.</p>
+</section>
+<section id="extended-system-methods">
+<h3>Extended System Methods<a class="headerlink" href="#extended-system-methods" title="Link to this heading">¶</a></h3>
+<p><strong>Nosé-Hoover Thermostat:</strong></p>
+<p>Introduces auxiliary variable ζ with its own equation of motion:</p>
+<div class="math notranslate nohighlight">
+\[\frac{dr_i}{dt} = \frac{p_i}{m_i}\]</div>
+<p><strong>Properties:</strong>
+- Generates exact canonical ensemble
+- Time-reversible and deterministic
+- Can show oscillatory behavior
+- Mass parameter Q affects coupling strength</p>
+<p><strong>Nosé-Hoover Chains:</strong></p>
+<p>Multiple coupled thermostats to improve sampling:</p>
+</section>
+</section>
+<section id="pressure-control-algorithms">
+<h2>Pressure Control Algorithms<a class="headerlink" href="#pressure-control-algorithms" title="Link to this heading">¶</a></h2>
+<section id="pressure-calculation">
+<h3>Pressure Calculation<a class="headerlink" href="#pressure-calculation" title="Link to this heading">¶</a></h3>
+<p><strong>Virial Equation:</strong></p>
+<p><strong>Pressure Tensor:</strong></p>
+</section>
+<section id="berendsen-barostat">
+<h3>Berendsen Barostat<a class="headerlink" href="#berendsen-barostat" title="Link to this heading">¶</a></h3>
+<p><strong>Volume Scaling:</strong></p>
+<p><strong>Coordinate Scaling:</strong></p>
+<p><strong>Properties:</strong>
+- Exponential approach to target pressure
+- Simple implementation
+- Does not generate correct NPT ensemble
+- Good for equilibration</p>
+</section>
+<section id="parrinello-rahman-barostat">
+<h3>Parrinello-Rahman Barostat<a class="headerlink" href="#parrinello-rahman-barostat" title="Link to this heading">¶</a></h3>
+<p><strong>Extended Lagrangian:</strong></p>
+<p>Treats box vectors as dynamical variables with associated kinetic energy:</p>
+<p><strong>Equations of Motion:</strong></p>
+<p><strong>Properties:</strong>
+- Generates correct NPT ensemble
+- Allows anisotropic volume changes
+- Can show oscillatory behavior
+- More complex implementation</p>
+</section>
+<section id="semi-isotropic-coupling">
+<h3>Semi-isotropic Coupling<a class="headerlink" href="#semi-isotropic-coupling" title="Link to this heading">¶</a></h3>
+<p>For membrane simulations, different coupling in x,y vs z directions:</p>
+<p><strong>Applications:</strong>
+- Biological membranes
+- Slab geometries
+- Interface systems</p>
+</section>
+</section>
+<section id="enhanced-sampling-methods">
+<h2>Enhanced Sampling Methods<a class="headerlink" href="#enhanced-sampling-methods" title="Link to this heading">¶</a></h2>
+<section id="replica-exchange-molecular-dynamics">
+<h3>Replica Exchange Molecular Dynamics<a class="headerlink" href="#replica-exchange-molecular-dynamics" title="Link to this heading">¶</a></h3>
+<p><strong>Basic Principle:</strong></p>
+<p>Run multiple replicas at different temperatures and exchange configurations based on Metropolis criterion.</p>
+<p><strong>Exchange Probability:</strong></p>
+<p><strong>Benefits:</strong>
+- Overcome energy barriers
+- Improved conformational sampling
+- Parallel implementation</p>
+</section>
+<section id="umbrella-sampling">
+<h3>Umbrella Sampling<a class="headerlink" href="#umbrella-sampling" title="Link to this heading">¶</a></h3>
+<p><strong>Biasing Potential:</strong></p>
+<p>Add harmonic restraint to reaction coordinate:</p>
+<p><strong>WHAM Analysis:</strong></p>
+<p>Weighted Histogram Analysis Method to recover unbiased distribution:</p>
+</section>
+<section id="metadynamics">
+<h3>Metadynamics<a class="headerlink" href="#metadynamics" title="Link to this heading">¶</a></h3>
+<p><strong>Bias Potential:</strong></p>
+<p>Adaptively add Gaussian hills to discourage revisiting sampled regions:</p>
+</section>
+</section>
+<section id="integration-with-thermostats-barostats">
+<h2>Integration with Thermostats/Barostats<a class="headerlink" href="#integration-with-thermostats-barostats" title="Link to this heading">¶</a></h2>
+<section id="multiple-time-scale-integration">
+<h3>Multiple Time Scale Integration<a class="headerlink" href="#multiple-time-scale-integration" title="Link to this heading">¶</a></h3>
+<p>When using thermostats/barostats, careful integration is required to maintain ensemble properties:</p>
+<p><strong>Trotter Decomposition:</strong></p>
+<p><strong>RESPA Integration:</strong></p>
+<p>Different time steps for different components:
+- Fast: bonded interactions
+- Medium: short-range nonbonded
+- Slow: long-range electrostatics, thermostat/barostat</p>
+</section>
+</section>
+<section id="practical-implementation">
+<h2>Practical Implementation<a class="headerlink" href="#practical-implementation" title="Link to this heading">¶</a></h2>
+<section id="thermostat-selection-guidelines">
+<h3>Thermostat Selection Guidelines<a class="headerlink" href="#thermostat-selection-guidelines" title="Link to this heading">¶</a></h3>
+<p><strong>Equilibration:</strong>
+- Berendsen: Fast, stable equilibration
+- Strong coupling (small τ_T)</p>
+<p><strong>Production:</strong>
+- Nosé-Hoover: Correct canonical ensemble
+- Langevin: Good for flexible systems
+- Weak coupling (large τ_T)</p>
+<p><strong>System-Specific Considerations:</strong>
+- Proteins: Nosé-Hoover or Langevin
+- Liquids: Any method works well
+- Crystals: Avoid overly strong damping</p>
+</section>
+<section id="barostat-selection-guidelines">
+<h3>Barostat Selection Guidelines<a class="headerlink" href="#barostat-selection-guidelines" title="Link to this heading">¶</a></h3>
+<p><strong>System Type:</strong>
+- Isotropic: Standard Parrinello-Rahman
+- Membranes: Semi-isotropic coupling
+- Crystals: Full anisotropic coupling</p>
+<p><strong>Coupling Strength:</strong>
+- Liquids: τ_P = 1-5 ps
+- Proteins: τ_P = 5-20 ps
+- Avoid oscillations in volume</p>
+</section>
+</section>
+<section id="common-pitfalls-and-solutions">
+<h2>Common Pitfalls and Solutions<a class="headerlink" href="#common-pitfalls-and-solutions" title="Link to this heading">¶</a></h2>
+<section id="temperature-hot-spots">
+<h3>Temperature Hot Spots<a class="headerlink" href="#temperature-hot-spots" title="Link to this heading">¶</a></h3>
+<p><strong>Problem:</strong> Uneven temperature distribution</p>
+<p><strong>Causes:</strong>
+- Local heating from bad contacts
+- Inadequate equilibration
+- Too strong thermostat coupling</p>
+<p><strong>Solutions:</strong>
+- Gradual heating protocols
+- Energy minimization before dynamics
+- Monitor temperature by region</p>
+</section>
+<section id="pressure-instabilities">
+<h3>Pressure Instabilities<a class="headerlink" href="#pressure-instabilities" title="Link to this heading">¶</a></h3>
+<p><strong>Problem:</strong> Large pressure oscillations</p>
+<p><strong>Causes:</strong>
+- Too strong pressure coupling
+- Inadequate equilibration
+- System too small</p>
+<p><strong>Solutions:</strong>
+- Longer coupling time constants
+- Longer equilibration
+- Larger system size
+- Monitor pressure convergence</p>
+</section>
+<section id="ensemble-artifacts">
+<h3>Ensemble Artifacts<a class="headerlink" href="#ensemble-artifacts" title="Link to this heading">¶</a></h3>
+<p><strong>Non-equilibrium Effects:</strong>
+- Initial velocity assignment
+- Sudden temperature/pressure changes
+- Inadequate coupling to reservoirs</p>
+<p><strong>Detection:</strong>
+- Monitor ensemble averages vs time
+- Check for systematic drifts
+- Compare different protocols</p>
+</section>
+</section>
+<section id="validation-and-quality-control">
+<h2>Validation and Quality Control<a class="headerlink" href="#validation-and-quality-control" title="Link to this heading">¶</a></h2>
+<section id="energy-conservation-nve">
+<h3>Energy Conservation (NVE)<a class="headerlink" href="#energy-conservation-nve" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">check_energy_conservation</span><span class="p">(</span><span class="n">trajectory</span><span class="p">):</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">get_total_energy</span><span class="p">()</span>
+    <span class="n">energy_drift</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">energies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">energies</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">energies</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">energy_drift</span> <span class="o">&lt;</span> <span class="mf">1e-4</span>
+</pre></div>
+</div>
+</section>
+<section id="temperature-distribution-nvt">
+<h3>Temperature Distribution (NVT)<a class="headerlink" href="#temperature-distribution-nvt" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">validate_temperature_distribution</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">target_temp</span><span class="p">):</span>
+    <span class="n">temperatures</span> <span class="o">=</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">get_temperature</span><span class="p">()</span>
+    <span class="n">mean_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span>
+    <span class="n">temp_fluctuation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">temperatures</span><span class="p">)</span>
+
+    <span class="c1"># Check mean temperature</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mean_temp</span> <span class="o">-</span> <span class="n">target_temp</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">target_temp</span>
+
+    <span class="c1"># Check fluctuation magnitude (for ideal gas)</span>
+    <span class="n">expected_fluctuation</span> <span class="o">=</span> <span class="n">target_temp</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">N</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">temp_fluctuation</span> <span class="o">-</span> <span class="n">expected_fluctuation</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">expected_fluctuation</span>
+</pre></div>
+</div>
+</section>
+<section id="volume-fluctuations-npt">
+<h3>Volume Fluctuations (NPT)<a class="headerlink" href="#volume-fluctuations-npt" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">check_pressure_coupling</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">target_pressure</span><span class="p">,</span> <span class="n">compressibility</span><span class="p">):</span>
+    <span class="n">volumes</span> <span class="o">=</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">get_volume</span><span class="p">()</span>
+    <span class="n">volume_fluctuation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
+
+    <span class="c1"># Compare with theoretical prediction</span>
+    <span class="n">mean_volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
+    <span class="n">theoretical_fluctuation</span> <span class="o">=</span> <span class="n">mean_volume</span> <span class="o">*</span> <span class="n">compressibility</span> <span class="o">*</span> <span class="n">kT</span>
+
+    <span class="n">ratio</span> <span class="o">=</span> <span class="n">volume_fluctuation</span> <span class="o">/</span> <span class="n">theoretical_fluctuation</span>
+    <span class="k">assert</span> <span class="mf">0.5</span> <span class="o">&lt;</span> <span class="n">ratio</span> <span class="o">&lt;</span> <span class="mf">2.0</span>  <span class="c1"># Within factor of 2</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="equilibration-protocol">
+<h3>Equilibration Protocol<a class="headerlink" href="#equilibration-protocol" title="Link to this heading">¶</a></h3>
+<p><strong>Step 1: Energy Minimization</strong>
+- Remove bad contacts
+- Steepest descent or conjugate gradient
+- Continue until forces converge</p>
+<p><strong>Step 2: Initial Heating</strong>
+- Start from low temperature (e.g., 50 K)
+- Gradually heat to target temperature
+- Use strong thermostat coupling initially</p>
+<p><strong>Step 3: Density Equilibration</strong>
+- Switch to NPT ensemble
+- Allow volume to equilibrate
+- Monitor density convergence</p>
+<p><strong>Step 4: Final Equilibration</strong>
+- Switch to production thermostat/barostat
+- Weaker coupling for correct ensemble
+- Monitor all properties for stability</p>
+</section>
+<section id="production-run-guidelines">
+<h3>Production Run Guidelines<a class="headerlink" href="#production-run-guidelines" title="Link to this heading">¶</a></h3>
+<p><strong>Simulation Length:</strong>
+- Multiple correlation times for target properties
+- Check convergence of properties of interest
+- Use block averaging to estimate errors</p>
+<p><strong>Monitoring:</strong>
+- Temperature and pressure (if controlled)
+- Total energy (for quality control)
+- System-specific order parameters
+- Volume (for NPT simulations)</p>
+<p><strong>Data Collection:</strong>
+- Save coordinates frequently enough for analysis
+- Save velocities if studying dynamics
+- Monitor throughout run for problems</p>
+</section>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>Ensemble theory provides the foundation for relating MD simulations to experiments:</p>
+<ol class="arabic simple">
+<li><p><strong>Ensemble Choice</strong>: Must match experimental conditions</p></li>
+<li><p><strong>Proper Implementation</strong>: Correct algorithms required for each ensemble</p></li>
+<li><p><strong>Equilibration</strong>: Critical for obtaining representative samples</p></li>
+<li><p><strong>Validation</strong>: Always verify correct ensemble generation</p></li>
+<li><p><strong>Quality Control</strong>: Continuous monitoring during production</p></li>
+</ol>
+<p><strong>Key Guidelines:</strong></p>
+<ul class="simple">
+<li><p>Use appropriate ensemble for experimental conditions</p></li>
+<li><p>Validate ensemble generation before analysis</p></li>
+<li><p>Use weak coupling in production runs</p></li>
+<li><p>Monitor system stability throughout simulation</p></li>
+<li><p>Understand limitations of each method</p></li>
+</ul>
+<p>The next section will cover enhanced sampling methods that extend beyond standard ensemble simulations to access rare events and compute free energies.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="scientific_background.html">Scientific Background and Theory</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="scientific_background.html">Scientific Background and Theory</a><ul>
+      <li>Previous: <a href="integration_algorithms.html" title="previous chapter">Integration Algorithms</a></li>
+      <li>Next: <a href="enhanced_sampling.html" title="next chapter">Enhanced Sampling Methods</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/ensemble_theory.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

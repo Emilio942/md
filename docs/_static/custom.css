@@ -1,0 +1,196 @@
+/* Custom CSS for ProteinMD Documentation */
+
+/* Main layout improvements */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    line-height: 1.6;
+}
+
+/* Header styling */
+.rst-content .document .section > h1 {
+    color: #2c3e50;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.rst-content .document .section > h2 {
+    color: #34495e;
+    border-bottom: 2px solid #95a5a6;
+    padding-bottom: 5px;
+}
+
+/* Code blocks */
+.rst-content pre.literal-block, 
+.rst-content div[class^='highlight'] pre, 
+.rst-content .linenodiv pre {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 12px;
+    font-size: 0.9em;
+}
+
+/* API documentation improvements */
+.rst-content dl:not(.docutils) dt {
+    background: #ecf0f1;
+    border-left: 4px solid #3498db;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+}
+
+.rst-content dl:not(.docutils) dd {
+    margin-left: 0;
+    padding-left: 20px;
+    border-left: 2px solid #ecf0f1;
+    margin-bottom: 20px;
+}
+
+/* Examples and notes */
+.rst-content .admonition.note {
+    background: #e8f4fd;
+    border-left: 4px solid #3498db;
+}
+
+.rst-content .admonition.warning {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.rst-content .admonition.tip {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+}
+
+/* Table styling */
+.rst-content table.docutils {
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.rst-content table.docutils th {
+    background: #34495e;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.rst-content table.docutils td {
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Navigation improvements */
+.wy-menu-vertical li.toctree-l2 a {
+    padding: 0.4045em 2.427em;
+    font-size: 0.9em;
+}
+
+.wy-menu-vertical li.toctree-l3 a {
+    padding: 0.4045em 3.427em;
+    font-size: 0.85em;
+    color: #404040;
+}
+
+/* Search box */
+.wy-side-nav-search {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Quick links styling */
+.rst-content .section ul li {
+    margin-bottom: 8px;
+}
+
+/* Module index improvements */
+.rst-content .modindex-jumpbox {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+/* Signature styling */
+.rst-content .sig {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 10px 0;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Parameter lists */
+.rst-content .field-list {
+    margin: 15px 0;
+}
+
+.rst-content .field-list .field-name {
+    background: #ecf0f1;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+/* Version and badge styling */
+.rst-content .versionmodified {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin: 10px 0;
+    font-size: 0.9em;
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 768px) {
+    .rst-content pre.literal-block,
+    .rst-content div[class^='highlight'] pre {
+        font-size: 0.8em;
+        padding: 8px;
+    }
+    
+    .rst-content .sig {
+        font-size: 0.8em;
+        padding: 6px 8px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .wy-nav-side,
+    .rst-footer-buttons,
+    .wy-breadcrumbs {
+        display: none !important;
+    }
+    
+    .wy-nav-content {
+        margin-left: 0 !important;
+    }
+}
+
+/* Custom classes for documentation */
+.proteinmd-example {
+    background: #f8f9fa;
+    border-left: 4px solid #28a745;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.proteinmd-warning {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.proteinmd-info {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+}

@@ -1,0 +1,34 @@
+# GPU Acceleration Dependencies for proteinMD Task 7.2
+# 
+# This file lists the additional dependencies required for GPU acceleration.
+# Install these packages for optimal performance on systems with compatible GPUs.
+
+# Core GPU computing libraries
+cupy-cuda11x>=10.0.0  # CUDA backend (adjust version based on CUDA installation)
+# cupy-cuda12x>=11.0.0  # Alternative for CUDA 12.x
+pyopencl>=2022.1      # OpenCL backend for broader GPU compatibility
+
+# Optional dependencies for enhanced features
+matplotlib>=3.5.0     # For performance visualization and plotting
+numpy>=1.20.0         # Already required by base package
+scipy>=1.7.0          # For advanced numerical operations
+
+# Development and testing
+pytest>=6.0.0         # For running GPU acceleration tests
+pytest-benchmark>=3.4.0  # For performance benchmarking
+
+# Installation instructions:
+#
+# For CUDA systems (NVIDIA GPUs):
+#   pip install cupy-cuda11x  # or cupy-cuda12x for CUDA 12
+#
+# For OpenCL systems (AMD, Intel, some NVIDIA):
+#   pip install pyopencl
+#
+# For full GPU acceleration support:
+#   pip install -r gpu_requirements.txt
+#
+# Note: Ensure you have appropriate GPU drivers installed:
+# - NVIDIA: CUDA toolkit and drivers
+# - AMD: ROCm or OpenCL drivers
+# - Intel: OpenCL runtime

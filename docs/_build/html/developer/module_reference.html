@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Module Reference &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Common Patterns" href="common_patterns.html" />
+    <link rel="prev" title="Benchmarking Guide" href="benchmarking.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-reference">
+<h1>Module Reference<a class="headerlink" href="#module-reference" title="Link to this heading">¶</a></h1>
+<p>This guide provides comprehensive documentation for ProteinMD’s module structure, APIs, and implementation patterns to help developers understand and contribute to the codebase.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p>
+<ul>
+<li><p><a class="reference internal" href="#module-hierarchy" id="id2">Module Hierarchy</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#core-module-proteinmd-core" id="id3">Core Module (<cite>proteinmd.core</cite>)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#simulation-engine" id="id4">Simulation Engine</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#forces-module-proteinmd-forces" id="id5">Forces Module (<cite>proteinmd.forces</cite>)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#force-calculation-framework" id="id6">Force Calculation Framework</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#topology-module-proteinmd-topology" id="id7">Topology Module (<cite>proteinmd.topology</cite>)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#molecular-structure-representation" id="id8">Molecular Structure Representation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#i-o-module-proteinmd-io" id="id9">I/O Module (<cite>proteinmd.io</cite>)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#file-format-support" id="id10">File Format Support</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#analysis-module-proteinmd-analysis" id="id11">Analysis Module (<cite>proteinmd.analysis</cite>)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#structural-analysis-tools" id="id12">Structural Analysis Tools</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#utils-module-proteinmd-utils" id="id13">Utils Module (<cite>proteinmd.utils</cite>)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#common-utilities" id="id14">Common Utilities</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#cuda-module-proteinmd-cuda" id="id15">CUDA Module (<cite>proteinmd.cuda</cite>)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#gpu-acceleration-framework" id="id16">GPU Acceleration Framework</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#module-integration-patterns" id="id17">Module Integration Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#dependency-injection" id="id18">Dependency Injection</a></p></li>
+<li><p><a class="reference internal" href="#plugin-architecture" id="id19">Plugin Architecture</a></p></li>
+<li><p><a class="reference internal" href="#testing-integration" id="id20">Testing Integration</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>ProteinMD is organized into a modular architecture that promotes code reusability, maintainability, and extensibility. This reference guide covers all major modules and their interactions.</p>
+<section id="module-hierarchy">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Module Hierarchy</a><a class="headerlink" href="#module-hierarchy" title="Link to this heading">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>proteinmd/
+├── core/                    # Core simulation engine
+│   ├── simulation.py        # Main simulation class
+│   ├── system.py            # System representation
+│   ├── integrators.py       # Time integration schemes
+│   └── state.py             # Simulation state management
+├── forces/                  # Force calculation modules
+│   ├── bonded.py            # Bonded interactions
+│   ├── nonbonded.py         # Non-bonded interactions
+│   ├── electrostatic.py     # Electrostatic forces
+│   └── external.py          # External force fields
+├── topology/                # Molecular topology
+│   ├── molecule.py          # Molecule representation
+│   ├── residue.py           # Residue handling
+│   ├── atom.py              # Atom properties
+│   └── bonds.py             # Bond connectivity
+├── io/                      # Input/output handling
+│   ├── readers.py           # File format readers
+│   ├── writers.py           # File format writers
+│   └── trajectory.py        # Trajectory management
+├── analysis/                # Analysis tools
+│   ├── structural.py        # Structural analysis
+│   ├── dynamics.py          # Dynamic analysis
+│   └── thermodynamics.py    # Thermodynamic properties
+├── utils/                   # Utility functions
+│   ├── constants.py         # Physical constants
+│   ├── units.py             # Unit conversions
+│   └── math_utils.py        # Mathematical utilities
+└── cuda/                    # GPU acceleration
+    ├── kernels/             # CUDA kernels
+    ├── memory.py            # GPU memory management
+    └── device.py            # Device management
+</pre></div>
+</div>
+</section>
+</section>
+<section id="core-module-proteinmd-core">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Core Module (<cite>proteinmd.core</cite>)</a><a class="headerlink" href="#core-module-proteinmd-core" title="Link to this heading">¶</a></h2>
+<section id="simulation-engine">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Simulation Engine</a><a class="headerlink" href="#simulation-engine" title="Link to this heading">¶</a></h3>
+<p><strong>Main Simulation Class:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Simulation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main simulation engine for molecular dynamics.</span>
+
+<span class="sd">    This class orchestrates all aspects of an MD simulation,</span>
+<span class="sd">    including system setup, force calculations, integration,</span>
+<span class="sd">    and data collection.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        system (System): The molecular system being simulated</span>
+<span class="sd">        integrator (Integrator): Time integration algorithm</span>
+<span class="sd">        forces (list): List of force calculators</span>
+<span class="sd">        reporters (list): Output data reporters</span>
+<span class="sd">        state (SimulationState): Current simulation state</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">integrator</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize simulation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            system (System): Molecular system to simulate</span>
+<span class="sd">            integrator (Integrator): Integration algorithm</span>
+<span class="sd">            platform (str): Computational platform (&#39;cpu&#39;, &#39;cuda&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span> <span class="o">=</span> <span class="n">integrator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">platform</span> <span class="o">=</span> <span class="n">platform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">SimulationState</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add force calculator to simulation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            force (Force): Force calculation object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">force</span><span class="p">)</span>
+        <span class="n">force</span><span class="o">.</span><span class="n">set_system</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_reporter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reporter</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add data reporter.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            reporter (Reporter): Data output reporter</span>
+<span class="sd">            interval (int): Reporting interval in steps</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">reporter</span><span class="p">,</span> <span class="n">interval</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">minimize_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Minimize system energy.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            max_iterations (int): Maximum optimization iterations</span>
+<span class="sd">            tolerance (float): Convergence tolerance</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if converged, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.optimization</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnergyMinimizer</span>
+
+        <span class="n">minimizer</span> <span class="o">=</span> <span class="n">EnergyMinimizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="p">)</span>
+        <span class="n">converged</span> <span class="o">=</span> <span class="n">minimizer</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span>
+            <span class="n">max_iterations</span><span class="o">=</span><span class="n">max_iterations</span><span class="p">,</span>
+            <span class="n">tolerance</span><span class="o">=</span><span class="n">tolerance</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">converged</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="n">minimizer</span><span class="o">.</span><span class="n">get_positions</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_forces</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">converged</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform one simulation step.&quot;&quot;&quot;</span>
+        <span class="c1"># Calculate forces</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_forces</span><span class="p">()</span>
+
+        <span class="c1"># Integrate equations of motion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+
+        <span class="c1"># Apply constraints if any</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_constraints</span><span class="p">()</span>
+
+        <span class="c1"># Update state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">time</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span>
+
+        <span class="c1"># Generate reports</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_generate_reports</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run simulation for specified number of steps.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            steps (int): Number of simulation steps</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate all forces acting on the system.&quot;&quot;&quot;</span>
+        <span class="c1"># Zero out forces</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">forces</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="c1"># Calculate each force component</span>
+        <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="p">:</span>
+            <span class="n">force</span><span class="o">.</span><span class="n">calculate_forces</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply geometric constraints.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+            <span class="n">constraint</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_reports</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate output reports.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">reporter</span><span class="p">,</span> <span class="n">interval</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">step</span> <span class="o">%</span> <span class="n">interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">reporter</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>System Representation:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">System</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a molecular system for simulation.</span>
+
+<span class="sd">    Contains all information about atoms, bonds, and</span>
+<span class="sd">    simulation parameters needed for MD calculations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">periodic</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add atom to system.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            element (str): Element symbol</span>
+<span class="sd">            mass (float): Atomic mass in amu</span>
+<span class="sd">            charge (float): Partial charge in elementary charge units</span>
+<span class="sd">            position (array): Initial position in nm</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Atom index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.topology</span><span class="w"> </span><span class="kn">import</span> <span class="n">Atom</span>
+
+        <span class="n">atom</span> <span class="o">=</span> <span class="n">Atom</span><span class="p">(</span>
+            <span class="n">index</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">),</span>
+            <span class="n">element</span><span class="o">=</span><span class="n">element</span><span class="p">,</span>
+            <span class="n">mass</span><span class="o">=</span><span class="n">mass</span><span class="p">,</span>
+            <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">position</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_bond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_constant</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add bond between atoms.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            atom1 (int): First atom index</span>
+<span class="sd">            atom2 (int): Second atom index</span>
+<span class="sd">            length (float): Equilibrium bond length in nm</span>
+<span class="sd">            force_constant (float): Force constant in kJ/mol/nm²</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.topology</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bond</span>
+
+        <span class="n">bond</span> <span class="o">=</span> <span class="n">Bond</span><span class="p">(</span><span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">force_constant</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bond</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_periodic_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box_vectors</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set periodic boundary conditions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            box_vectors (array): Box vectors as 3x3 matrix in nm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">box_vectors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">periodic</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of atoms in system.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all atom positions.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: Positions array (n_atoms, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set all atom positions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            positions (array): New positions (n_atoms, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">atom</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span> <span class="n">positions</span><span class="p">):</span>
+            <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">pos</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="forces-module-proteinmd-forces">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Forces Module (<cite>proteinmd.forces</cite>)</a><a class="headerlink" href="#forces-module-proteinmd-forces" title="Link to this heading">¶</a></h2>
+<section id="force-calculation-framework">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Force Calculation Framework</a><a class="headerlink" href="#force-calculation-framework" title="Link to this heading">¶</a></h3>
+<p><strong>Base Force Class:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Force</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for force calculations.</span>
+
+<span class="sd">    All force calculators must inherit from this class</span>
+<span class="sd">    and implement the calculate_forces method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the system for force calculations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            system (System): Molecular system</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">system</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate forces and add to state.forces.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state (SimulationState): Current simulation state</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate potential energy.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state (SimulationState): Current simulation state</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Potential energy in kJ/mol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p><strong>Lennard-Jones Forces:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LennardJonesForce</span><span class="p">(</span><span class="n">Force</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lennard-Jones 12-6 potential for van der Waals interactions.</span>
+
+<span class="sd">    V(r) = 4*epsilon*[(sigma/r)^12 - (sigma/r)^6]</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        cutoff (float): Cutoff distance in nm</span>
+<span class="sd">        switch_distance (float): Switching function start distance</span>
+<span class="sd">        use_switching (bool): Whether to use switching function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">switch_distance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="n">cutoff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_distance</span> <span class="o">=</span> <span class="n">switch_distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_switching</span> <span class="o">=</span> <span class="n">switch_distance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># (atom_type1, atom_type2) -&gt; (sigma, epsilon)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_particle_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom_type</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add Lennard-Jones parameters for atom type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            atom_type (str): Atom type identifier</span>
+<span class="sd">            sigma (float): LJ sigma parameter in nm</span>
+<span class="sd">            epsilon (float): LJ epsilon parameter in kJ/mol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">atom_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate Lennard-Jones forces.&quot;&quot;&quot;</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">positions</span>
+        <span class="n">forces</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">forces</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">):</span>
+                <span class="c1"># Calculate distance</span>
+                <span class="n">r_vec</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+                <span class="c1"># Apply minimum image convention if periodic</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">periodic</span><span class="p">:</span>
+                    <span class="n">r_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_pbc</span><span class="p">(</span><span class="n">r_vec</span><span class="p">)</span>
+
+                <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r_vec</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="ow">and</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Get LJ parameters</span>
+                    <span class="n">type_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">atom_type</span>
+                    <span class="n">type_j</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">atom_type</span>
+                    <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_mixed_parameters</span><span class="p">(</span><span class="n">type_i</span><span class="p">,</span> <span class="n">type_j</span><span class="p">)</span>
+
+                    <span class="c1"># Calculate force</span>
+                    <span class="n">force_magnitude</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_lj_force</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_switching</span><span class="p">:</span>
+                        <span class="n">force_magnitude</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_switching_function</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+                    <span class="n">force_vec</span> <span class="o">=</span> <span class="n">force_magnitude</span> <span class="o">*</span> <span class="n">r_vec</span> <span class="o">/</span> <span class="n">r</span>
+
+                    <span class="n">forces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">force_vec</span>
+                    <span class="n">forces</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">force_vec</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate Lennard-Jones potential energy.&quot;&quot;&quot;</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">positions</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">):</span>
+                <span class="n">r_vec</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">periodic</span><span class="p">:</span>
+                    <span class="n">r_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_pbc</span><span class="p">(</span><span class="n">r_vec</span><span class="p">)</span>
+
+                <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r_vec</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff</span> <span class="ow">and</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">type_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">atom_type</span>
+                    <span class="n">type_j</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">atom_type</span>
+                    <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_mixed_parameters</span><span class="p">(</span><span class="n">type_i</span><span class="p">,</span> <span class="n">type_j</span><span class="p">)</span>
+
+                    <span class="c1"># LJ potential</span>
+                    <span class="n">energy</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_lj_energy</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">energy</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_lj_force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate LJ force magnitude.&quot;&quot;&quot;</span>
+        <span class="n">sigma_r</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">/</span> <span class="n">r</span>
+        <span class="n">sigma_r6</span> <span class="o">=</span> <span class="n">sigma_r</span><span class="o">**</span><span class="mi">6</span>
+        <span class="n">sigma_r12</span> <span class="o">=</span> <span class="n">sigma_r6</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">epsilon</span> <span class="o">/</span> <span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma_r12</span> <span class="o">-</span> <span class="n">sigma_r6</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_lj_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate LJ potential energy.&quot;&quot;&quot;</span>
+        <span class="n">sigma_r</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">/</span> <span class="n">r</span>
+        <span class="n">sigma_r6</span> <span class="o">=</span> <span class="n">sigma_r</span><span class="o">**</span><span class="mi">6</span>
+        <span class="n">sigma_r12</span> <span class="o">=</span> <span class="n">sigma_r6</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">epsilon</span> <span class="o">*</span> <span class="p">(</span><span class="n">sigma_r12</span> <span class="o">-</span> <span class="n">sigma_r6</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Bonded Forces:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BondForce</span><span class="p">(</span><span class="n">Force</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Harmonic bond stretching potential.</span>
+
+<span class="sd">    V(r) = 0.5 * k * (r - r0)^2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate bond forces.&quot;&quot;&quot;</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">positions</span>
+        <span class="n">forces</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">forces</span>
+
+        <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">bonds</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">bond</span><span class="o">.</span><span class="n">atom1</span><span class="p">,</span> <span class="n">bond</span><span class="o">.</span><span class="n">atom2</span>
+            <span class="n">r_vec</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">periodic</span><span class="p">:</span>
+                <span class="n">r_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_pbc</span><span class="p">(</span><span class="n">r_vec</span><span class="p">)</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r_vec</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Harmonic potential: F = -k * (r - r0) * r_hat</span>
+                <span class="n">force_magnitude</span> <span class="o">=</span> <span class="o">-</span><span class="n">bond</span><span class="o">.</span><span class="n">force_constant</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">bond</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+                <span class="n">force_vec</span> <span class="o">=</span> <span class="n">force_magnitude</span> <span class="o">*</span> <span class="n">r_vec</span> <span class="o">/</span> <span class="n">r</span>
+
+                <span class="n">forces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">force_vec</span>
+                <span class="n">forces</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">force_vec</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate bond potential energy.&quot;&quot;&quot;</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">positions</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">bonds</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">bond</span><span class="o">.</span><span class="n">atom1</span><span class="p">,</span> <span class="n">bond</span><span class="o">.</span><span class="n">atom2</span>
+            <span class="n">r_vec</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">periodic</span><span class="p">:</span>
+                <span class="n">r_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_pbc</span><span class="p">(</span><span class="n">r_vec</span><span class="p">)</span>
+
+            <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r_vec</span><span class="p">)</span>
+            <span class="n">dr</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="n">bond</span><span class="o">.</span><span class="n">length</span>
+            <span class="n">energy</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">bond</span><span class="o">.</span><span class="n">force_constant</span> <span class="o">*</span> <span class="n">dr</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">energy</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="topology-module-proteinmd-topology">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Topology Module (<cite>proteinmd.topology</cite>)</a><a class="headerlink" href="#topology-module-proteinmd-topology" title="Link to this heading">¶</a></h2>
+<section id="molecular-structure-representation">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Molecular Structure Representation</a><a class="headerlink" href="#molecular-structure-representation" title="Link to this heading">¶</a></h3>
+<p><strong>Atom Class:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Atom</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents an individual atom in the system.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        index (int): Unique atom identifier</span>
+<span class="sd">        element (str): Element symbol</span>
+<span class="sd">        atom_type (str): Force field atom type</span>
+<span class="sd">        mass (float): Atomic mass in amu</span>
+<span class="sd">        charge (float): Partial charge in elementary charge units</span>
+<span class="sd">        position (ndarray): 3D position coordinates in nm</span>
+<span class="sd">        residue (Residue): Parent residue (if applicable)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">atom_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element</span> <span class="o">=</span> <span class="n">element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atom_type</span> <span class="o">=</span> <span class="n">atom_type</span> <span class="ow">or</span> <span class="n">element</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="n">charge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residue</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">atomic_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get atomic number from element symbol.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">ATOMIC_NUMBERS</span>
+        <span class="k">return</span> <span class="n">ATOMIC_NUMBERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">distance_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_atom</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate distance to another atom.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other_atom (Atom): Target atom</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Distance in nm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="n">other_atom</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Atom(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="si">}</span><span class="s2">)&quot;</span>
+</pre></div>
+</div>
+<p><strong>Molecule Class:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Molecule</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a complete molecule (group of connected atoms).</span>
+
+<span class="sd">    Provides methods for molecular manipulation, analysis,</span>
+<span class="sd">    and property calculation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residues</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add atom to molecule.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            atom (Atom): Atom to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_bond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span><span class="p">,</span> <span class="n">bond_order</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add bond between atoms.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            atom1 (int or Atom): First atom</span>
+<span class="sd">            atom2 (int or Atom): Second atom</span>
+<span class="sd">            bond_order (int): Bond order (1=single, 2=double, etc.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atom1</span><span class="p">,</span> <span class="n">Atom</span><span class="p">):</span>
+            <span class="n">atom1</span> <span class="o">=</span> <span class="n">atom1</span><span class="o">.</span><span class="n">index</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atom2</span><span class="p">,</span> <span class="n">Atom</span><span class="p">):</span>
+            <span class="n">atom2</span> <span class="o">=</span> <span class="n">atom2</span><span class="o">.</span><span class="n">index</span>
+
+        <span class="n">bond</span> <span class="o">=</span> <span class="n">Bond</span><span class="p">(</span><span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span><span class="p">,</span> <span class="n">bond_order</span><span class="o">=</span><span class="n">bond_order</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bond</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate center of mass.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: Center of mass coordinates in nm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">mass</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
+        <span class="n">com</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
+            <span class="n">com</span> <span class="o">+=</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span> <span class="o">*</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span>
+
+        <span class="k">return</span> <span class="n">com</span> <span class="o">/</span> <span class="n">total_mass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_radius_of_gyration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate radius of gyration.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Radius of gyration in nm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">com</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_center_of_mass</span><span class="p">()</span>
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">mass</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
+        <span class="n">rg_squared</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
+            <span class="n">r_vec</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="n">com</span>
+            <span class="n">rg_squared</span> <span class="o">+=</span> <span class="n">atom</span><span class="o">.</span><span class="n">mass</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">r_vec</span><span class="p">,</span> <span class="n">r_vec</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rg_squared</span> <span class="o">/</span> <span class="n">total_mass</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">translation_vector</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Translate all atoms by given vector.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            translation_vector (array): Translation in nm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
+            <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">+=</span> <span class="n">translation_vector</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotation_matrix</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rotate molecule around given center.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rotation_matrix (array): 3x3 rotation matrix</span>
+<span class="sd">            center (array): Rotation center (default: center of mass)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">center</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_center_of_mass</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
+            <span class="c1"># Translate to origin</span>
+            <span class="n">relative_pos</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="n">center</span>
+            <span class="c1"># Rotate</span>
+            <span class="n">rotated_pos</span> <span class="o">=</span> <span class="n">rotation_matrix</span> <span class="o">@</span> <span class="n">relative_pos</span>
+            <span class="c1"># Translate back</span>
+            <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">rotated_pos</span> <span class="o">+</span> <span class="n">center</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="i-o-module-proteinmd-io">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">I/O Module (<cite>proteinmd.io</cite>)</a><a class="headerlink" href="#i-o-module-proteinmd-io" title="Link to this heading">¶</a></h2>
+<section id="file-format-support">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">File Format Support</a><a class="headerlink" href="#file-format-support" title="Link to this heading">¶</a></h3>
+<p><strong>PDB Reader:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">PDBReader</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read Protein Data Bank (PDB) format files.</span>
+
+<span class="sd">    Supports both standard PDB and mmCIF formats</span>
+<span class="sd">    with full metadata preservation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read PDB file and return System object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename (str): Path to PDB file</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            System: Molecular system object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">record_type</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">record_type</span> <span class="o">==</span> <span class="s1">&#39;ATOM&#39;</span> <span class="ow">or</span> <span class="n">record_type</span> <span class="o">==</span> <span class="s1">&#39;HETATM&#39;</span><span class="p">:</span>
+                    <span class="n">atom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_atom_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="n">system</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span>
+                        <span class="n">element</span><span class="o">=</span><span class="n">atom</span><span class="p">[</span><span class="s1">&#39;element&#39;</span><span class="p">],</span>
+                        <span class="n">mass</span><span class="o">=</span><span class="n">atom</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">],</span>
+                        <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># Will be set by force field</span>
+                        <span class="n">position</span><span class="o">=</span><span class="n">atom</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
+                    <span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">record_type</span> <span class="o">==</span> <span class="s1">&#39;CONECT&#39;</span><span class="p">:</span>
+                    <span class="n">bonds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_connect_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span> <span class="ow">in</span> <span class="n">bonds</span><span class="p">:</span>
+                        <span class="n">system</span><span class="o">.</span><span class="n">add_bond</span><span class="p">(</span><span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">record_type</span> <span class="o">==</span> <span class="s1">&#39;CRYST1&#39;</span><span class="p">:</span>
+                    <span class="n">box_vectors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_crystal_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="n">system</span><span class="o">.</span><span class="n">set_periodic_box</span><span class="p">(</span><span class="n">box_vectors</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">system</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_atom_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse ATOM/HETATM record.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;serial&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">11</span><span class="p">]),</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="s1">&#39;alt_loc&#39;</span><span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">16</span><span class="p">],</span>
+            <span class="s1">&#39;res_name&#39;</span><span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="s1">&#39;chain_id&#39;</span><span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">21</span><span class="p">],</span>
+            <span class="s1">&#39;res_seq&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">22</span><span class="p">:</span><span class="mi">26</span><span class="p">]),</span>
+            <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">,</span>  <span class="c1"># Convert Å to nm</span>
+            <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">,</span>
+            <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">,</span>
+            <span class="s1">&#39;position&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">,</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">,</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">])</span> <span class="o">/</span> <span class="mf">10.0</span>
+            <span class="p">]),</span>
+            <span class="s1">&#39;occupancy&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">54</span><span class="p">:</span><span class="mi">60</span><span class="p">])</span> <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">54</span><span class="p">:</span><span class="mi">60</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">else</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s1">&#39;temp_factor&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">60</span><span class="p">:</span><span class="mi">66</span><span class="p">])</span> <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">60</span><span class="p">:</span><span class="mi">66</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s1">&#39;element&#39;</span><span class="p">:</span> <span class="n">line</span><span class="p">[</span><span class="mi">76</span><span class="p">:</span><span class="mi">78</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">76</span> <span class="k">else</span> <span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;mass&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_atomic_mass</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">76</span><span class="p">:</span><span class="mi">78</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">76</span> <span class="k">else</span> <span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Trajectory Writer:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TrajectoryWriter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Write simulation trajectories in various formats.</span>
+
+<span class="sd">    Supports DCD, XTC, TRR, and custom HDF5 formats</span>
+<span class="sd">    with compression and metadata support.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;dcd&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_writer</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_writer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize format-specific writer.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;dcd&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setup_dcd_writer</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;xtc&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setup_xtc_writer</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setup_hdf5_writer</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported format: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write single trajectory frame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state (SimulationState): Current simulation state</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;dcd&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_dcd_frame</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;xtc&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_xtc_frame</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">==</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_hdf5_frame</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close trajectory file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_file_handle&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="analysis-module-proteinmd-analysis">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Analysis Module (<cite>proteinmd.analysis</cite>)</a><a class="headerlink" href="#analysis-module-proteinmd-analysis" title="Link to this heading">¶</a></h2>
+<section id="structural-analysis-tools">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Structural Analysis Tools</a><a class="headerlink" href="#structural-analysis-tools" title="Link to this heading">¶</a></h3>
+<p><strong>RMSD Calculator:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">RMSDCalculator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate Root Mean Square Deviation between structures.</span>
+
+<span class="sd">    Provides methods for optimal alignment and RMSD calculation</span>
+<span class="sd">    with support for different atom selections.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_positions</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize with reference structure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            reference_positions (array): Reference coordinates (n_atoms, 3)</span>
+<span class="sd">            selection (array): Atom indices to include in calculation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">reference_positions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selection</span> <span class="o">=</span> <span class="n">selection</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">reference_positions</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate RMSD between reference and given positions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            positions (array): Target coordinates (n_atoms, 3)</span>
+<span class="sd">            align (bool): Whether to perform optimal alignment</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: RMSD value in nm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ref_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="p">]</span>
+        <span class="n">pos_sel</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">selection</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">align</span><span class="p">:</span>
+            <span class="c1"># Perform optimal alignment using Kabsch algorithm</span>
+            <span class="n">pos_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_align_structures</span><span class="p">(</span><span class="n">ref_sel</span><span class="p">,</span> <span class="n">pos_sel</span><span class="p">)</span>
+
+        <span class="c1"># Calculate RMSD</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">ref_sel</span> <span class="o">-</span> <span class="n">pos_sel</span>
+        <span class="n">rmsd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">diff</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">rmsd</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_align_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="p">,</span> <span class="n">mobile</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Align mobile structure to reference using Kabsch algorithm.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            reference (array): Reference coordinates</span>
+<span class="sd">            mobile (array): Mobile coordinates</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            array: Aligned mobile coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Center structures</span>
+        <span class="n">ref_center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">mob_center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mobile</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">ref_centered</span> <span class="o">=</span> <span class="n">reference</span> <span class="o">-</span> <span class="n">ref_center</span>
+        <span class="n">mob_centered</span> <span class="o">=</span> <span class="n">mobile</span> <span class="o">-</span> <span class="n">mob_center</span>
+
+        <span class="c1"># Calculate optimal rotation matrix</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">mob_centered</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">ref_centered</span>
+        <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">Vt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">H</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">Vt</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">U</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c1"># Ensure proper rotation (det(R) = 1)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">Vt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">R</span> <span class="o">=</span> <span class="n">Vt</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">U</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c1"># Apply transformation</span>
+        <span class="n">aligned</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span> <span class="o">@</span> <span class="n">mob_centered</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">ref_center</span>
+
+        <span class="k">return</span> <span class="n">aligned</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="utils-module-proteinmd-utils">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Utils Module (<cite>proteinmd.utils</cite>)</a><a class="headerlink" href="#utils-module-proteinmd-utils" title="Link to this heading">¶</a></h2>
+<section id="common-utilities">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Common Utilities</a><a class="headerlink" href="#common-utilities" title="Link to this heading">¶</a></h3>
+<p><strong>Physical Constants:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Physical constants in SI units</span>
+<span class="n">AVOGADRO</span> <span class="o">=</span> <span class="mf">6.02214076e23</span>          <span class="c1"># mol^-1</span>
+<span class="n">BOLTZMANN</span> <span class="o">=</span> <span class="mf">1.380649e-23</span>          <span class="c1"># J/K</span>
+<span class="n">ELEMENTARY_CHARGE</span> <span class="o">=</span> <span class="mf">1.602176634e-19</span>  <span class="c1"># C</span>
+<span class="n">VACUUM_PERMITTIVITY</span> <span class="o">=</span> <span class="mf">8.8541878128e-12</span>  <span class="c1"># F/m</span>
+
+<span class="c1"># Conversion factors</span>
+<span class="n">ANGSTROM_TO_NM</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">KCAL_TO_KJ</span> <span class="o">=</span> <span class="mf">4.184</span>
+<span class="n">BAR_TO_PA</span> <span class="o">=</span> <span class="mf">1e5</span>
+
+<span class="c1"># Atomic masses (amu)</span>
+<span class="n">ATOMIC_MASSES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="mf">1.008</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="mf">12.011</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">:</span> <span class="mf">14.007</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">:</span> <span class="mf">15.999</span><span class="p">,</span>
+    <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mf">30.974</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span> <span class="mf">32.065</span><span class="p">,</span> <span class="s1">&#39;Na&#39;</span><span class="p">:</span> <span class="mf">22.990</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">:</span> <span class="mf">35.453</span><span class="p">,</span>
+    <span class="c1"># ... more elements</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Unit Conversions:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">UnitConverter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle unit conversions for physical quantities.</span>
+
+<span class="sd">    Provides methods to convert between different unit systems</span>
+<span class="sd">    commonly used in molecular dynamics simulations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">energy</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">from_unit</span><span class="p">,</span> <span class="n">to_unit</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert energy units.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value (float): Energy value</span>
+<span class="sd">            from_unit (str): Source unit (&#39;kJ/mol&#39;, &#39;kcal/mol&#39;, &#39;eV&#39;, &#39;hartree&#39;)</span>
+<span class="sd">            to_unit (str): Target unit</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Converted value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Convert to kJ/mol as intermediate</span>
+        <span class="n">to_kj_mol</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;kJ/mol&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s1">&#39;kcal/mol&#39;</span><span class="p">:</span> <span class="mf">4.184</span><span class="p">,</span>
+            <span class="s1">&#39;eV&#39;</span><span class="p">:</span> <span class="mf">96.485</span><span class="p">,</span>
+            <span class="s1">&#39;hartree&#39;</span><span class="p">:</span> <span class="mf">2625.5</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">from_unit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_kj_mol</span> <span class="ow">or</span> <span class="n">to_unit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_kj_mol</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported unit conversion: </span><span class="si">{</span><span class="n">from_unit</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">to_unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Convert to kJ/mol, then to target unit</span>
+        <span class="n">kj_mol_value</span> <span class="o">=</span> <span class="n">value</span> <span class="o">*</span> <span class="n">to_kj_mol</span><span class="p">[</span><span class="n">from_unit</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">kj_mol_value</span> <span class="o">/</span> <span class="n">to_kj_mol</span><span class="p">[</span><span class="n">to_unit</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cuda-module-proteinmd-cuda">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">CUDA Module (<cite>proteinmd.cuda</cite>)</a><a class="headerlink" href="#cuda-module-proteinmd-cuda" title="Link to this heading">¶</a></h2>
+<section id="gpu-acceleration-framework">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">GPU Acceleration Framework</a><a class="headerlink" href="#gpu-acceleration-framework" title="Link to this heading">¶</a></h3>
+<p><strong>Device Management:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DeviceManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage CUDA devices and memory allocation.</span>
+
+<span class="sd">    Provides unified interface for GPU resource management</span>
+<span class="sd">    across different CUDA devices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">devices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_device</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_devices</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_initialize_devices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize available CUDA devices.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;CUDA not available&quot;</span><span class="p">)</span>
+
+        <span class="n">n_devices</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">getDeviceCount</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_devices</span><span class="p">):</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">device_info</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">device</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;compute_capability&#39;</span><span class="p">:</span> <span class="n">device</span><span class="o">.</span><span class="n">compute_capability</span><span class="p">,</span>
+                <span class="s1">&#39;memory_gb&#39;</span><span class="p">:</span> <span class="n">device</span><span class="o">.</span><span class="n">mem_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span>
+                <span class="s1">&#39;device_object&#39;</span><span class="p">:</span> <span class="n">device</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">devices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">device_info</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set active CUDA device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            device_id (int): Device ID to activate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">device_id</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">devices</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device </span><span class="si">{</span><span class="n">device_id</span><span class="si">}</span><span class="s2"> not available&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_device</span> <span class="o">=</span> <span class="n">device_id</span>
+        <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span><span class="o">.</span><span class="n">use</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_memory_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get memory information for device.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            device_id (int): Device ID (default: current device)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Memory information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">device_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">device_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_device</span>
+
+        <span class="k">with</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="n">device_id</span><span class="p">):</span>
+            <span class="n">free_bytes</span><span class="p">,</span> <span class="n">total_bytes</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">memGetInfo</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;free_mb&#39;</span><span class="p">:</span> <span class="n">free_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;total_mb&#39;</span><span class="p">:</span> <span class="n">total_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;used_mb&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">total_bytes</span> <span class="o">-</span> <span class="n">free_bytes</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;utilization&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">total_bytes</span> <span class="o">-</span> <span class="n">free_bytes</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_bytes</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="module-integration-patterns">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Module Integration Patterns</a><a class="headerlink" href="#module-integration-patterns" title="Link to this heading">¶</a></h2>
+<section id="dependency-injection">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Dependency Injection</a><a class="headerlink" href="#dependency-injection" title="Link to this heading">¶</a></h3>
+<p>ProteinMD uses dependency injection patterns to maintain loose coupling between modules:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SimulationBuilder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Builder pattern for creating configured simulations.</span>
+
+<span class="sd">    Provides fluent interface for simulation setup with</span>
+<span class="sd">    proper dependency injection.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">platform</span> <span class="o">=</span> <span class="s1">&#39;cpu&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set molecular system.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            system (System): Molecular system</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SimulationBuilder: Self for chaining</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_integrator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set time integrator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            integrator (Integrator): Integration algorithm</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SimulationBuilder: Self for chaining</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span> <span class="o">=</span> <span class="n">integrator</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add force calculator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            force (Force): Force calculation object</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SimulationBuilder: Self for chaining</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">force</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_platform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set computational platform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            platform (str): Platform (&#39;cpu&#39;, &#39;cuda&#39;)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SimulationBuilder: Self for chaining</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">platform</span> <span class="o">=</span> <span class="n">platform</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build configured simulation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Simulation: Configured simulation object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;System not specified&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Integrator not specified&quot;</span><span class="p">)</span>
+
+        <span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+            <span class="n">system</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
+            <span class="n">integrator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">integrator</span><span class="p">,</span>
+            <span class="n">platform</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">platform</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="p">:</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">add_force</span><span class="p">(</span><span class="n">force</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">reporter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reporters</span><span class="p">:</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">add_reporter</span><span class="p">(</span><span class="n">reporter</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">simulation</span>
+</pre></div>
+</div>
+</section>
+<section id="plugin-architecture">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Plugin Architecture</a><a class="headerlink" href="#plugin-architecture" title="Link to this heading">¶</a></h3>
+<p>ProteinMD supports a plugin architecture for extensibility:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Plugin</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for ProteinMD plugins.</span>
+
+<span class="sd">    Plugins can extend functionality without modifying</span>
+<span class="sd">    core modules.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get plugin name.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get plugin version.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize plugin with context.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PluginManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage plugin loading and lifecycle.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plugin</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register plugin.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            plugin (Plugin): Plugin instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plugin </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> already registered&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get registered plugin.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): Plugin name</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Plugin: Plugin instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-integration">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Testing Integration</a><a class="headerlink" href="#testing-integration" title="Link to this heading">¶</a></h3>
+<p>Each module includes comprehensive test coverage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">System</span><span class="p">,</span> <span class="n">Simulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forces</span><span class="w"> </span><span class="kn">import</span> <span class="n">LennardJonesForce</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TestLennardJonesForce</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test suite for Lennard-Jones force calculations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up test fixtures.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">()</span>
+
+        <span class="c1"># Create simple two-atom system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="s1">&#39;Ar&#39;</span><span class="p">,</span> <span class="mf">39.948</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="s1">&#39;Ar&#39;</span><span class="p">,</span> <span class="mf">39.948</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lj_force</span> <span class="o">=</span> <span class="n">LennardJonesForce</span><span class="p">(</span><span class="n">cutoff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lj_force</span><span class="o">.</span><span class="n">add_particle_type</span><span class="p">(</span><span class="s1">&#39;Ar&#39;</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.34</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.996</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lj_force</span><span class="o">.</span><span class="n">set_system</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_force_calculation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test force calculation accuracy.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationState</span>
+
+        <span class="n">state</span> <span class="o">=</span> <span class="n">SimulationState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lj_force</span><span class="o">.</span><span class="n">calculate_forces</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+        <span class="c1"># Forces should be equal and opposite</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">forces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="n">state</span><span class="o">.</span><span class="n">forces</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Force should be repulsive at short distance</span>
+        <span class="k">assert</span> <span class="n">state</span><span class="o">.</span><span class="n">forces</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span>  <span class="c1"># Force on first atom in -x direction</span>
+        <span class="k">assert</span> <span class="n">state</span><span class="o">.</span><span class="n">forces</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>  <span class="c1"># Force on second atom in +x direction</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_energy_calculation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test energy calculation.&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationState</span>
+
+        <span class="n">state</span> <span class="o">=</span> <span class="n">SimulationState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">)</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lj_force</span><span class="o">.</span><span class="n">get_energy</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+        <span class="c1"># Energy should be positive (repulsive) at short distance</span>
+        <span class="k">assert</span> <span class="n">energy</span> <span class="o">&gt;</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>This module reference provides a comprehensive overview of ProteinMD’s architecture and serves as a guide for developers working with or extending the codebase.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#quick-start-for-developers">Quick Start for Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#core-documentation">Core Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developer_guide.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#contributing-workflow">Contributing Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#key-development-areas">Key Development Areas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="benchmarking.html" title="previous chapter">Benchmarking Guide</a></li>
+      <li>Next: <a href="common_patterns.html" title="next chapter">Common Patterns</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/module_reference.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

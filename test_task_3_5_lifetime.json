@@ -1,0 +1,84 @@
+{
+  "bond_8_6": {
+    "donor_atom_idx": 8,
+    "acceptor_atom_idx": 6,
+    "lifetimes": [
+      5,
+      5,
+      5,
+      5,
+      5
+    ],
+    "mean_lifetime": 5.0,
+    "max_lifetime": 5,
+    "total_occurrences": 25,
+    "formation_events": 5,
+    "occupancy": 0.5
+  },
+  "bond_4_0": {
+    "donor_atom_idx": 4,
+    "acceptor_atom_idx": 0,
+    "lifetimes": [
+      1,
+      4,
+      1,
+      1,
+      7,
+      2,
+      5,
+      2
+    ],
+    "mean_lifetime": 2.875,
+    "max_lifetime": 7,
+    "total_occurrences": 23,
+    "formation_events": 8,
+    "occupancy": 0.46
+  },
+  "summary": {
+    "mean_bonds_per_frame": 0.96,
+    "std_bonds_per_frame": 0.6621178142898739,
+    "max_bonds_per_frame": 2,
+    "min_bonds_per_frame": 0,
+    "bond_type_distribution": {
+      "intra_residue": {
+        "count": 25,
+        "mean_distance": 2.2270767825528788,
+        "std_distance": 0.0679741153059678
+      },
+      "adjacent": {
+        "count": 23,
+        "mean_distance": 2.975227668891787,
+        "std_distance": 0.07637792371577029
+      }
+    },
+    "bond_strength_distribution": {
+      "very_strong": {
+        "count": 3,
+        "mean_distance": 2.269715211574724,
+        "std_distance": 0.0545765912439729
+      },
+      "moderate": {
+        "count": 22,
+        "mean_distance": 2.9471060931785558,
+        "std_distance": 0.15238613087995936
+      },
+      "strong": {
+        "count": 22,
+        "mean_distance": 2.242921570081887,
+        "std_distance": 0.13387150472082637
+      },
+      "weak": {
+        "count": 1,
+        "mean_distance": 3.117401721879142,
+        "std_distance": 0.0
+      }
+    },
+    "lifetime_statistics": {
+      "mean_lifetime": 3.6923076923076925,
+      "std_lifetime": 1.9368735864637185,
+      "max_lifetime": 7,
+      "mean_occupancy": 0.48,
+      "std_occupancy": 0.01999999999999999
+    }
+  }
+}

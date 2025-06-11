@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proteinMD.analysis.secondary_structure &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for proteinMD.analysis.secondary_structure</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Secondary Structure Analysis Module</span>
+
+<span class="sd">This module provides DSSP-like functionality to analyze and track secondary</span>
+<span class="sd">structure elements (α-helices, β-sheets, turns, coils) in protein structures</span>
+<span class="sd">over molecular dynamics trajectories.</span>
+
+<span class="sd">The implementation includes:</span>
+<span class="sd">- DSSP-like algorithm for secondary structure assignment</span>
+<span class="sd">- Tracking of structure changes over time</span>
+<span class="sd">- Statistical analysis of structure populations</span>
+<span class="sd">- Color-coded visualization of structure evolution</span>
+<span class="sd">- Export capabilities for timeline data</span>
+
+<span class="sd">Author: ProteinMD Development Team</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">patches</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ListedColormap</span><span class="p">,</span> <span class="n">Normalize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="c1"># Configure logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Secondary structure definitions</span>
+<span class="n">SS_TYPES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Alpha-Helix&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#FF6B6B&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="s1">&#39;G&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;3-10 Helix&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#FF8E53&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+    <span class="s1">&#39;I&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Pi-Helix&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#FF6B9D&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+    <span class="s1">&#39;E&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Beta-Strand&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#4ECDC4&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+    <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Beta-Bridge&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#45B7D1&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+    <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Turn&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#96CEB4&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">},</span>
+    <span class="s1">&#39;S&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Bend&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#FFEAA7&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">},</span>
+    <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Coil&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#DDA0DD&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">},</span>
+    <span class="s1">&#39;-&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Unassigned&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#CCCCCC&#39;</span><span class="p">,</span> <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># Hydrogen bond parameters</span>
+<span class="n">HB_DISTANCE_CUTOFF</span> <span class="o">=</span> <span class="mf">0.35</span>  <span class="c1"># nm</span>
+<span class="n">HB_ANGLE_CUTOFF</span> <span class="o">=</span> <span class="mf">30.0</span>     <span class="c1"># degrees</span>
+<span class="n">HB_ENERGY_CUTOFF</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span>    <span class="c1"># kcal/mol</span>
+
+
+<div class="viewcode-block" id="calculate_dihedral_angle">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.calculate_dihedral_angle">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_dihedral_angle</span><span class="p">(</span><span class="n">p1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                           <span class="n">p3</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">p4</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate dihedral angle between four points.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    p1, p2, p3, p4 : np.ndarray</span>
+<span class="sd">        3D coordinates of the four points</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">    float</span>
+<span class="sd">        Dihedral angle in degrees</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calculate vectors</span>
+    <span class="n">v1</span> <span class="o">=</span> <span class="n">p2</span> <span class="o">-</span> <span class="n">p1</span>
+    <span class="n">v2</span> <span class="o">=</span> <span class="n">p3</span> <span class="o">-</span> <span class="n">p2</span>
+    <span class="n">v3</span> <span class="o">=</span> <span class="n">p4</span> <span class="o">-</span> <span class="n">p3</span>
+    
+    <span class="c1"># Calculate normal vectors to planes</span>
+    <span class="n">n1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+    <span class="n">n2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">)</span>
+    
+    <span class="c1"># Normalize</span>
+    <span class="n">n1_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">n1</span><span class="p">)</span>
+    <span class="n">n2_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">n2</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">n1_norm</span> <span class="o">&lt;</span> <span class="mf">1e-10</span> <span class="ow">or</span> <span class="n">n2_norm</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    
+    <span class="n">n1</span> <span class="o">=</span> <span class="n">n1</span> <span class="o">/</span> <span class="n">n1_norm</span>
+    <span class="n">n2</span> <span class="o">=</span> <span class="n">n2</span> <span class="o">/</span> <span class="n">n2_norm</span>
+    
+    <span class="c1"># Calculate dihedral angle</span>
+    <span class="n">cos_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">),</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">cos_angle</span><span class="p">)</span>
+    
+    <span class="c1"># Determine sign using the scalar triple product</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">),</span> <span class="n">v2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="o">-</span><span class="n">angle</span>
+        
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_backbone_atoms">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.get_backbone_atoms">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_backbone_atoms</span><span class="p">(</span><span class="n">molecule</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">residue_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract backbone atoms (N, CA, C, O) from a specific residue.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    molecule : Molecule object</span>
+<span class="sd">        The protein molecule</span>
+<span class="sd">    residue_idx : int</span>
+<span class="sd">        0-based residue index</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary with backbone atom positions (or None if not found)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">backbone</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;N&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+    
+    <span class="c1"># Find atoms belonging to this residue</span>
+    <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">residue_number</span> <span class="o">==</span> <span class="n">residue_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Convert to 1-based</span>
+            <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">atom_name</span> <span class="ow">in</span> <span class="n">backbone</span><span class="p">:</span>
+                <span class="n">backbone</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">atom_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">backbone</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_hydrogen_bond_energy">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.calculate_hydrogen_bond_energy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_hydrogen_bond_energy</span><span class="p">(</span><span class="n">donor_pos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">hydrogen_pos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                 <span class="n">acceptor_pos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">acceptor_antecedent_pos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate hydrogen bond energy using a simple electrostatic model.</span>
+<span class="sd">    </span>
+<span class="sd">    This is a simplified version of the DSSP hydrogen bond energy calculation.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    donor_pos : np.ndarray</span>
+<span class="sd">        Position of donor atom (typically N)</span>
+<span class="sd">    hydrogen_pos : np.ndarray</span>
+<span class="sd">        Position of hydrogen atom</span>
+<span class="sd">    acceptor_pos : np.ndarray</span>
+<span class="sd">        Position of acceptor atom (typically O)</span>
+<span class="sd">    acceptor_antecedent_pos : np.ndarray</span>
+<span class="sd">        Position of acceptor&#39;s antecedent atom (typically C)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">    float</span>
+<span class="sd">        Hydrogen bond energy in kcal/mol (negative values indicate favorable bonds)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert to Angstroms for DSSP compatibility</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nm_to_angstrom</span><span class="p">(</span><span class="n">pos</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">pos</span> <span class="o">*</span> <span class="mf">10.0</span>
+    
+    <span class="n">donor</span> <span class="o">=</span> <span class="n">nm_to_angstrom</span><span class="p">(</span><span class="n">donor_pos</span><span class="p">)</span>
+    <span class="n">hydrogen</span> <span class="o">=</span> <span class="n">nm_to_angstrom</span><span class="p">(</span><span class="n">hydrogen_pos</span><span class="p">)</span>
+    <span class="n">acceptor</span> <span class="o">=</span> <span class="n">nm_to_angstrom</span><span class="p">(</span><span class="n">acceptor_pos</span><span class="p">)</span>
+    <span class="n">antecedent</span> <span class="o">=</span> <span class="n">nm_to_angstrom</span><span class="p">(</span><span class="n">acceptor_antecedent_pos</span><span class="p">)</span>
+    
+    <span class="c1"># Calculate distances</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">hydrogen</span> <span class="o">-</span> <span class="n">acceptor</span><span class="p">)</span>
+    <span class="n">rca</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">acceptor</span> <span class="o">-</span> <span class="n">antecedent</span><span class="p">)</span>
+    <span class="n">rch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">hydrogen</span> <span class="o">-</span> <span class="n">antecedent</span><span class="p">)</span>
+    <span class="n">rna</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">donor</span> <span class="o">-</span> <span class="n">acceptor</span><span class="p">)</span>
+    
+    <span class="c1"># DSSP energy formula (simplified)</span>
+    <span class="c1"># E = q1*q2 * (1/rON + 1/rCH - 1/rOH - 1/rCN) * 332</span>
+    <span class="c1"># Where q1 = 0.42, q2 = 0.20, and 332 is the electrostatic constant</span>
+    
+    <span class="k">if</span> <span class="n">rho</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="ow">or</span> <span class="n">rca</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="ow">or</span> <span class="n">rch</span> <span class="o">&lt;</span> <span class="mf">0.5</span> <span class="ow">or</span> <span class="n">rna</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>  <span class="c1"># Too close, probably not a real hydrogen bond</span>
+    
+    <span class="n">q1q2</span> <span class="o">=</span> <span class="mf">0.42</span> <span class="o">*</span> <span class="mf">0.20</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="mf">332.0</span>
+    
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">q1q2</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">rna</span> <span class="o">+</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">rch</span> <span class="o">-</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">rho</span> <span class="o">-</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">rca</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span>
+    
+    <span class="k">return</span> <span class="n">energy</span></div>
+
+
+
+<div class="viewcode-block" id="identify_hydrogen_bonds">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.identify_hydrogen_bonds">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">identify_hydrogen_bonds</span><span class="p">(</span><span class="n">molecule</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify hydrogen bonds in the protein structure.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    molecule : Molecule object</span>
+<span class="sd">        The protein molecule</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">    List[Tuple[int, int, float]]</span>
+<span class="sd">        List of hydrogen bonds as (donor_residue, acceptor_residue, energy)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hydrogen_bonds</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># Get number of residues</span>
+    <span class="n">n_residues</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">residue_number</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span><span class="p">):</span>
+        <span class="n">donor_atoms</span> <span class="o">=</span> <span class="n">get_backbone_atoms</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">donor_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">donor_atoms</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+            
+        <span class="c1"># Look for hydrogen bonds with other residues (skip adjacent ones)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">j</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># Skip self and adjacent residues</span>
+                <span class="k">continue</span>
+                
+            <span class="n">acceptor_atoms</span> <span class="o">=</span> <span class="n">get_backbone_atoms</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">acceptor_atoms</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">acceptor_atoms</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            
+            <span class="c1"># Calculate hydrogen position (simplified - assume it&#39;s on the N-CA vector)</span>
+            <span class="n">n_to_ca</span> <span class="o">=</span> <span class="n">donor_atoms</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">donor_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
+            <span class="n">n_to_ca_norm</span> <span class="o">=</span> <span class="n">n_to_ca</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">n_to_ca</span><span class="p">)</span>
+            <span class="n">hydrogen_pos</span> <span class="o">=</span> <span class="n">donor_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">n_to_ca_norm</span>  <span class="c1"># 1 Angstrom back</span>
+            
+            <span class="c1"># Calculate distance</span>
+            <span class="n">h_to_o_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">hydrogen_pos</span> <span class="o">-</span> <span class="n">acceptor_atoms</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">])</span>
+            
+            <span class="k">if</span> <span class="n">h_to_o_dist</span> <span class="o">&gt;</span> <span class="n">HB_DISTANCE_CUTOFF</span><span class="p">:</span>
+                <span class="k">continue</span>
+            
+            <span class="c1"># Calculate energy</span>
+            <span class="n">energy</span> <span class="o">=</span> <span class="n">calculate_hydrogen_bond_energy</span><span class="p">(</span>
+                <span class="n">donor_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">],</span> <span class="n">hydrogen_pos</span><span class="p">,</span> 
+                <span class="n">acceptor_atoms</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">],</span> <span class="n">acceptor_atoms</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span>
+            <span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">energy</span> <span class="o">&lt;</span> <span class="n">HB_ENERGY_CUTOFF</span><span class="p">:</span>  <span class="c1"># Favorable hydrogen bond</span>
+                <span class="n">hydrogen_bonds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">energy</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">hydrogen_bonds</span></div>
+
+
+
+<div class="viewcode-block" id="assign_secondary_structure_dssp">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.assign_secondary_structure_dssp">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">assign_secondary_structure_dssp</span><span class="p">(</span><span class="n">molecule</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assign secondary structure using a DSSP-like algorithm.</span>
+<span class="sd">    </span>
+<span class="sd">    This is a simplified version of the DSSP algorithm that focuses on</span>
+<span class="sd">    the most common secondary structure elements.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    molecule : Molecule object</span>
+<span class="sd">        The protein molecule</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">    --------</span>
+<span class="sd">    List[str]</span>
+<span class="sd">        Secondary structure assignment for each residue</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get number of residues</span>
+    <span class="n">n_residues</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">residue_number</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span><span class="p">))</span>
+    
+    <span class="c1"># Initialize with coil</span>
+    <span class="n">ss_assignment</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_residues</span>
+    
+    <span class="c1"># Identify hydrogen bonds</span>
+    <span class="n">hydrogen_bonds</span> <span class="o">=</span> <span class="n">identify_hydrogen_bonds</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+    
+    <span class="c1"># Create hydrogen bond pattern matrix</span>
+    <span class="n">hb_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_residues</span><span class="p">,</span> <span class="n">n_residues</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">donor</span><span class="p">,</span> <span class="n">acceptor</span><span class="p">,</span> <span class="n">energy</span> <span class="ow">in</span> <span class="n">hydrogen_bonds</span><span class="p">:</span>
+        <span class="n">hb_matrix</span><span class="p">[</span><span class="n">donor</span><span class="p">,</span> <span class="n">acceptor</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    
+    <span class="c1"># Identify alpha-helices (i to i+4 hydrogen bonds)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span> <span class="o">-</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="c1"># Check for alpha-helix pattern (i-&gt;i+4)</span>
+        <span class="k">if</span> <span class="n">hb_matrix</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="n">hb_matrix</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>  <span class="c1"># Consecutive H-bonds</span>
+            <span class="c1"># Mark as alpha-helix</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_residues</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">ss_assignment</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span>  <span class="c1"># Don&#39;t override higher priority</span>
+                    <span class="n">ss_assignment</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;H&#39;</span>
+    
+    <span class="c1"># Identify 3-10 helices (i to i+3 hydrogen bonds)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span> <span class="o">-</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">hb_matrix</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="n">hb_matrix</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="c1"># Mark as 3-10 helix if not already alpha-helix</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_residues</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">ss_assignment</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span>
+                    <span class="n">ss_assignment</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;G&#39;</span>
+    
+    <span class="c1"># Identify beta-strands (check phi/psi angles as well)</span>
+    <span class="n">phi_psi_angles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span><span class="p">):</span>
+        <span class="n">prev_atoms</span> <span class="o">=</span> <span class="n">get_backbone_atoms</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">curr_atoms</span> <span class="o">=</span> <span class="n">get_backbone_atoms</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">next_atoms</span> <span class="o">=</span> <span class="n">get_backbone_atoms</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n_residues</span><span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
+        
+        <span class="n">phi</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">prev_atoms</span> <span class="ow">and</span> <span class="n">curr_atoms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">prev_atoms</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> 
+                <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">phi</span> <span class="o">=</span> <span class="n">calculate_dihedral_angle</span><span class="p">(</span>
+                    <span class="n">prev_atoms</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">],</span> 
+                    <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">],</span> <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span>
+                <span class="p">)</span>
+        
+        <span class="n">psi</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">curr_atoms</span> <span class="ow">and</span> <span class="n">next_atoms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> 
+                <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">next_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">psi</span> <span class="o">=</span> <span class="n">calculate_dihedral_angle</span><span class="p">(</span>
+                    <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">],</span> <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;CA&#39;</span><span class="p">],</span> 
+                    <span class="n">curr_atoms</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="n">next_atoms</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
+                <span class="p">)</span>
+        
+        <span class="n">phi_psi_angles</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">phi</span><span class="p">,</span> <span class="n">psi</span><span class="p">))</span>
+    
+    <span class="c1"># Assign beta-strands based on phi/psi angles</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">psi</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phi_psi_angles</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">phi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">psi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Beta-strand region: phi ~ -120°, psi ~ 120°</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">-</span><span class="mi">180</span> <span class="o">&lt;=</span> <span class="n">phi</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">90</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="mi">90</span> <span class="o">&lt;=</span> <span class="n">psi</span> <span class="o">&lt;=</span> <span class="mi">180</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ss_assignment</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span>  <span class="c1"># Don&#39;t override helices</span>
+                    <span class="n">ss_assignment</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;E&#39;</span>
+    
+    <span class="c1"># Post-process to identify turns and refine assignments</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_residues</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ss_assignment</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span>
+            <span class="c1"># Check if it&#39;s between different secondary structures (turn/bend)</span>
+            <span class="n">prev_ss</span> <span class="o">=</span> <span class="n">ss_assignment</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">next_ss</span> <span class="o">=</span> <span class="n">ss_assignment</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            
+            <span class="k">if</span> <span class="n">prev_ss</span> <span class="o">!=</span> <span class="s1">&#39;C&#39;</span> <span class="ow">or</span> <span class="n">next_ss</span> <span class="o">!=</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span>
+                <span class="n">ss_assignment</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;T&#39;</span>  <span class="c1"># Turn</span>
+    
+    <span class="k">return</span> <span class="n">ss_assignment</span></div>
+
+
+
+<div class="viewcode-block" id="SecondaryStructureAnalyzer">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SecondaryStructureAnalyzer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for analyzing secondary structure evolution in MD trajectories.</span>
+<span class="sd">    </span>
+<span class="sd">    This class provides comprehensive secondary structure analysis including:</span>
+<span class="sd">    - DSSP-like structure assignment</span>
+<span class="sd">    - Time evolution tracking</span>
+<span class="sd">    - Statistical analysis</span>
+<span class="sd">    - Visualization and export capabilities</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.__init__">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure_cutoffs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the secondary structure analyzer.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        structure_cutoffs : dict, optional</span>
+<span class="sd">            Custom cutoffs for structure assignment</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure_cutoffs</span> <span class="o">=</span> <span class="n">structure_cutoffs</span> <span class="ow">or</span> <span class="p">{</span>
+            <span class="s1">&#39;hb_distance&#39;</span><span class="p">:</span> <span class="n">HB_DISTANCE_CUTOFF</span><span class="p">,</span>
+            <span class="s1">&#39;hb_angle&#39;</span><span class="p">:</span> <span class="n">HB_ANGLE_CUTOFF</span><span class="p">,</span>
+            <span class="s1">&#39;hb_energy&#39;</span><span class="p">:</span> <span class="n">HB_ENERGY_CUTOFF</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># Storage for analysis results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SecondaryStructureAnalyzer initialized&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.analyze_structure">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.analyze_structure">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">molecule</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">time_point</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Analyze secondary structure for a single structure.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        molecule : Molecule object</span>
+<span class="sd">            The protein molecule to analyze</span>
+<span class="sd">        time_point : float, optional</span>
+<span class="sd">            Time point for this structure (default: 0.0)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Analysis results including assignments and statistics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analyzing secondary structure at time </span><span class="si">{</span><span class="n">time_point</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Get secondary structure assignments</span>
+        <span class="n">ss_assignments</span> <span class="o">=</span> <span class="n">assign_secondary_structure_dssp</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+        
+        <span class="c1"># Get residue information</span>
+        <span class="n">n_residues</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ss_assignments</span><span class="p">)</span>
+        <span class="n">residue_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">residue_number</span> <span class="o">==</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">residue_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">residue_name</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">residue_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNK&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate statistics</span>
+        <span class="n">ss_counts</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ss_type</span> <span class="ow">in</span> <span class="n">SS_TYPES</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">ss_counts</span><span class="p">[</span><span class="n">ss_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">ss_assignments</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">ss_type</span><span class="p">)</span>
+        
+        <span class="n">ss_percentages</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ss_type</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">ss_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">ss_percentages</span><span class="p">[</span><span class="n">ss_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">count</span> <span class="o">/</span> <span class="n">n_residues</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="k">if</span> <span class="n">n_residues</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+        
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;time_point&#39;</span><span class="p">:</span> <span class="n">time_point</span><span class="p">,</span>
+            <span class="s1">&#39;n_residues&#39;</span><span class="p">:</span> <span class="n">n_residues</span><span class="p">,</span>
+            <span class="s1">&#39;assignments&#39;</span><span class="p">:</span> <span class="n">ss_assignments</span><span class="p">,</span>
+            <span class="s1">&#39;residue_names&#39;</span><span class="p">:</span> <span class="n">residue_names</span><span class="p">,</span>
+            <span class="s1">&#39;counts&#39;</span><span class="p">:</span> <span class="n">ss_counts</span><span class="p">,</span>
+            <span class="s1">&#39;percentages&#39;</span><span class="p">:</span> <span class="n">ss_percentages</span><span class="p">,</span>
+            <span class="s1">&#39;hydrogen_bonds&#39;</span><span class="p">:</span> <span class="n">identify_hydrogen_bonds</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.analyze_trajectory">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.analyze_trajectory">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">time_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Analyze secondary structure evolution over a trajectory.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        simulation : Simulation object</span>
+<span class="sd">            The MD simulation with trajectory data</span>
+<span class="sd">        time_step : int, optional</span>
+<span class="sd">            Analyze every nth frame (default: 10)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Trajectory analysis results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analyzing secondary structure trajectory (every </span><span class="si">{</span><span class="n">time_step</span><span class="si">}</span><span class="s2"> frames)&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">trajectory</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">trajectory</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">trajectory</span><span class="p">),</span> <span class="n">time_step</span><span class="p">):</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">trajectory</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            
+            <span class="c1"># Update molecule positions</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">atom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">):</span>
+                    <span class="n">atom</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            
+            <span class="c1"># Analyze this frame</span>
+            <span class="n">time_point</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">time_step</span> <span class="o">*</span> <span class="n">simulation</span><span class="o">.</span><span class="n">dt</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="s1">&#39;dt&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">i</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_structure</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">molecule</span><span class="p">,</span> <span class="n">time_point</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate trajectory statistics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_trajectory_statistics</span><span class="p">()</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trajectory analysis complete: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">)</span><span class="si">}</span><span class="s2"> frames analyzed&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trajectory_summary</span><span class="p">()</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_trajectory_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate statistics over the entire trajectory.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">:</span>
+            <span class="k">return</span>
+        
+        <span class="n">n_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">)</span>
+        <span class="n">n_residues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;n_residues&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Time evolution of secondary structure percentages</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;times&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">frame</span><span class="p">[</span><span class="s1">&#39;time_point&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">],</span>
+            <span class="s1">&#39;percentages&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">ss_type</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">ss_type</span> <span class="ow">in</span> <span class="n">SS_TYPES</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+        <span class="p">}</span>
+        
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ss_type</span> <span class="ow">in</span> <span class="n">SS_TYPES</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">percentage</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="s1">&#39;percentages&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ss_type</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span><span class="p">[</span><span class="s1">&#39;percentages&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">percentage</span><span class="p">)</span>
+        
+        <span class="c1"># Per-residue analysis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">res_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span><span class="p">):</span>
+            <span class="n">assignments</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">res_idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="s1">&#39;assignments&#39;</span><span class="p">]):</span>
+                    <span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="s1">&#39;assignments&#39;</span><span class="p">][</span><span class="n">res_idx</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">[</span><span class="n">res_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;assignments&#39;</span><span class="p">:</span> <span class="n">assignments</span><span class="p">,</span>
+                <span class="s1">&#39;residue_name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;residue_names&#39;</span><span class="p">][</span><span class="n">res_idx</span><span class="p">],</span>
+                <span class="s1">&#39;percentages&#39;</span><span class="p">:</span> <span class="p">{}</span>
+            <span class="p">}</span>
+            
+            <span class="c1"># Calculate percentages for this residue</span>
+            <span class="k">for</span> <span class="n">ss_type</span> <span class="ow">in</span> <span class="n">SS_TYPES</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="n">assignments</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">ss_type</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">[</span><span class="n">res_idx</span><span class="p">][</span><span class="s1">&#39;percentages&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="p">(</span><span class="n">count</span> <span class="o">/</span> <span class="n">n_frames</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="k">if</span> <span class="n">n_frames</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+        
+        <span class="c1"># Overall statistics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;n_frames&#39;</span><span class="p">:</span> <span class="n">n_frames</span><span class="p">,</span>
+            <span class="s1">&#39;n_residues&#39;</span><span class="p">:</span> <span class="n">n_residues</span><span class="p">,</span>
+            <span class="s1">&#39;avg_percentages&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;std_percentages&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;stability_scores&#39;</span><span class="p">:</span> <span class="p">{}</span>
+        <span class="p">}</span>
+        
+        <span class="k">for</span> <span class="n">ss_type</span> <span class="ow">in</span> <span class="n">SS_TYPES</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">percentages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span><span class="p">[</span><span class="s1">&#39;percentages&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;avg_percentages&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">percentages</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;std_percentages&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">percentages</span><span class="p">)</span>
+            
+            <span class="c1"># Stability score: 1 - (std / (avg + 0.1))</span>
+            <span class="n">avg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;avg_percentages&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;std_percentages&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;stability_scores&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">std</span> <span class="o">/</span> <span class="p">(</span><span class="n">avg</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">))</span>
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.get_trajectory_summary">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.get_trajectory_summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_trajectory_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a summary of trajectory analysis results.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;trajectory_data&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">,</span>
+            <span class="s1">&#39;time_evolution&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span><span class="p">,</span>
+            <span class="s1">&#39;residue_assignments&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">,</span>
+            <span class="s1">&#39;statistics&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span>
+        <span class="p">}</span></div>
+
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.plot_time_evolution">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.plot_time_evolution">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_time_evolution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figsize</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                           <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot secondary structure evolution over time.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        figsize : Tuple[int, int], optional</span>
+<span class="sd">            Figure size (default: (14, 10))</span>
+<span class="sd">        save_path : str, optional</span>
+<span class="sd">            Path to save the plot</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        plt.Figure</span>
+<span class="sd">            The created figure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No trajectory data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">height_ratios</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        
+        <span class="c1"># Plot 1: Time evolution of secondary structure percentages</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span><span class="p">[</span><span class="s1">&#39;times&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Plot major secondary structures</span>
+        <span class="n">major_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">ss_type</span> <span class="ow">in</span> <span class="n">major_types</span><span class="p">:</span>
+            <span class="n">percentages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span><span class="p">[</span><span class="s1">&#39;percentages&#39;</span><span class="p">][</span><span class="n">ss_type</span><span class="p">]</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">SS_TYPES</span><span class="p">[</span><span class="n">ss_type</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">SS_TYPES</span><span class="p">[</span><span class="n">ss_type</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+            <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">percentages</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+        
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (ps)&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Percentage (%)&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Secondary Structure Evolution Over Time&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        
+        <span class="c1"># Plot 2: Average percentages with error bars</span>
+        <span class="n">ss_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="n">ss</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">major_types</span><span class="p">]</span>
+        <span class="n">avg_values</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;avg_percentages&#39;</span><span class="p">][</span><span class="n">ss</span><span class="p">]</span> <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">major_types</span><span class="p">]</span>
+        <span class="n">std_values</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">[</span><span class="s1">&#39;std_percentages&#39;</span><span class="p">][</span><span class="n">ss</span><span class="p">]</span> <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">major_types</span><span class="p">]</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="n">ss</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">major_types</span><span class="p">]</span>
+        
+        <span class="n">bars</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">ss_names</span><span class="p">,</span> <span class="n">avg_values</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">std_values</span><span class="p">,</span> 
+                      <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">capsize</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Average %&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Average Secondary Structure Content&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">avg_values</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.2</span> <span class="k">if</span> <span class="n">avg_values</span> <span class="k">else</span> <span class="mi">100</span><span class="p">)</span>
+        
+        <span class="c1"># Add value labels on bars</span>
+        <span class="k">for</span> <span class="n">bar</span><span class="p">,</span> <span class="n">avg_val</span><span class="p">,</span> <span class="n">std_val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bars</span><span class="p">,</span> <span class="n">avg_values</span><span class="p">,</span> <span class="n">std_values</span><span class="p">):</span>
+            <span class="n">height</span> <span class="o">=</span> <span class="n">bar</span><span class="o">.</span><span class="n">get_height</span><span class="p">()</span>
+            <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">bar</span><span class="o">.</span><span class="n">get_x</span><span class="p">()</span> <span class="o">+</span> <span class="n">bar</span><span class="o">.</span><span class="n">get_width</span><span class="p">()</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span> <span class="n">height</span> <span class="o">+</span> <span class="n">std_val</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">avg_val</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">±</span><span class="si">{</span><span class="n">std_val</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">%&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">save_path</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time evolution plot saved to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.plot_residue_timeline">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.plot_residue_timeline">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_residue_timeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue_range</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">figsize</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+                            <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot secondary structure timeline for individual residues.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        residue_range : Tuple[int, int], optional</span>
+<span class="sd">            Range of residues to plot (start, end). If None, plot all residues.</span>
+<span class="sd">        figsize : Tuple[int, int], optional</span>
+<span class="sd">            Figure size (default: (16, 8))</span>
+<span class="sd">        save_path : str, optional</span>
+<span class="sd">            Path to save the plot</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        plt.Figure</span>
+<span class="sd">            The created figure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No trajectory data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+        
+        <span class="c1"># Determine residue range</span>
+        <span class="n">n_residues</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">residue_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">start_res</span><span class="p">,</span> <span class="n">end_res</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n_residues</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">start_res</span><span class="p">,</span> <span class="n">end_res</span> <span class="o">=</span> <span class="n">residue_range</span>
+            <span class="n">start_res</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">start_res</span><span class="p">)</span>
+            <span class="n">end_res</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_residues</span><span class="p">,</span> <span class="n">end_res</span><span class="p">)</span>
+        
+        <span class="c1"># Create color map</span>
+        <span class="n">ss_types_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">SS_TYPES</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="n">ss</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">ss_types_list</span><span class="p">]</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">ListedColormap</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
+        
+        <span class="c1"># Create matrix for visualization</span>
+        <span class="n">n_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">)</span>
+        <span class="n">display_residues</span> <span class="o">=</span> <span class="n">end_res</span> <span class="o">-</span> <span class="n">start_res</span>
+        
+        <span class="n">ss_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">display_residues</span><span class="p">,</span> <span class="n">n_frames</span><span class="p">))</span>
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">res_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">start_res</span><span class="p">,</span> <span class="n">end_res</span><span class="p">)):</span>
+            <span class="n">assignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">[</span><span class="n">res_idx</span><span class="p">][</span><span class="s1">&#39;assignments&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ss</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">assignments</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">ss_types_list</span><span class="p">:</span>
+                    <span class="n">ss_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">ss_types_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span>
+        
+        <span class="c1"># Plot timeline</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">ss_matrix</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> 
+                      <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ss_types_list</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                      <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_frames</span><span class="p">,</span> <span class="n">end_res</span><span class="p">,</span> <span class="n">start_res</span><span class="p">])</span>
+        
+        <span class="c1"># Customize plot</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frame&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Secondary Structure Timeline (Residues </span><span class="si">{</span><span class="n">start_res</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">end_res</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span> 
+                    <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Add colorbar</span>
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ss_types_list</span><span class="p">)))</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">([</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="n">ss</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">ss_types_list</span><span class="p">])</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Secondary Structure&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">270</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">save_path</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Residue timeline plot saved to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.plot_structure_distribution">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.plot_structure_distribution">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_structure_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figsize</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+                                  <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot distribution of secondary structures per residue.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        figsize : Tuple[int, int], optional</span>
+<span class="sd">            Figure size (default: (12, 8))</span>
+<span class="sd">        save_path : str, optional</span>
+<span class="sd">            Path to save the plot</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        plt.Figure</span>
+<span class="sd">            The created figure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No trajectory data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="p">((</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">),</span> <span class="p">(</span><span class="n">ax3</span><span class="p">,</span> <span class="n">ax4</span><span class="p">))</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+        
+        <span class="c1"># Plot 1: Helix content per residue</span>
+        <span class="n">residue_nums</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">helix_percentages</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;percentages&#39;</span><span class="p">][</span><span class="s1">&#39;H&#39;</span><span class="p">]</span> 
+                           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">))]</span>
+        
+        <span class="n">ax1</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">residue_nums</span><span class="p">,</span> <span class="n">helix_percentages</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;α-Helix Content per Residue&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Percentage (%)&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        
+        <span class="c1"># Plot 2: Beta-strand content per residue</span>
+        <span class="n">strand_percentages</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;percentages&#39;</span><span class="p">][</span><span class="s1">&#39;E&#39;</span><span class="p">]</span> 
+                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">))]</span>
+        
+        <span class="n">ax2</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">residue_nums</span><span class="p">,</span> <span class="n">strand_percentages</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;β-Strand Content per Residue&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Percentage (%)&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        
+        <span class="c1"># Plot 3: Turn content per residue</span>
+        <span class="n">turn_percentages</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;percentages&#39;</span><span class="p">][</span><span class="s1">&#39;T&#39;</span><span class="p">]</span> 
+                          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">))]</span>
+        
+        <span class="n">ax3</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">residue_nums</span><span class="p">,</span> <span class="n">turn_percentages</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Turn Content per Residue&#39;</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Percentage (%)&#39;</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        
+        <span class="c1"># Plot 4: Coil content per residue</span>
+        <span class="n">coil_percentages</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;percentages&#39;</span><span class="p">][</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> 
+                          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">))]</span>
+        
+        <span class="n">ax4</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">residue_nums</span><span class="p">,</span> <span class="n">coil_percentages</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Coil Content per Residue&#39;</span><span class="p">)</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">)</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Percentage (%)&#39;</span><span class="p">)</span>
+        <span class="n">ax4</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Secondary Structure Distribution Analysis&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">save_path</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Structure distribution plot saved to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.export_timeline_data">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.export_timeline_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_timeline_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;csv&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export secondary structure timeline data.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Output filename</span>
+<span class="sd">        format : str, optional</span>
+<span class="sd">            Export format (&#39;csv&#39; or &#39;json&#39;, default: &#39;csv&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No trajectory data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_export_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_export_json</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported format: </span><span class="si">{</span><span class="nb">format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timeline data exported to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_export_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Export data in CSV format.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
+            
+            <span class="c1"># Write header</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;Frame&#39;</span><span class="p">,</span> <span class="s1">&#39;Residue&#39;</span><span class="p">,</span> <span class="s1">&#39;ResName&#39;</span><span class="p">,</span> <span class="s1">&#39;SecondaryStructure&#39;</span><span class="p">]</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+            
+            <span class="c1"># Write data</span>
+            <span class="k">for</span> <span class="n">frame_idx</span><span class="p">,</span> <span class="n">frame_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">):</span>
+                <span class="n">time_point</span> <span class="o">=</span> <span class="n">frame_data</span><span class="p">[</span><span class="s1">&#39;time_point&#39;</span><span class="p">]</span>
+                <span class="n">assignments</span> <span class="o">=</span> <span class="n">frame_data</span><span class="p">[</span><span class="s1">&#39;assignments&#39;</span><span class="p">]</span>
+                <span class="n">residue_names</span> <span class="o">=</span> <span class="n">frame_data</span><span class="p">[</span><span class="s1">&#39;residue_names&#39;</span><span class="p">]</span>
+                
+                <span class="k">for</span> <span class="n">res_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">ss</span><span class="p">,</span> <span class="n">res_name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">assignments</span><span class="p">,</span> <span class="n">residue_names</span><span class="p">)):</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">time_point</span><span class="p">,</span> <span class="n">frame_idx</span><span class="p">,</span> <span class="n">res_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">res_name</span><span class="p">,</span> <span class="n">ss</span><span class="p">])</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_export_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Export data in JSON format.&quot;&quot;&quot;</span>
+        <span class="n">export_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;n_frames&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">),</span>
+                <span class="s1">&#39;n_residues&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;n_residues&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;ss_types&#39;</span><span class="p">:</span> <span class="n">SS_TYPES</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;trajectory_data&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span><span class="p">,</span>
+            <span class="s1">&#39;statistics&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">,</span>
+            <span class="s1">&#39;time_evolution&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_evolution</span>
+        <span class="p">}</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">jsonfile</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">export_data</span><span class="p">,</span> <span class="n">jsonfile</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="SecondaryStructureAnalyzer.get_statistics">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer.get_statistics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get comprehensive statistics about secondary structure analysis.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary with various statistics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;trajectory_stats&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">statistics</span><span class="p">,</span>
+            <span class="s1">&#39;residue_stats&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_assignments</span><span class="p">,</span>
+            <span class="s1">&#39;structure_counts&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">frame</span><span class="p">[</span><span class="s1">&#39;time_point&#39;</span><span class="p">]:</span> <span class="n">frame</span><span class="p">[</span><span class="s1">&#39;counts&#39;</span><span class="p">]</span> 
+                <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_data</span>
+            <span class="p">}</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="create_secondary_structure_analyzer">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.secondary_structure.create_secondary_structure_analyzer">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_secondary_structure_analyzer</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SecondaryStructureAnalyzer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a secondary structure analyzer with optional custom parameters.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Optional parameters for the analyzer</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    SecondaryStructureAnalyzer</span>
+<span class="sd">        Configured analyzer instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">SecondaryStructureAnalyzer</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Example usage and testing</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
+    <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;Agg&#39;</span><span class="p">)</span>  <span class="c1"># Non-interactive backend for testing</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Secondary Structure Analysis...&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Create a mock molecule for testing</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">MockAtom</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">res_num</span><span class="p">,</span> <span class="n">res_name</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atom_name</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">residue_number</span> <span class="o">=</span> <span class="n">res_num</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">residue_name</span> <span class="o">=</span> <span class="n">res_name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+    
+    <span class="k">class</span><span class="w"> </span><span class="nc">MockMolecule</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># Create test protein structure (small helix)</span>
+    <span class="n">molecule</span> <span class="o">=</span> <span class="n">MockMolecule</span><span class="p">()</span>
+    <span class="n">n_residues</span> <span class="o">=</span> <span class="mi">10</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span><span class="p">):</span>
+        <span class="n">res_num</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">res_name</span> <span class="o">=</span> <span class="s1">&#39;ALA&#39;</span>
+        
+        <span class="c1"># Approximate alpha-helix geometry</span>
+        <span class="n">phi_angle</span> <span class="o">=</span> <span class="o">-</span><span class="mf">60.0</span>  <span class="c1"># degrees</span>
+        <span class="n">psi_angle</span> <span class="o">=</span> <span class="o">-</span><span class="mf">45.0</span>
+        
+        <span class="c1"># Calculate positions along helix</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="mf">1.5</span>  <span class="c1"># 1.5 Å rise per residue</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.0</span>  <span class="c1"># 100° rotation per residue</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="mf">2.3</span>  <span class="c1"># helix radius</span>
+        
+        <span class="n">x_offset</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">y_offset</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        
+        <span class="c1"># Backbone atoms</span>
+        <span class="n">n_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_offset</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">y_offset</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+        <span class="n">ca_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_offset</span><span class="p">,</span> <span class="n">y_offset</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+        <span class="n">c_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_offset</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">y_offset</span> <span class="o">+</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">z</span> <span class="o">+</span> <span class="mf">0.2</span><span class="p">]</span>
+        <span class="n">o_pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_offset</span> <span class="o">+</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">y_offset</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">z</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">]</span>
+        
+        <span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="n">MockAtom</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="n">res_num</span><span class="p">,</span> <span class="n">res_name</span><span class="p">,</span> <span class="n">n_pos</span><span class="p">),</span>
+            <span class="n">MockAtom</span><span class="p">(</span><span class="s1">&#39;CA&#39;</span><span class="p">,</span> <span class="n">res_num</span><span class="p">,</span> <span class="n">res_name</span><span class="p">,</span> <span class="n">ca_pos</span><span class="p">),</span>
+            <span class="n">MockAtom</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">res_num</span><span class="p">,</span> <span class="n">res_name</span><span class="p">,</span> <span class="n">c_pos</span><span class="p">),</span>
+            <span class="n">MockAtom</span><span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="n">res_num</span><span class="p">,</span> <span class="n">res_name</span><span class="p">,</span> <span class="n">o_pos</span><span class="p">)</span>
+        <span class="p">])</span>
+    
+    <span class="c1"># Test secondary structure analysis</span>
+    <span class="n">analyzer</span> <span class="o">=</span> <span class="n">create_secondary_structure_analyzer</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">analyze_structure</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">time_point</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test Results:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- Number of residues: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;n_residues&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- Secondary structure assignments: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;assignments&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- Structure percentages:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ss_type</span><span class="p">,</span> <span class="n">percentage</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;percentages&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">percentage</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">SS_TYPES</span><span class="p">[</span><span class="n">ss_type</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Secondary structure analysis test completed successfully!&quot;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/scientific_background.html">Scientific Background and Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../../../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

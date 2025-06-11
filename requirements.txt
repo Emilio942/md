@@ -1,0 +1,8 @@
+numpy>=1.22.0
+matplotlib>=3.5.0
+scipy>=1.8.0
+tqdm>=4.62.0
+mdtraj>=1.9.7; python_version < '3.11'  # Optional, for trajectory analysis
+pytest>=7.0.0  # For running tests
+ipython>=7.0.0  # For interactive sessions
+jupyter>=1.0.0  # For notebook support

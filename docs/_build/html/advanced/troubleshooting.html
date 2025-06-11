@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Troubleshooting Guide &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Software Architecture" href="../developer/architecture.html" />
+    <link rel="prev" title="Extending ProteinMD" href="extending.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="troubleshooting-guide">
+<h1>Troubleshooting Guide<a class="headerlink" href="#troubleshooting-guide" title="Link to this heading">¶</a></h1>
+<p>This guide helps diagnose and resolve common issues in ProteinMD simulations.</p>
+<nav class="contents local" id="troubleshooting-topics">
+<p class="topic-title">Troubleshooting Topics</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#installation-issues" id="id1">Installation Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#package-installation-problems" id="id2">Package Installation Problems</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#structure-preparation-issues" id="id3">Structure Preparation Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#pdb-loading-problems" id="id4">PDB Loading Problems</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#force-field-issues" id="id5">Force Field Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#parameter-assignment-problems" id="id6">Parameter Assignment Problems</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#simulation-setup-issues" id="id7">Simulation Setup Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#system-preparation-problems" id="id8">System Preparation Problems</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#runtime-simulation-issues" id="id9">Runtime Simulation Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#stability-problems" id="id10">Stability Problems</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-issues" id="id11">Performance Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#slow-simulation-speed" id="id12">Slow Simulation Speed</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#analysis-issues" id="id13">Analysis Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#trajectory-analysis-problems" id="id14">Trajectory Analysis Problems</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#common-error-messages" id="id15">Common Error Messages</a></p>
+<ul>
+<li><p><a class="reference internal" href="#error-message-decoder" id="id16">Error Message Decoder</a></p></li>
+<li><p><a class="reference internal" href="#log-file-analysis" id="id17">Log File Analysis</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#getting-help" id="id18">Getting Help</a></p>
+<ul>
+<li><p><a class="reference internal" href="#diagnostic-tools" id="id19">Diagnostic Tools</a></p></li>
+<li><p><a class="reference internal" href="#community-resources" id="id20">Community Resources</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#see-also" id="id21">See Also</a></p></li>
+</ul>
+</nav>
+<section id="installation-issues">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Installation Issues</a><a class="headerlink" href="#installation-issues" title="Link to this heading">¶</a></h2>
+<section id="package-installation-problems">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Package Installation Problems</a><a class="headerlink" href="#package-installation-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Installation fails with dependency conflicts</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ERROR:<span class="w"> </span>pip<span class="err">&#39;</span>s<span class="w"> </span>dependency<span class="w"> </span>resolver<span class="w"> </span>does<span class="w"> </span>not<span class="w"> </span>currently<span class="w"> </span>consider<span class="w"> </span>all<span class="w"> </span>packages...
+</pre></div>
+</div>
+<p><em>Solution:</em></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create clean environment</span>
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>proteinmd-clean<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
+conda<span class="w"> </span>activate<span class="w"> </span>proteinmd-clean
+
+<span class="c1"># Install with conda first</span>
+conda<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib
+
+<span class="c1"># Then install ProteinMD</span>
+pip<span class="w"> </span>install<span class="w"> </span>proteinmd
+</pre></div>
+</div>
+<p><strong>Issue: CUDA/GPU detection problems</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check CUDA availability</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CudaSettings</span>
+
+<span class="n">cuda</span> <span class="o">=</span> <span class="n">CudaSettings</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CUDA not available&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CUDA path: </span><span class="si">{</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_cuda_path</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Driver version: </span><span class="si">{</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_driver_version</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>Solution:</em></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Verify CUDA installation</span>
+nvidia-smi
+nvcc<span class="w"> </span>--version
+
+<span class="c1"># Reinstall with CUDA support</span>
+pip<span class="w"> </span>uninstall<span class="w"> </span>proteinmd
+pip<span class="w"> </span>install<span class="w"> </span>proteinmd<span class="o">[</span>cuda<span class="o">]</span>
+</pre></div>
+</div>
+<p><strong>Issue: OpenMM/GROMACS backend not found</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check available backends</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_available_backends</span>
+
+<span class="n">backends</span> <span class="o">=</span> <span class="n">list_available_backends</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available backends: </span><span class="si">{</span><span class="n">backends</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>Solution:</em></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install missing backend</span>
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>openmm
+<span class="c1"># or</span>
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>gromacs
+</pre></div>
+</div>
+</section>
+</section>
+<section id="structure-preparation-issues">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Structure Preparation Issues</a><a class="headerlink" href="#structure-preparation-issues" title="Link to this heading">¶</a></h2>
+<section id="pdb-loading-problems">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">PDB Loading Problems</a><a class="headerlink" href="#pdb-loading-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: PDB file parsing errors</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProteinStructure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructureValidator</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">protein</span> <span class="o">=</span> <span class="n">ProteinStructure</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;problematic.pdb&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PDB loading error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Try with error recovery</span>
+    <span class="n">protein</span> <span class="o">=</span> <span class="n">ProteinStructure</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span>
+        <span class="s2">&quot;problematic.pdb&quot;</span><span class="p">,</span>
+        <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">fix_residue_names</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p><em>Common issues and fixes:</em></p>
+<ol class="arabic">
+<li><p><strong>Non-standard residue names</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fix residue names</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">fix_residue_names</span>
+
+<span class="n">protein</span> <span class="o">=</span> <span class="n">fix_residue_names</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="p">{</span>
+    <span class="s1">&#39;HIE&#39;</span><span class="p">:</span> <span class="s1">&#39;HIS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;HID&#39;</span><span class="p">:</span> <span class="s1">&#39;HIS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;CYX&#39;</span><span class="p">:</span> <span class="s1">&#39;CYS&#39;</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Missing hydrogen atoms</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add hydrogens</span>
+<span class="n">protein</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">(</span><span class="n">ph</span><span class="o">=</span><span class="mf">7.0</span><span class="p">,</span> <span class="n">ionic_strength</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
+
+<span class="c1"># Verify hydrogens were added</span>
+<span class="n">h_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">element</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added </span><span class="si">{</span><span class="n">h_count</span><span class="si">}</span><span class="s2"> hydrogen atoms&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Chain breaks</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Detect chain breaks</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChainBreakDetector</span>
+
+<span class="n">detector</span> <span class="o">=</span> <span class="n">ChainBreakDetector</span><span class="p">()</span>
+<span class="n">breaks</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">find_breaks</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">break_info</span> <span class="ow">in</span> <span class="n">breaks</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chain break between </span><span class="si">{</span><span class="n">break_info</span><span class="o">.</span><span class="n">residue1</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">break_info</span><span class="o">.</span><span class="n">residue2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p><strong>Issue: Structure validation failures</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validator</span> <span class="o">=</span> <span class="n">StructureValidator</span><span class="p">()</span>
+<span class="n">issues</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Categorize issues by severity</span>
+<span class="n">critical_issues</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">issues</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">severity</span> <span class="o">==</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">]</span>
+<span class="n">warnings</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">issues</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">severity</span> <span class="o">==</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Critical issues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">critical_issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warnings: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Auto-fix common issues</span>
+<span class="k">if</span> <span class="n">critical_issues</span><span class="p">:</span>
+    <span class="n">fixed_protein</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">auto_fix</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">fix_critical</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="force-field-issues">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Force Field Issues</a><a class="headerlink" href="#force-field-issues" title="Link to this heading">¶</a></h2>
+<section id="parameter-assignment-problems">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Parameter Assignment Problems</a><a class="headerlink" href="#parameter-assignment-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Missing force field parameters</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forcefield.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterCoverage</span>
+
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+<span class="n">coverage_checker</span> <span class="o">=</span> <span class="n">ParameterCoverage</span><span class="p">()</span>
+
+<span class="c1"># Check parameter coverage</span>
+<span class="n">coverage</span> <span class="o">=</span> <span class="n">coverage_checker</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">forcefield</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">coverage</span><span class="o">.</span><span class="n">missing_parameters</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Missing parameters:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">coverage</span><span class="o">.</span><span class="n">missing_parameters</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">param</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">param</span><span class="o">.</span><span class="n">atoms</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Try to find similar parameters</span>
+        <span class="n">similar</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">find_similar_parameters</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">similar</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Similar parameter: </span><span class="si">{</span><span class="n">similar</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>Solutions for missing parameters:</em></p>
+<ol class="arabic">
+<li><p><strong>Use GAFF for small molecules</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">GAFF2</span>
+
+<span class="c1"># For ligands/small molecules</span>
+<span class="n">gaff</span> <span class="o">=</span> <span class="n">GAFF2</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">has_parameters_for</span><span class="p">(</span><span class="n">ligand</span><span class="p">):</span>
+    <span class="n">gaff_params</span> <span class="o">=</span> <span class="n">gaff</span><span class="o">.</span><span class="n">generate_parameters</span><span class="p">(</span><span class="n">ligand</span><span class="p">)</span>
+    <span class="n">forcefield</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">gaff_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Generate custom parameters</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forcefield.parameterization</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterGenerator</span>
+
+<span class="n">param_gen</span> <span class="o">=</span> <span class="n">ParameterGenerator</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;am1bcc&quot;</span><span class="p">)</span>
+<span class="n">custom_params</span> <span class="o">=</span> <span class="n">param_gen</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">missing_molecule</span><span class="p">)</span>
+<span class="n">forcefield</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">custom_params</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p><strong>Issue: Unreasonable initial energies</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check initial energy</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="n">initial_energy</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_potential_energy</span><span class="p">()</span>
+<span class="n">energy_per_atom</span> <span class="o">=</span> <span class="n">initial_energy</span> <span class="o">/</span> <span class="n">system</span><span class="o">.</span><span class="n">get_num_particles</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial energy: </span><span class="si">{</span><span class="n">initial_energy</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy per atom: </span><span class="si">{</span><span class="n">energy_per_atom</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">energy_per_atom</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>  <span class="c1"># Very high energy</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Unreasonably high initial energy&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check for close contacts</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContactChecker</span>
+
+    <span class="n">contact_checker</span> <span class="o">=</span> <span class="n">ContactChecker</span><span class="p">()</span>
+    <span class="n">close_contacts</span> <span class="o">=</span> <span class="n">contact_checker</span><span class="o">.</span><span class="n">find_close_contacts</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">close_contacts</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">close_contacts</span><span class="p">)</span><span class="si">}</span><span class="s2"> close contacts&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">contact</span> <span class="ow">in</span> <span class="n">close_contacts</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>  <span class="c1"># Show first 5</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">contact</span><span class="o">.</span><span class="n">atom1</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">contact</span><span class="o">.</span><span class="n">atom2</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">contact</span><span class="o">.</span><span class="n">distance</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="simulation-setup-issues">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Simulation Setup Issues</a><a class="headerlink" href="#simulation-setup-issues" title="Link to this heading">¶</a></h2>
+<section id="system-preparation-problems">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">System Preparation Problems</a><a class="headerlink" href="#system-preparation-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Solvation box too small</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">WaterModel</span>
+
+<span class="c1"># Check minimum box size</span>
+<span class="n">protein_bbox</span> <span class="o">=</span> <span class="n">protein</span><span class="o">.</span><span class="n">get_bounding_box</span><span class="p">()</span>
+<span class="n">min_box_size</span> <span class="o">=</span> <span class="n">protein_bbox</span> <span class="o">+</span> <span class="mf">2.0</span>  <span class="c1"># 2 nm minimum padding</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Protein bounding box: </span><span class="si">{</span><span class="n">protein_bbox</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Minimum box size: </span><span class="si">{</span><span class="n">min_box_size</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create appropriately sized box</span>
+<span class="n">water_model</span> <span class="o">=</span> <span class="n">WaterModel</span><span class="p">(</span><span class="s2">&quot;TIP3P&quot;</span><span class="p">)</span>
+<span class="n">box_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_box_size</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>  <span class="c1"># At least 5 nm</span>
+
+<span class="n">solvated_system</span> <span class="o">=</span> <span class="n">water_model</span><span class="o">.</span><span class="n">solvate</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">box_size</span><span class="o">=</span><span class="n">box_size</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Issue: Ion concentration problems</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check system charge</span>
+<span class="n">total_charge</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">charge</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">protein</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;System charge: </span><span class="si">{</span><span class="n">total_charge</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> e&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add neutralizing ions</span>
+<span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">total_charge</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+    <span class="n">n_counterions</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">total_charge</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">total_charge</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">solvated_system</span><span class="o">.</span><span class="n">add_ions</span><span class="p">(</span><span class="n">negative_ions</span><span class="o">=</span><span class="n">n_counterions</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">solvated_system</span><span class="o">.</span><span class="n">add_ions</span><span class="p">(</span><span class="n">positive_ions</span><span class="o">=</span><span class="n">n_counterions</span><span class="p">)</span>
+
+<span class="c1"># Add physiological salt concentration</span>
+<span class="n">solvated_system</span><span class="o">.</span><span class="n">add_salt</span><span class="p">(</span><span class="n">concentration</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>  <span class="c1"># 150 mM NaCl</span>
+</pre></div>
+</div>
+<p><strong>Issue: Periodic boundary condition problems</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check for protein parts crossing PBC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">PBCChecker</span>
+
+<span class="n">pbc_checker</span> <span class="o">=</span> <span class="n">PBCChecker</span><span class="p">()</span>
+<span class="n">pbc_issues</span> <span class="o">=</span> <span class="n">pbc_checker</span><span class="o">.</span><span class="n">check_system</span><span class="p">(</span><span class="n">solvated_system</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">pbc_issues</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PBC issues detected:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">pbc_issues</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Fix PBC issues</span>
+    <span class="n">fixed_system</span> <span class="o">=</span> <span class="n">pbc_checker</span><span class="o">.</span><span class="n">fix_pbc_issues</span><span class="p">(</span><span class="n">solvated_system</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="runtime-simulation-issues">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Runtime Simulation Issues</a><a class="headerlink" href="#runtime-simulation-issues" title="Link to this heading">¶</a></h2>
+<section id="stability-problems">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Stability Problems</a><a class="headerlink" href="#stability-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Simulation crashes with LINCS errors</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Diagnostic approach</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core.diagnostics</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationDiagnostic</span>
+
+<span class="n">diagnostic</span> <span class="o">=</span> <span class="n">SimulationDiagnostic</span><span class="p">()</span>
+
+<span class="c1"># Check timestep</span>
+<span class="k">if</span> <span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span> <span class="o">&gt;</span> <span class="mf">0.002</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Timestep may be too large&quot;</span><span class="p">)</span>
+    <span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span> <span class="o">=</span> <span class="mf">0.001</span>  <span class="c1"># Reduce to 1 fs</span>
+
+<span class="c1"># Check constraints</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">system</span><span class="o">.</span><span class="n">has_constraints</span><span class="p">():</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">add_constraints</span><span class="p">(</span><span class="s2">&quot;h-bonds&quot;</span><span class="p">)</span>  <span class="c1"># Constrain hydrogen bonds</span>
+
+<span class="c1"># More aggressive energy minimization</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span>
+    <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+    <span class="n">convergence_tolerance</span><span class="o">=</span><span class="mf">1.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Gradual heating</span>
+<span class="n">temperatures</span> <span class="o">=</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">300</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">temp</span> <span class="ow">in</span> <span class="n">temperatures</span><span class="p">:</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">set_target_temperature</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># 1 ps at each temperature</span>
+</pre></div>
+</div>
+<p><strong>Issue: Exploding coordinates</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Monitor coordinate stability</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_coordinate_stability</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">max_displacement</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check for exploding coordinates.&quot;&quot;&quot;</span>
+    <span class="n">prev_coords</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="n">current_coords</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">()</span>
+
+        <span class="c1"># Check maximum displacement</span>
+        <span class="n">displacement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">current_coords</span> <span class="o">-</span> <span class="n">prev_coords</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">displacement</span> <span class="o">&gt;</span> <span class="n">max_displacement</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;WARNING: Large displacement at step </span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">displacement</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">prev_coords</span> <span class="o">=</span> <span class="n">current_coords</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+
+<span class="c1"># Use stability check</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">check_coordinate_stability</span><span class="p">(</span><span class="n">simulation</span><span class="p">):</span>
+    <span class="c1"># Apply fixes</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">add_position_restraints</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="s2">&quot;protein&quot;</span><span class="p">,</span> <span class="n">force_constant</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Issue: Temperature control problems</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Diagnose thermostat issues</span>
+<span class="n">temp_data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5000</span><span class="p">):</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">temp_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">get_temperature</span><span class="p">())</span>
+
+<span class="n">avg_temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">temp_data</span><span class="p">)</span>
+<span class="n">temp_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">temp_data</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average temperature: </span><span class="si">{</span><span class="n">avg_temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">temp_std</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">avg_temp</span> <span class="o">-</span> <span class="n">target_temperature</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">10.0</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Temperature control problem detected&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Adjust thermostat parameters</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thermostat</span><span class="p">,</span> <span class="n">LangevinThermostat</span><span class="p">):</span>
+        <span class="n">thermostat</span><span class="o">.</span><span class="n">friction</span> <span class="o">=</span> <span class="mf">2.0</span>  <span class="c1"># Increase coupling</span>
+
+    <span class="c1"># Re-equilibrate</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run_equilibration</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-issues">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Performance Issues</a><a class="headerlink" href="#performance-issues" title="Link to this heading">¶</a></h2>
+<section id="slow-simulation-speed">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Slow Simulation Speed</a><a class="headerlink" href="#slow-simulation-speed" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Low ns/day performance</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">PerformanceProfiler</span>
+
+<span class="c1"># Profile simulation performance</span>
+<span class="n">profiler</span> <span class="o">=</span> <span class="n">PerformanceProfiler</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="n">profiler</span><span class="p">:</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># Short test run</span>
+
+<span class="c1"># Analyze bottlenecks</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">profiler</span><span class="o">.</span><span class="n">get_report</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performance: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">ns_per_day</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns/day&quot;</span><span class="p">)</span>
+
+<span class="n">bottlenecks</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">identify_bottlenecks</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">bottleneck</span> <span class="ow">in</span> <span class="n">bottlenecks</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bottleneck: </span><span class="si">{</span><span class="n">bottleneck</span><span class="o">.</span><span class="n">component</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">bottleneck</span><span class="o">.</span><span class="n">percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><em>Common performance fixes:</em></p>
+<ol class="arabic">
+<li><p><strong>Optimize neighbor lists</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Adjust neighbor list settings</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_nonbonded_cutoff</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># Don&#39;t make too large</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_neighbor_list_update_frequency</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>  <span class="c1"># Reduce frequency</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Use GPU acceleration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CudaSettings</span>
+
+<span class="k">if</span> <span class="n">CudaSettings</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+     <span class="n">cuda_settings</span> <span class="o">=</span> <span class="n">CudaSettings</span><span class="p">()</span>
+     <span class="n">cuda_settings</span><span class="o">.</span><span class="n">set_precision</span><span class="p">(</span><span class="s2">&quot;mixed&quot;</span><span class="p">)</span>  <span class="c1"># Faster than double</span>
+     <span class="n">simulation</span><span class="o">.</span><span class="n">use_gpu</span><span class="p">(</span><span class="n">cuda_settings</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Optimize PME parameters</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Auto-tune PME</span>
+<span class="n">system</span><span class="o">.</span><span class="n">auto_tune_pme</span><span class="p">()</span>
+
+<span class="c1"># Or set manually</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_pme_grid_spacing</span><span class="p">(</span><span class="mf">0.12</span><span class="p">)</span>  <span class="c1"># nm</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p><strong>Issue: Memory usage problems</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+
+<span class="c1"># Monitor memory usage</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">monitor_memory</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+    <span class="n">process</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_steps</span><span class="p">):</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">memory_mb</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">1024</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s2">: Memory usage </span><span class="si">{</span><span class="n">memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">memory_mb</span> <span class="o">&gt;</span> <span class="mi">8000</span><span class="p">:</span>  <span class="c1"># 8 GB limit</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: High memory usage&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p><em>Memory optimization:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reduce trajectory storage frequency</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_output_frequency</span><span class="p">(</span>
+    <span class="n">coordinates</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>  <span class="c1"># Every 20 ps instead of every step</span>
+    <span class="n">velocities</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>       <span class="c1"># Don&#39;t save velocities</span>
+    <span class="n">energies</span><span class="o">=</span><span class="mi">1000</span>       <span class="c1"># Every 2 ps</span>
+<span class="p">)</span>
+
+<span class="c1"># Use compressed trajectory format</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_trajectory_format</span><span class="p">(</span><span class="s2">&quot;dcd&quot;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="analysis-issues">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Analysis Issues</a><a class="headerlink" href="#analysis-issues" title="Link to this heading">¶</a></h2>
+<section id="trajectory-analysis-problems">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Trajectory Analysis Problems</a><a class="headerlink" href="#trajectory-analysis-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Trajectory loading failures</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajectoryReader</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">TrajectoryReader</span><span class="p">(</span><span class="s2">&quot;trajectory.dcd&quot;</span><span class="p">)</span>
+    <span class="n">trajectory</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trajectory loading error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Try with error recovery</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">TrajectoryReader</span><span class="p">(</span><span class="s2">&quot;trajectory.dcd&quot;</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">trajectory</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">load_partial</span><span class="p">(</span><span class="n">max_frames</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Issue: Memory issues with large trajectories</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process trajectory in chunks</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajectoryChunker</span>
+
+<span class="n">chunker</span> <span class="o">=</span> <span class="n">TrajectoryChunker</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>  <span class="c1"># 500 frames per chunk</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunker</span><span class="o">.</span><span class="n">iterate_trajectory</span><span class="p">(</span><span class="s2">&quot;large_trajectory.dcd&quot;</span><span class="p">):</span>
+    <span class="c1"># Analyze each chunk</span>
+    <span class="n">chunk_result</span> <span class="o">=</span> <span class="n">analyze_chunk</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk_result</span><span class="p">)</span>
+
+<span class="c1"># Combine results</span>
+<span class="n">final_result</span> <span class="o">=</span> <span class="n">combine_chunk_results</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Issue: Analysis convergence problems</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvergenceChecker</span>
+
+<span class="c1"># Check analysis convergence</span>
+<span class="n">convergence_checker</span> <span class="o">=</span> <span class="n">ConvergenceChecker</span><span class="p">()</span>
+
+<span class="c1"># Analyze RMSD convergence</span>
+<span class="n">rmsd_values</span> <span class="o">=</span> <span class="n">calculate_rmsd_trajectory</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+<span class="n">is_converged</span> <span class="o">=</span> <span class="n">convergence_checker</span><span class="o">.</span><span class="n">check_rmsd_convergence</span><span class="p">(</span><span class="n">rmsd_values</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">is_converged</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RMSD analysis not converged&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Recommended additional simulation time: &quot;</span>
+          <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">convergence_checker</span><span class="o">.</span><span class="n">get_additional_time_needed</span><span class="p">()</span><span class="si">}</span><span class="s2"> ns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="common-error-messages">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Common Error Messages</a><a class="headerlink" href="#common-error-messages" title="Link to this heading">¶</a></h2>
+<section id="error-message-decoder">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Error Message Decoder</a><a class="headerlink" href="#error-message-decoder" title="Link to this heading">¶</a></h3>
+<p><strong>“Fatal error: The system has become unstable”</strong></p>
+<p><em>Cause:</em> Usually due to timestep too large or bad initial structure.</p>
+<p><em>Solution:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reduce timestep</span>
+<span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span> <span class="o">=</span> <span class="mf">0.0005</span>  <span class="c1"># 0.5 fs</span>
+
+<span class="c1"># More thorough minimization</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">20000</span><span class="p">)</span>
+
+<span class="c1"># Gradual equilibration</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">gradual_equilibration</span><span class="p">(</span>
+    <span class="n">initial_temp</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+    <span class="n">final_temp</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">steps_per_temp</span><span class="o">=</span><span class="mi">5000</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>“Error: Cannot find force field parameters for atom type X”</strong></p>
+<p><em>Cause:</em> Missing force field parameters for unusual residues or ligands.</p>
+<p><em>Solution:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate missing parameters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forcefield.parameterization</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoParameterizer</span>
+
+<span class="n">auto_param</span> <span class="o">=</span> <span class="n">AutoParameterizer</span><span class="p">()</span>
+<span class="n">missing_params</span> <span class="o">=</span> <span class="n">auto_param</span><span class="o">.</span><span class="n">generate_missing_parameters</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">forcefield</span><span class="p">)</span>
+<span class="n">forcefield</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">missing_params</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>“Warning: Large force detected on atom X”</strong></p>
+<p><em>Cause:</em> Close contacts or unreasonable geometry.</p>
+<p><em>Solution:</em></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find problematic atoms</span>
+<span class="n">forces</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">calculate_forces</span><span class="p">()</span>
+<span class="n">large_forces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">forces</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1000.0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">atom_idx</span> <span class="ow">in</span> <span class="n">large_forces</span><span class="p">:</span>
+    <span class="n">atom</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">atom_idx</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Large force on </span><span class="si">{</span><span class="n">atom</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> in residue </span><span class="si">{</span><span class="n">atom</span><span class="o">.</span><span class="n">residue</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Apply position restraints and minimize</span>
+<span class="n">system</span><span class="o">.</span><span class="n">add_position_restraints</span><span class="p">(</span>
+    <span class="n">selection</span><span class="o">=</span><span class="s2">&quot;large_force_atoms&quot;</span><span class="p">,</span>
+    <span class="n">force_constant</span><span class="o">=</span><span class="mf">10000.0</span>
+<span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="log-file-analysis">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Log File Analysis</a><a class="headerlink" href="#log-file-analysis" title="Link to this heading">¶</a></h3>
+<p><strong>Analyzing simulation logs</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogAnalyzer</span>
+
+<span class="c1"># Analyze log file for issues</span>
+<span class="n">log_analyzer</span> <span class="o">=</span> <span class="n">LogAnalyzer</span><span class="p">()</span>
+<span class="n">log_data</span> <span class="o">=</span> <span class="n">log_analyzer</span><span class="o">.</span><span class="n">parse_log</span><span class="p">(</span><span class="s2">&quot;simulation.log&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check for warnings and errors</span>
+<span class="n">warnings</span> <span class="o">=</span> <span class="n">log_data</span><span class="o">.</span><span class="n">get_warnings</span><span class="p">()</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="n">log_data</span><span class="o">.</span><span class="n">get_errors</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span><span class="si">}</span><span class="s2"> warnings and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span><span class="si">}</span><span class="s2"> errors&quot;</span><span class="p">)</span>
+
+<span class="c1"># Analyze energy drift</span>
+<span class="n">energy_drift</span> <span class="o">=</span> <span class="n">log_analyzer</span><span class="o">.</span><span class="n">calculate_energy_drift</span><span class="p">(</span><span class="n">log_data</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">energy_drift</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>  <span class="c1"># kJ/mol/ns</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;WARNING: Energy drift detected: </span><span class="si">{</span><span class="n">energy_drift</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol/ns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="getting-help">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Getting Help</a><a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<section id="diagnostic-tools">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Diagnostic Tools</a><a class="headerlink" href="#diagnostic-tools" title="Link to this heading">¶</a></h3>
+<p><strong>Automated problem detection</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.diagnostics</span><span class="w"> </span><span class="kn">import</span> <span class="n">SystemDiagnostic</span>
+
+<span class="c1"># Run comprehensive system diagnostic</span>
+<span class="n">diagnostic</span> <span class="o">=</span> <span class="n">SystemDiagnostic</span><span class="p">()</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">diagnostic</span><span class="o">.</span><span class="n">run_full_diagnostic</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="n">simulation</span><span class="o">=</span><span class="n">simulation</span><span class="p">,</span>
+    <span class="n">trajectory</span><span class="o">=</span><span class="s2">&quot;trajectory.dcd&quot;</span>  <span class="c1"># Optional</span>
+<span class="p">)</span>
+
+<span class="c1"># Print diagnostic report</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+
+<span class="c1"># Get specific recommendations</span>
+<span class="n">recommendations</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">get_recommendations</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">recommendations</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Recommendation: </span><span class="si">{</span><span class="n">rec</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Priority: </span><span class="si">{</span><span class="n">rec</span><span class="o">.</span><span class="n">priority</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Action: </span><span class="si">{</span><span class="n">rec</span><span class="o">.</span><span class="n">suggested_action</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Debug mode</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enable debug mode for detailed logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">proteinmd</span>
+<span class="n">proteinmd</span><span class="o">.</span><span class="n">set_debug_mode</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Set verbose logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+<span class="c1"># Run simulation with detailed output</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="community-resources">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Community Resources</a><a class="headerlink" href="#community-resources" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>GitHub Issues</strong>: Report bugs and ask questions</p></li>
+<li><p><strong>Documentation</strong>: Check the latest documentation</p></li>
+<li><p><strong>Tutorials</strong>: Step-by-step guides for common tasks</p></li>
+<li><p><strong>Examples</strong>: Working examples for reference</p></li>
+</ol>
+<p><strong>Preparing bug reports</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">BugReporter</span>
+
+<span class="c1"># Generate bug report</span>
+<span class="n">bug_reporter</span> <span class="o">=</span> <span class="n">BugReporter</span><span class="p">()</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">bug_reporter</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span>
+    <span class="n">error_description</span><span class="o">=</span><span class="s2">&quot;Simulation crashes after 1000 steps&quot;</span><span class="p">,</span>
+    <span class="n">system_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">log_files</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;simulation.log&quot;</span><span class="p">],</span>
+    <span class="n">input_files</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;system.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation.yaml&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Save report</span>
+<span class="n">bug_reporter</span><span class="o">.</span><span class="n">save_report</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="s2">&quot;bug_report.zip&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api/index.html"><span class="doc">API Reference</span></a> - Complete API reference</p></li>
+<li><p><a class="reference internal" href="performance.html"><span class="doc">Performance Optimization</span></a> - Performance optimization</p></li>
+<li><p><a class="reference internal" href="validation.html"><span class="doc">Validation and Quality Assurance</span></a> - Validation protocols</p></li>
+<li><p><a class="reference internal" href="../user_guide/tutorials.html"><span class="doc">Tutorials</span></a> - Step-by-step tutorials</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Troubleshooting Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation-issues">Installation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#structure-preparation-issues">Structure Preparation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#force-field-issues">Force Field Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-setup-issues">Simulation Setup Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#runtime-simulation-issues">Runtime Simulation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-issues">Performance Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-issues">Analysis Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-error-messages">Common Error Messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="extending.html" title="previous chapter">Extending ProteinMD</a></li>
+      <li>Next: <a href="../developer/architecture.html" title="next chapter">Software Architecture</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/troubleshooting.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

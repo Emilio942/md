@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Molecular Dynamics Fundamentals &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Statistical Mechanics Foundation" href="statistical_mechanics.html" />
+    <link rel="prev" title="Scientific Background and Theory" href="scientific_background.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="molecular-dynamics-fundamentals">
+<h1>Molecular Dynamics Fundamentals<a class="headerlink" href="#molecular-dynamics-fundamentals" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>Molecular Dynamics (MD) simulation is a computational method that predicts the time evolution of a system of interacting particles by solving Newton’s equations of motion. This technique allows us to study the dynamics and thermodynamic properties of molecular systems at atomic resolution.</p>
+</section>
+<section id="classical-mechanics-foundation">
+<h2>Classical Mechanics Foundation<a class="headerlink" href="#classical-mechanics-foundation" title="Link to this heading">¶</a></h2>
+<section id="newton-s-equations-of-motion">
+<h3>Newton’s Equations of Motion<a class="headerlink" href="#newton-s-equations-of-motion" title="Link to this heading">¶</a></h3>
+<p>The fundamental equation governing MD simulations is Newton’s second law:</p>
+<div class="math notranslate nohighlight">
+\[F_i = m_i \frac{d^2 r_i}{dt^2} = m_i a_i\]</div>
+<p>where:
+- <span class="math notranslate nohighlight">\(F_i\)</span> is the force on atom <span class="math notranslate nohighlight">\(i\)</span>
+- <span class="math notranslate nohighlight">\(m_i\)</span> is the mass of atom <span class="math notranslate nohighlight">\(i\)</span>
+- <span class="math notranslate nohighlight">\(r_i\)</span> is the position vector of atom <span class="math notranslate nohighlight">\(i\)</span>
+- <span class="math notranslate nohighlight">\(a_i\)</span> is the acceleration of atom <span class="math notranslate nohighlight">\(i\)</span></p>
+<p><strong>Force Calculation</strong></p>
+<p>Forces are derived from the potential energy function:</p>
+<div class="math notranslate nohighlight">
+\[F_i = -\nabla_i U(r_1, r_2, ..., r_N)\]</div>
+<p>where <span class="math notranslate nohighlight">\(U\)</span> is the total potential energy of the system.</p>
+<p><strong>Integration in Time</strong></p>
+<p>The equations of motion are integrated numerically using finite difference methods. The most common approach is the Verlet algorithm:</p>
+<div class="math notranslate nohighlight">
+\[r_i(t + \Delta t) = 2r_i(t) - r_i(t - \Delta t) + \frac{F_i(t)}{m_i} \Delta t^2\]</div>
+</section>
+<section id="hamiltonian-mechanics">
+<h3>Hamiltonian Mechanics<a class="headerlink" href="#hamiltonian-mechanics" title="Link to this heading">¶</a></h3>
+<p>The Hamiltonian formulation provides an alternative perspective that is particularly useful for understanding conservation laws and developing advanced algorithms.</p>
+<p><strong>Hamiltonian Function</strong></p>
+<div class="math notranslate nohighlight">
+\[H(p, q) = \sum_i \frac{p_i^2}{2m_i} + U(q_1, q_2, ..., q_N)\]</div>
+<p>where <span class="math notranslate nohighlight">\(p_i\)</span> are the momenta and <span class="math notranslate nohighlight">\(q_i\)</span> are the generalized coordinates.</p>
+<p><strong>Hamilton’s Equations</strong></p>
+<div class="math notranslate nohighlight">
+\[\frac{dq_i}{dt} = \frac{\partial H}{\partial p_i} = \frac{p_i}{m_i}\]</div>
+<div class="math notranslate nohighlight">
+\[\frac{dp_i}{dt} = -\frac{\partial H}{\partial q_i} = -\frac{\partial U}{\partial q_i}\]</div>
+<p><strong>Conservation Laws</strong></p>
+<p>In an isolated system (no external forces), the total energy is conserved:</p>
+<div class="math notranslate nohighlight">
+\[E_{total} = E_{kinetic} + E_{potential} = \text{constant}\]</div>
+<p>This conservation law serves as an important check for simulation accuracy.</p>
+</section>
+</section>
+<section id="the-born-oppenheimer-approximation">
+<h2>The Born-Oppenheimer Approximation<a class="headerlink" href="#the-born-oppenheimer-approximation" title="Link to this heading">¶</a></h2>
+<p>MD simulations typically treat only nuclear motion explicitly, while electronic degrees of freedom are averaged out. This is justified by the Born-Oppenheimer approximation, which exploits the large mass difference between nuclei and electrons.</p>
+<p><strong>Assumptions:</strong></p>
+<ol class="arabic simple">
+<li><p>Electronic motion is much faster than nuclear motion</p></li>
+<li><p>Electrons instantaneously adjust to nuclear configurations</p></li>
+<li><p>The potential energy surface is determined by nuclear positions only</p></li>
+</ol>
+<p><strong>Implications:</strong></p>
+<ul class="simple">
+<li><p>Potential energy functions depend only on nuclear coordinates</p></li>
+<li><p>Chemical bonds are treated as classical springs</p></li>
+<li><p>Electronic excitations are not explicitly modeled</p></li>
+</ul>
+</section>
+<section id="ergodic-hypothesis">
+<h2>Ergodic Hypothesis<a class="headerlink" href="#ergodic-hypothesis" title="Link to this heading">¶</a></h2>
+<p>The ergodic hypothesis is crucial for connecting MD simulations to experimental observables. It states that time averages equal ensemble averages for sufficiently long simulations.</p>
+<p><strong>Mathematical Statement</strong></p>
+<div class="math notranslate nohighlight">
+\[\langle A \rangle_{time} = \lim_{T \to \infty} \frac{1}{T} \int_0^T A(r(t), p(t)) dt = \langle A \rangle_{ensemble}\]</div>
+<p>where <span class="math notranslate nohighlight">\(A\)</span> is any observable quantity.</p>
+<p><strong>Practical Implications:</strong></p>
+<ul class="simple">
+<li><p>Simulations must be long enough to sample the relevant phase space</p></li>
+<li><p>Initial conditions should not bias the results</p></li>
+<li><p>System must be able to explore all accessible states</p></li>
+</ul>
+</section>
+<section id="time-and-length-scales">
+<h2>Time and Length Scales<a class="headerlink" href="#time-and-length-scales" title="Link to this heading">¶</a></h2>
+<p>Understanding the time and length scales accessible to MD simulation is essential for proper experimental design.</p>
+<p><strong>Typical Time Scales:</strong></p>
+<ul class="simple">
+<li><p>Bond vibrations: 10-100 fs</p></li>
+<li><p>Angle bending: 100-1000 fs</p></li>
+<li><p>Protein side chain rotation: 1-100 ps</p></li>
+<li><p>Loop movements: 100 ps - 1 ns</p></li>
+<li><p>Domain motions: 1-100 ns</p></li>
+<li><p>Protein folding: μs - ms</p></li>
+</ul>
+<p><strong>Typical Length Scales:</strong></p>
+<ul class="simple">
+<li><p>Bond lengths: 1-2 Å</p></li>
+<li><p>Small molecules: 5-10 Å</p></li>
+<li><p>Protein secondary structure: 10-20 Å</p></li>
+<li><p>Protein domains: 20-50 Å</p></li>
+<li><p>Complete proteins: 50-200 Å</p></li>
+</ul>
+<p><strong>Simulation Limitations:</strong></p>
+<p>Current MD simulations can routinely access:
+- Time scales: fs to μs (occasionally ms)
+- System sizes: 10³ to 10⁶ atoms
+- Spatial resolution: atomic (sub-Å)</p>
+</section>
+<section id="periodic-boundary-conditions">
+<h2>Periodic Boundary Conditions<a class="headerlink" href="#periodic-boundary-conditions" title="Link to this heading">¶</a></h2>
+<p>To simulate bulk properties with finite computational resources, periodic boundary conditions (PBC) are employed.</p>
+<p><strong>Implementation:</strong></p>
+<p>The simulation box is replicated infinitely in all directions. When a particle exits one side of the box, its image enters from the opposite side.</p>
+<p><strong>Minimum Image Convention:</strong></p>
+<p>For each pair of particles, only the nearest image is considered for force calculations:</p>
+<div class="math notranslate nohighlight">
+\[r_{ij}^{min} = r_{ij} - \text{round}(r_{ij}/L) \times L\]</div>
+<p>where <span class="math notranslate nohighlight">\(L\)</span> is the box length and round() rounds to the nearest integer.</p>
+<p><strong>Considerations:</strong></p>
+<ul class="simple">
+<li><p>Box size must be large enough to avoid self-interactions</p></li>
+<li><p>Long-range interactions require special treatment (Ewald summation)</p></li>
+<li><p>Some properties (e.g., surface tension) cannot be studied with PBC</p></li>
+</ul>
+</section>
+<section id="temperature-and-pressure-control">
+<h2>Temperature and Pressure Control<a class="headerlink" href="#temperature-and-pressure-control" title="Link to this heading">¶</a></h2>
+<p>Real experiments are typically performed under controlled temperature and pressure conditions, requiring special algorithms in MD simulations.</p>
+<p><strong>Temperature Control (Thermostats)</strong></p>
+<p>Temperature is related to the average kinetic energy:</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{2} k_B T = \frac{1}{3N} \sum_i \frac{1}{2} m_i v_i^2\]</div>
+<p>Common thermostat methods:
+- Velocity rescaling (Berendsen)
+- Nosé-Hoover thermostat
+- Langevin dynamics</p>
+<p><strong>Pressure Control (Barostats)</strong></p>
+<p>Pressure is controlled by allowing the simulation box to change size. The instantaneous pressure is calculated from the virial theorem:</p>
+<div class="math notranslate nohighlight">
+\[P = \frac{N k_B T}{V} + \frac{1}{3V} \sum_i \vec{r_i} \cdot \vec{F_i}\]</div>
+<p>Common barostat methods:
+- Berendsen barostat
+- Parrinello-Rahman barostat
+- Monte Carlo barostat</p>
+</section>
+<section id="simulation-workflow">
+<h2>Simulation Workflow<a class="headerlink" href="#simulation-workflow" title="Link to this heading">¶</a></h2>
+<p>A typical MD simulation follows these steps:</p>
+<dl class="simple">
+<dt><strong>1. System Preparation</strong></dt><dd><ul class="simple">
+<li><p>Build initial molecular structure</p></li>
+<li><p>Add solvent molecules if needed</p></li>
+<li><p>Assign force field parameters</p></li>
+<li><p>Set initial velocities from Maxwell-Boltzmann distribution</p></li>
+</ul>
+</dd>
+<dt><strong>2. Energy Minimization</strong></dt><dd><ul class="simple">
+<li><p>Remove steric clashes</p></li>
+<li><p>Optimize initial geometry</p></li>
+<li><p>Prepare system for dynamics</p></li>
+</ul>
+</dd>
+<dt><strong>3. Equilibration</strong></dt><dd><ul class="simple">
+<li><p>Gradually heat system to target temperature</p></li>
+<li><p>Allow pressure to equilibrate</p></li>
+<li><p>Equilibrate solvent around solute</p></li>
+</ul>
+</dd>
+<dt><strong>4. Production Run</strong></dt><dd><ul class="simple">
+<li><p>Collect data for analysis</p></li>
+<li><p>Monitor energy conservation</p></li>
+<li><p>Save trajectory for analysis</p></li>
+</ul>
+</dd>
+<dt><strong>5. Analysis</strong></dt><dd><ul class="simple">
+<li><p>Calculate structural properties</p></li>
+<li><p>Compute thermodynamic quantities</p></li>
+<li><p>Analyze dynamical behavior</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="example-simple-md-algorithm">
+<h2>Example: Simple MD Algorithm<a class="headerlink" href="#example-simple-md-algorithm" title="Link to this heading">¶</a></h2>
+<p>Here’s a simplified MD algorithm outline:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">md_simulation</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">velocities</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Basic MD simulation using Verlet integration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="c1"># Calculate forces from current positions</span>
+        <span class="n">forces</span> <span class="o">=</span> <span class="n">calculate_forces</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+
+        <span class="c1"># Update positions (Verlet integration)</span>
+        <span class="n">new_positions</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">positions</span> <span class="o">-</span> <span class="n">prev_positions</span> <span class="o">+</span>
+                        <span class="n">forces</span><span class="o">/</span><span class="n">masses</span> <span class="o">*</span> <span class="n">dt</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Update velocities</span>
+        <span class="n">velocities</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_positions</span> <span class="o">-</span> <span class="n">prev_positions</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">dt</span><span class="p">)</span>
+
+        <span class="c1"># Apply temperature/pressure control if needed</span>
+        <span class="n">velocities</span> <span class="o">=</span> <span class="n">apply_thermostat</span><span class="p">(</span><span class="n">velocities</span><span class="p">,</span> <span class="n">target_temp</span><span class="p">)</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">apply_barostat</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">target_pressure</span><span class="p">)</span>
+
+        <span class="c1"># Save trajectory data</span>
+        <span class="n">save_frame</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">velocities</span><span class="p">,</span> <span class="n">forces</span><span class="p">)</span>
+
+        <span class="c1"># Update for next step</span>
+        <span class="n">prev_positions</span> <span class="o">=</span> <span class="n">positions</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">new_positions</span>
+
+    <span class="k">return</span> <span class="n">trajectory</span>
+</pre></div>
+</div>
+<p><strong>Key Considerations:</strong></p>
+<ul class="simple">
+<li><p>Time step must be small enough for numerical stability</p></li>
+<li><p>Force calculations dominate computational cost</p></li>
+<li><p>Conservation laws should be monitored</p></li>
+<li><p>Statistical quantities require averaging over many configurations</p></li>
+</ul>
+</section>
+<section id="physical-observables">
+<h2>Physical Observables<a class="headerlink" href="#physical-observables" title="Link to this heading">¶</a></h2>
+<p>MD simulations provide access to both structural and dynamical properties:</p>
+<p><strong>Structural Properties:</strong>
+- Radial distribution functions
+- Bond/angle/dihedral distributions
+- Secondary structure content
+- Solvent accessible surface area</p>
+<p><strong>Dynamical Properties:</strong>
+- Diffusion coefficients
+- Correlation functions
+- Relaxation times
+- Transport properties</p>
+<p><strong>Thermodynamic Properties:</strong>
+- Average energies
+- Heat capacities
+- Compressibilities
+- Phase transition temperatures</p>
+<p>Each observable requires appropriate sampling and analysis techniques for accurate determination.</p>
+</section>
+<section id="limitations-and-assumptions">
+<h2>Limitations and Assumptions<a class="headerlink" href="#limitations-and-assumptions" title="Link to this heading">¶</a></h2>
+<p>Understanding the limitations of MD simulation is crucial for proper interpretation:</p>
+<p><strong>Fundamental Limitations:</strong>
+- Classical mechanics (no quantum effects)
+- Born-Oppenheimer approximation
+- Finite time scales accessible
+- Force field accuracy limitations</p>
+<p><strong>Computational Limitations:</strong>
+- Finite system size effects
+- Finite simulation time
+- Numerical integration errors
+- Sampling limitations</p>
+<p><strong>When MD May Not Be Appropriate:</strong>
+- Chemical reactions (bond breaking/forming)
+- Electronic excitations
+- Very slow processes (protein folding)
+- Systems where quantum effects dominate</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>Molecular dynamics simulation provides a powerful computational microscope for studying molecular systems. The method is based on classical mechanics and statistical mechanics principles, allowing prediction of both structural and dynamical properties.</p>
+<p>Key takeaways:</p>
+<ol class="arabic simple">
+<li><p><strong>Classical Framework</strong>: MD uses Newton’s equations to evolve molecular systems</p></li>
+<li><p><strong>Force Fields</strong>: Empirical potentials approximate interatomic interactions</p></li>
+<li><p><strong>Statistical Sampling</strong>: Long simulations provide ensemble averages</p></li>
+<li><p><strong>Time/Length Scales</strong>: Current methods access fs-μs and 10³-10⁶ atoms</p></li>
+<li><p><strong>Controlled Conditions</strong>: Thermostats and barostats maintain experimental conditions</p></li>
+</ol>
+<p>The next sections will delve deeper into specific aspects of MD theory and implementation, building upon these fundamental concepts.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="scientific_background.html">Scientific Background and Theory</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="scientific_background.html">Scientific Background and Theory</a><ul>
+      <li>Previous: <a href="scientific_background.html" title="previous chapter">Scientific Background and Theory</a></li>
+      <li>Next: <a href="statistical_mechanics.html" title="next chapter">Statistical Mechanics Foundation</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/md_fundamentals.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

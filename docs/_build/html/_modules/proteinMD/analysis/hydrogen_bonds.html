@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proteinMD.analysis.hydrogen_bonds &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for proteinMD.analysis.hydrogen_bonds</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Hydrogen Bond Analysis for molecular dynamics simulations.</span>
+
+<span class="sd">This module provides functions and classes for detecting hydrogen bonds,</span>
+<span class="sd">tracking their evolution over time, analyzing their statistics, and</span>
+<span class="sd">visualizing hydrogen bond networks in protein structures.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Set</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
+
+<span class="c1"># Configure logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Define hydrogen bond data structure</span>
+<span class="n">HydrogenBond</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;HydrogenBond&#39;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s1">&#39;donor_atom_idx&#39;</span><span class="p">,</span> <span class="s1">&#39;hydrogen_idx&#39;</span><span class="p">,</span> <span class="s1">&#39;acceptor_atom_idx&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;donor_residue&#39;</span><span class="p">,</span> <span class="s1">&#39;acceptor_residue&#39;</span><span class="p">,</span> <span class="s1">&#39;distance&#39;</span><span class="p">,</span> <span class="s1">&#39;angle&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;bond_type&#39;</span><span class="p">,</span> <span class="s1">&#39;strength&#39;</span>
+<span class="p">])</span>
+
+<div class="viewcode-block" id="HydrogenBondDetector">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondDetector">[docs]</a>
+<span class="k">class</span> <span class="nc">HydrogenBondDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Hydrogen bond detection using geometric criteria.</span>
+<span class="sd">    </span>
+<span class="sd">    Standard criteria:</span>
+<span class="sd">    - D-H...A distance: &lt; 3.5 Å (default)</span>
+<span class="sd">    - D-H...A angle: &gt; 120° (default)</span>
+<span class="sd">    - H...A distance: &lt; 2.5 Å (default)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="HydrogenBondDetector.__init__">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondDetector.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">max_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.5</span><span class="p">,</span>
+                 <span class="n">min_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">120.0</span><span class="p">,</span>
+                 <span class="n">max_h_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize hydrogen bond detector.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        max_distance : float</span>
+<span class="sd">            Maximum D-A distance in Angstroms</span>
+<span class="sd">        min_angle : float</span>
+<span class="sd">            Minimum D-H...A angle in degrees</span>
+<span class="sd">        max_h_distance : float</span>
+<span class="sd">            Maximum H...A distance in Angstroms</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_distance</span> <span class="o">=</span> <span class="n">max_distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_angle</span> <span class="o">=</span> <span class="n">min_angle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_h_distance</span> <span class="o">=</span> <span class="n">max_h_distance</span>
+        
+        <span class="c1"># Define donor and acceptor atoms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">donor_atoms</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span>  <span class="c1"># Nitrogen, Oxygen, Sulfur can be donors</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acceptor_atoms</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span>  <span class="c1"># Nitrogen, Oxygen, Sulfur, Fluorine can be acceptors</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># Hydrogen bond strength classification</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strength_thresholds</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;very_strong&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">175</span><span class="p">),</span>  <span class="c1"># (max_dist, min_angle)</span>
+            <span class="s1">&#39;strong&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2.8</span><span class="p">,</span> <span class="mi">150</span><span class="p">),</span>
+            <span class="s1">&#39;moderate&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.1</span><span class="p">,</span> <span class="mi">130</span><span class="p">),</span>
+            <span class="s1">&#39;weak&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+        <span class="p">}</span></div>
+
+    
+<div class="viewcode-block" id="HydrogenBondDetector.calculate_angle">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondDetector.calculate_angle">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_angle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">donor_pos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                       <span class="n">hydrogen_pos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                       <span class="n">acceptor_pos</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate D-H...A angle in degrees.</span>
+<span class="sd">        </span>
+<span class="sd">        The D-H...A angle is measured as the angle between the vectors H-&gt;D and H-&gt;A.</span>
+<span class="sd">        A linear hydrogen bond (D-H-A) has an angle of 180°.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        donor_pos : np.ndarray</span>
+<span class="sd">            Donor atom position (3,)</span>
+<span class="sd">        hydrogen_pos : np.ndarray</span>
+<span class="sd">            Hydrogen atom position (3,)</span>
+<span class="sd">        acceptor_pos : np.ndarray</span>
+<span class="sd">            Acceptor atom position (3,)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Angle in degrees (180° = perfect linear hydrogen bond)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Vectors: H-&gt;D and H-&gt;A (both starting from hydrogen)</span>
+        <span class="n">hd_vector</span> <span class="o">=</span> <span class="n">donor_pos</span> <span class="o">-</span> <span class="n">hydrogen_pos</span>
+        <span class="n">ha_vector</span> <span class="o">=</span> <span class="n">acceptor_pos</span> <span class="o">-</span> <span class="n">hydrogen_pos</span>
+        
+        <span class="c1"># Calculate norms</span>
+        <span class="n">hd_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">hd_vector</span><span class="p">)</span>
+        <span class="n">ha_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ha_vector</span><span class="p">)</span>
+        
+        <span class="c1"># Handle zero-length vectors</span>
+        <span class="k">if</span> <span class="n">hd_norm</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">ha_norm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        
+        <span class="c1"># Calculate angle between H-&gt;D and H-&gt;A vectors</span>
+        <span class="n">cos_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">hd_vector</span><span class="p">,</span> <span class="n">ha_vector</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">hd_norm</span> <span class="o">*</span> <span class="n">ha_norm</span><span class="p">)</span>
+        
+        <span class="c1"># Clamp to valid range for arccos</span>
+        <span class="n">cos_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">cos_angle</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">cos_angle</span><span class="p">)</span> <span class="o">*</span> <span class="mf">180.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        
+        <span class="k">return</span> <span class="n">angle</span></div>
+
+    
+<div class="viewcode-block" id="HydrogenBondDetector.classify_bond_strength">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondDetector.classify_bond_strength">[docs]</a>
+    <span class="k">def</span> <span class="nf">classify_bond_strength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Classify hydrogen bond strength based on geometric criteria.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        distance : float</span>
+<span class="sd">            D-A distance in Angstroms</span>
+<span class="sd">        angle : float</span>
+<span class="sd">            D-H...A angle in degrees</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Bond strength classification</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">strength</span><span class="p">,</span> <span class="p">(</span><span class="n">max_dist</span><span class="p">,</span> <span class="n">min_ang</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strength_thresholds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;=</span> <span class="n">max_dist</span> <span class="ow">and</span> <span class="n">angle</span> <span class="o">&gt;=</span> <span class="n">min_ang</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">strength</span>
+        <span class="k">return</span> <span class="s1">&#39;very_weak&#39;</span></div>
+
+    
+<div class="viewcode-block" id="HydrogenBondDetector.determine_bond_type">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondDetector.determine_bond_type">[docs]</a>
+    <span class="k">def</span> <span class="nf">determine_bond_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">donor_residue</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">acceptor_residue</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine hydrogen bond type based on residue positions.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        donor_residue : int</span>
+<span class="sd">            Donor residue index</span>
+<span class="sd">        acceptor_residue : int</span>
+<span class="sd">            Acceptor residue index</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Bond type classification</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res_diff</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">donor_residue</span> <span class="o">-</span> <span class="n">acceptor_residue</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">res_diff</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;intra_residue&#39;</span>
+        <span class="k">elif</span> <span class="n">res_diff</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;adjacent&#39;</span>
+        <span class="k">elif</span> <span class="n">res_diff</span> <span class="o">&lt;=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;short_range&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;long_range&#39;</span></div>
+
+    
+<div class="viewcode-block" id="HydrogenBondDetector.detect_hydrogen_bonds">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondDetector.detect_hydrogen_bonds">[docs]</a>
+    <span class="k">def</span> <span class="nf">detect_hydrogen_bonds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atoms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">HydrogenBond</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Detect hydrogen bonds in a single structure.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atoms : List</span>
+<span class="sd">            List of atom objects with attributes: element, name, residue_id</span>
+<span class="sd">        positions : np.ndarray</span>
+<span class="sd">            Atomic coordinates with shape (N, 3) in Angstroms</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List[HydrogenBond]</span>
+<span class="sd">            List of detected hydrogen bonds</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hydrogen_bonds</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Find potential donors and acceptors</span>
+        <span class="n">donors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">acceptors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">hydrogens</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">atom</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">atoms</span><span class="p">):</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="s1">&#39;element&#39;</span><span class="p">,</span> <span class="n">atom</span><span class="o">.</span><span class="n">atom_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            
+            <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">donor_atoms</span><span class="p">:</span>
+                <span class="n">donors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptor_atoms</span><span class="p">:</span>
+                <span class="n">acceptors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">element</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span><span class="p">:</span>
+                <span class="n">hydrogens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        
+        <span class="c1"># Find donor-hydrogen pairs</span>
+        <span class="n">donor_hydrogen_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">donor_idx</span> <span class="ow">in</span> <span class="n">donors</span><span class="p">:</span>
+            <span class="n">donor_pos</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">donor_idx</span><span class="p">]</span>
+            
+            <span class="c1"># Find hydrogens bonded to this donor (within 1.2 Å)</span>
+            <span class="k">for</span> <span class="n">h_idx</span> <span class="ow">in</span> <span class="n">hydrogens</span><span class="p">:</span>
+                <span class="n">h_pos</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">h_idx</span><span class="p">]</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">donor_pos</span> <span class="o">-</span> <span class="n">h_pos</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;=</span> <span class="mf">1.2</span><span class="p">:</span>  <span class="c1"># Typical covalent bond length</span>
+                    <span class="n">donor_hydrogen_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">donor_idx</span><span class="p">,</span> <span class="n">h_idx</span><span class="p">))</span>
+        
+        <span class="c1"># Check for hydrogen bonds</span>
+        <span class="k">for</span> <span class="n">donor_idx</span><span class="p">,</span> <span class="n">h_idx</span> <span class="ow">in</span> <span class="n">donor_hydrogen_pairs</span><span class="p">:</span>
+            <span class="n">donor_pos</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">donor_idx</span><span class="p">]</span>
+            <span class="n">h_pos</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">h_idx</span><span class="p">]</span>
+            <span class="n">donor_residue</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">atoms</span><span class="p">[</span><span class="n">donor_idx</span><span class="p">],</span> <span class="s1">&#39;residue_id&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">acceptor_idx</span> <span class="ow">in</span> <span class="n">acceptors</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">acceptor_idx</span> <span class="o">==</span> <span class="n">donor_idx</span><span class="p">:</span>  <span class="c1"># Skip self</span>
+                    <span class="k">continue</span>
+                
+                <span class="n">acceptor_pos</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">acceptor_idx</span><span class="p">]</span>
+                <span class="n">acceptor_residue</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">atoms</span><span class="p">[</span><span class="n">acceptor_idx</span><span class="p">],</span> <span class="s1">&#39;residue_id&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                
+                <span class="c1"># Calculate distances</span>
+                <span class="n">da_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">donor_pos</span> <span class="o">-</span> <span class="n">acceptor_pos</span><span class="p">)</span>
+                <span class="n">ha_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">h_pos</span> <span class="o">-</span> <span class="n">acceptor_pos</span><span class="p">)</span>
+                
+                <span class="c1"># Check distance criteria</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">da_distance</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_distance</span> <span class="ow">and</span> 
+                    <span class="n">ha_distance</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_h_distance</span><span class="p">):</span>
+                    
+                    <span class="c1"># Calculate angle</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_angle</span><span class="p">(</span><span class="n">donor_pos</span><span class="p">,</span> <span class="n">h_pos</span><span class="p">,</span> <span class="n">acceptor_pos</span><span class="p">)</span>
+                    
+                    <span class="c1"># Check angle criteria</span>
+                    <span class="k">if</span> <span class="n">angle</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_angle</span><span class="p">:</span>
+                        <span class="c1"># Classify bond</span>
+                        <span class="n">strength</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify_bond_strength</span><span class="p">(</span><span class="n">da_distance</span><span class="p">,</span> <span class="n">angle</span><span class="p">)</span>
+                        <span class="n">bond_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determine_bond_type</span><span class="p">(</span><span class="n">donor_residue</span><span class="p">,</span> <span class="n">acceptor_residue</span><span class="p">)</span>
+                        
+                        <span class="c1"># Create hydrogen bond</span>
+                        <span class="n">hbond</span> <span class="o">=</span> <span class="n">HydrogenBond</span><span class="p">(</span>
+                            <span class="n">donor_atom_idx</span><span class="o">=</span><span class="n">donor_idx</span><span class="p">,</span>
+                            <span class="n">hydrogen_idx</span><span class="o">=</span><span class="n">h_idx</span><span class="p">,</span>
+                            <span class="n">acceptor_atom_idx</span><span class="o">=</span><span class="n">acceptor_idx</span><span class="p">,</span>
+                            <span class="n">donor_residue</span><span class="o">=</span><span class="n">donor_residue</span><span class="p">,</span>
+                            <span class="n">acceptor_residue</span><span class="o">=</span><span class="n">acceptor_residue</span><span class="p">,</span>
+                            <span class="n">distance</span><span class="o">=</span><span class="n">da_distance</span><span class="p">,</span>
+                            <span class="n">angle</span><span class="o">=</span><span class="n">angle</span><span class="p">,</span>
+                            <span class="n">bond_type</span><span class="o">=</span><span class="n">bond_type</span><span class="p">,</span>
+                            <span class="n">strength</span><span class="o">=</span><span class="n">strength</span>
+                        <span class="p">)</span>
+                        <span class="n">hydrogen_bonds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hbond</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">hydrogen_bonds</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="HydrogenBondAnalyzer">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer">[docs]</a>
+<span class="k">class</span> <span class="nc">HydrogenBondAnalyzer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Comprehensive hydrogen bond analysis for molecular dynamics trajectories.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="HydrogenBondAnalyzer.__init__">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">HydrogenBondDetector</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize hydrogen bond analyzer.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        detector : HydrogenBondDetector, optional</span>
+<span class="sd">            Custom hydrogen bond detector. If None, uses default settings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="n">detector</span> <span class="ow">or</span> <span class="n">HydrogenBondDetector</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_bonds</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List of hydrogen bonds for each frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+        
+<div class="viewcode-block" id="HydrogenBondAnalyzer.analyze_trajectory">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer.analyze_trajectory">[docs]</a>
+    <span class="k">def</span> <span class="nf">analyze_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atoms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Analyze hydrogen bonds throughout a trajectory.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        atoms : List</span>
+<span class="sd">            List of atom objects</span>
+<span class="sd">        trajectory : np.ndarray</span>
+<span class="sd">            Trajectory coordinates with shape (n_frames, n_atoms, 3) in Angstroms</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analyzing hydrogen bonds for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span><span class="si">}</span><span class="s2"> frames&quot;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_bonds</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">frame_idx</span><span class="p">,</span> <span class="n">positions</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trajectory</span><span class="p">):</span>
+            <span class="n">hbonds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">detect_hydrogen_bonds</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_bonds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hbonds</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">frame_idx</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processed frame </span><span class="si">{</span><span class="n">frame_idx</span><span class="si">}</span><span class="s2">, found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hbonds</span><span class="p">)</span><span class="si">}</span><span class="s2"> H-bonds&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate statistics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_statistics</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_lifetimes</span><span class="p">()</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Hydrogen bond analysis completed&quot;</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">_calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate hydrogen bond statistics.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;total_bonds_per_frame&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;bond_types&#39;</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">),</span>
+            <span class="s1">&#39;bond_strengths&#39;</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">),</span>
+            <span class="s1">&#39;residue_pairs&#39;</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">),</span>
+            <span class="s1">&#39;occupancy&#39;</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># Track unique bonds</span>
+        <span class="n">unique_bonds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">bond_occurrences</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">frame_idx</span><span class="p">,</span> <span class="n">frame_bonds</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_bonds</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;total_bonds_per_frame&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frame_bonds</span><span class="p">))</span>
+            
+            <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">frame_bonds</span><span class="p">:</span>
+                <span class="c1"># Create unique bond identifier</span>
+                <span class="n">bond_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">donor_atom_idx</span><span class="p">,</span> <span class="n">bond</span><span class="o">.</span><span class="n">acceptor_atom_idx</span><span class="p">)</span>
+                <span class="n">unique_bonds</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bond_id</span><span class="p">)</span>
+                <span class="n">bond_occurrences</span><span class="p">[</span><span class="n">bond_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_idx</span><span class="p">)</span>
+                
+                <span class="c1"># Collect statistics</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;bond_types&#39;</span><span class="p">][</span><span class="n">bond</span><span class="o">.</span><span class="n">bond_type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;bond_strengths&#39;</span><span class="p">][</span><span class="n">bond</span><span class="o">.</span><span class="n">strength</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+                
+                <span class="n">res_pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">donor_residue</span><span class="p">,</span> <span class="n">bond</span><span class="o">.</span><span class="n">acceptor_residue</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;residue_pairs&#39;</span><span class="p">][</span><span class="n">res_pair</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate occupancy for each unique bond</span>
+        <span class="n">n_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_bonds</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">bond_id</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="n">bond_occurrences</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">occupancy</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_frames</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;occupancy&#39;</span><span class="p">][</span><span class="n">bond_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">occupancy</span>
+    
+    <span class="k">def</span> <span class="nf">_calculate_lifetimes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate hydrogen bond lifetimes.&quot;&quot;&quot;</span>
+        <span class="c1"># Track consecutive occurrences of each bond</span>
+        <span class="n">bond_states</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>  <span class="c1"># bond_id -&gt; list of frame indices</span>
+        
+        <span class="c1"># Collect all bond occurrences</span>
+        <span class="k">for</span> <span class="n">frame_idx</span><span class="p">,</span> <span class="n">frame_bonds</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_bonds</span><span class="p">):</span>
+            <span class="n">frame_bond_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">frame_bonds</span><span class="p">:</span>
+                <span class="n">bond_id</span> <span class="o">=</span> <span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">donor_atom_idx</span><span class="p">,</span> <span class="n">bond</span><span class="o">.</span><span class="n">acceptor_atom_idx</span><span class="p">)</span>
+                <span class="n">frame_bond_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">bond_id</span><span class="p">)</span>
+            
+            <span class="c1"># Update bond states</span>
+            <span class="k">for</span> <span class="n">bond_id</span> <span class="ow">in</span> <span class="n">frame_bond_ids</span><span class="p">:</span>
+                <span class="n">bond_states</span><span class="p">[</span><span class="n">bond_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_idx</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate lifetimes from consecutive sequences</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="k">for</span> <span class="n">bond_id</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="n">bond_states</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">frames</span><span class="p">:</span>
+                <span class="k">continue</span>
+                
+            <span class="c1"># Find consecutive sequences</span>
+            <span class="n">lifetimes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">current_lifetime</span> <span class="o">=</span> <span class="mi">1</span>
+            
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Consecutive frames</span>
+                    <span class="n">current_lifetime</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lifetimes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_lifetime</span><span class="p">)</span>
+                    <span class="n">current_lifetime</span> <span class="o">=</span> <span class="mi">1</span>
+            
+            <span class="c1"># Add the last sequence</span>
+            <span class="n">lifetimes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_lifetime</span><span class="p">)</span>
+            
+            <span class="c1"># Calculate statistics</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span><span class="p">[</span><span class="n">bond_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;lifetimes&#39;</span><span class="p">:</span> <span class="n">lifetimes</span><span class="p">,</span>
+                <span class="s1">&#39;mean_lifetime&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">lifetimes</span><span class="p">),</span>
+                <span class="s1">&#39;max_lifetime&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">lifetimes</span><span class="p">),</span>
+                <span class="s1">&#39;total_occurrences&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">),</span>
+                <span class="s1">&#39;formation_events&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">lifetimes</span><span class="p">)</span>
+            <span class="p">}</span>
+    
+<div class="viewcode-block" id="HydrogenBondAnalyzer.get_summary_statistics">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer.get_summary_statistics">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_summary_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get summary statistics for hydrogen bonds.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict[str, Any]</span>
+<span class="sd">            Summary statistics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No analysis data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="n">stats</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># Overall statistics</span>
+        <span class="n">total_bonds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;total_bonds_per_frame&#39;</span><span class="p">]</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;mean_bonds_per_frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">total_bonds</span><span class="p">)</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;std_bonds_per_frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">total_bonds</span><span class="p">)</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;max_bonds_per_frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">total_bonds</span><span class="p">)</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;min_bonds_per_frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">total_bonds</span><span class="p">)</span>
+        
+        <span class="c1"># Bond type distribution</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;bond_type_distribution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">bond_type</span><span class="p">,</span> <span class="n">distances</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;bond_types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;bond_type_distribution&#39;</span><span class="p">][</span><span class="n">bond_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">),</span>
+                <span class="s1">&#39;mean_distance&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">distances</span><span class="p">),</span>
+                <span class="s1">&#39;std_distance&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+            <span class="p">}</span>
+        
+        <span class="c1"># Bond strength distribution</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;bond_strength_distribution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">strength</span><span class="p">,</span> <span class="n">distances</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;bond_strengths&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;bond_strength_distribution&#39;</span><span class="p">][</span><span class="n">strength</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">),</span>
+                <span class="s1">&#39;mean_distance&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">distances</span><span class="p">),</span>
+                <span class="s1">&#39;std_distance&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+            <span class="p">}</span>
+        
+        <span class="c1"># Lifetime statistics</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span><span class="p">:</span>
+            <span class="n">all_lifetimes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">all_occupancies</span> <span class="o">=</span> <span class="p">[]</span>
+            
+            <span class="k">for</span> <span class="n">bond_data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">all_lifetimes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bond_data</span><span class="p">[</span><span class="s1">&#39;lifetimes&#39;</span><span class="p">])</span>
+            
+            <span class="k">for</span> <span class="n">occupancy</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;occupancy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">all_occupancies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">occupancy</span><span class="p">)</span>
+            
+            <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;lifetime_statistics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;mean_lifetime&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">all_lifetimes</span><span class="p">),</span>
+                <span class="s1">&#39;std_lifetime&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">all_lifetimes</span><span class="p">),</span>
+                <span class="s1">&#39;max_lifetime&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">all_lifetimes</span><span class="p">),</span>
+                <span class="s1">&#39;mean_occupancy&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">all_occupancies</span><span class="p">),</span>
+                <span class="s1">&#39;std_occupancy&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">all_occupancies</span><span class="p">)</span>
+            <span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">stats</span></div>
+
+    
+<div class="viewcode-block" id="HydrogenBondAnalyzer.plot_bond_evolution">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer.plot_bond_evolution">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot_bond_evolution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot hydrogen bond evolution over time.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        save_path : str, optional</span>
+<span class="sd">            Path to save the plot</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        plt.Figure</span>
+<span class="sd">            The created figure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No analysis data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        
+        <span class="c1"># Total bonds per frame</span>
+        <span class="n">ax1</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;total_bonds_per_frame&#39;</span><span class="p">]))</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;total_bonds_per_frame&#39;</span><span class="p">],</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frame&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Number of H-bonds&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;H-bond Count Evolution&#39;</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+        
+        <span class="c1"># Bond type distribution</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">bond_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;bond_types&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">type_counts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;bond_types&#39;</span><span class="p">][</span><span class="n">bt</span><span class="p">])</span> <span class="k">for</span> <span class="n">bt</span> <span class="ow">in</span> <span class="n">bond_types</span><span class="p">]</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">bond_types</span><span class="p">,</span> <span class="n">type_counts</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Bond Type&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Total Occurrences&#39;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;H-bond Type Distribution&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">ax2</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_majorticklabels</span><span class="p">(),</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+        
+        <span class="c1"># Bond strength distribution</span>
+        <span class="n">ax3</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">strengths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;bond_strengths&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">strength_counts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;bond_strengths&#39;</span><span class="p">][</span><span class="n">s</span><span class="p">])</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strengths</span><span class="p">]</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="s1">&#39;lightblue&#39;</span><span class="p">,</span> <span class="s1">&#39;gray&#39;</span><span class="p">]</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">strengths</span><span class="p">,</span> <span class="n">strength_counts</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">strengths</span><span class="p">)],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Bond Strength&#39;</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Total Occurrences&#39;</span><span class="p">)</span>
+        <span class="n">ax3</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;H-bond Strength Distribution&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">ax3</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_majorticklabels</span><span class="p">(),</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+        
+        <span class="c1"># Lifetime distribution</span>
+        <span class="n">ax4</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span><span class="p">:</span>
+            <span class="n">all_lifetimes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">bond_data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">all_lifetimes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bond_data</span><span class="p">[</span><span class="s1">&#39;lifetimes&#39;</span><span class="p">])</span>
+            
+            <span class="n">ax4</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">all_lifetimes</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+            <span class="n">ax4</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Lifetime (frames)&#39;</span><span class="p">)</span>
+            <span class="n">ax4</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Frequency&#39;</span><span class="p">)</span>
+            <span class="n">ax4</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;H-bond Lifetime Distribution&#39;</span><span class="p">)</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">save_path</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H-bond evolution plot saved to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    
+<div class="viewcode-block" id="HydrogenBondAnalyzer.plot_residue_network">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer.plot_residue_network">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot_residue_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot hydrogen bond network between residues.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        save_path : str, optional</span>
+<span class="sd">            Path to save the plot</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        plt.Figure</span>
+<span class="sd">            The created figure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No analysis data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Create adjacency matrix for residue pairs</span>
+        <span class="n">residue_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;residue_pairs&#39;</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">residue_pairs</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No residue pair data available for network plot&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        
+        <span class="c1"># Get all unique residues</span>
+        <span class="n">all_residues</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">res1</span><span class="p">,</span> <span class="n">res2</span><span class="p">),</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">residue_pairs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">all_residues</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">res1</span><span class="p">)</span>
+            <span class="n">all_residues</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">res2</span><span class="p">)</span>
+        
+        <span class="n">residue_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_residues</span><span class="p">)</span>
+        <span class="n">n_residues</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">residue_list</span><span class="p">)</span>
+        
+        <span class="c1"># Create adjacency matrix</span>
+        <span class="n">adjacency</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_residues</span><span class="p">,</span> <span class="n">n_residues</span><span class="p">))</span>
+        
+        <span class="k">for</span> <span class="p">(</span><span class="n">res1</span><span class="p">,</span> <span class="n">res2</span><span class="p">),</span> <span class="n">distances</span> <span class="ow">in</span> <span class="n">residue_pairs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">residue_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">res1</span><span class="p">)</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">residue_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">res2</span><span class="p">)</span>
+            <span class="c1"># Use count as weight</span>
+            <span class="n">adjacency</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+            <span class="n">adjacency</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>  <span class="c1"># Symmetric</span>
+        
+        <span class="c1"># Plot heatmap</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">adjacency</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Blues&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Set ticks and labels</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_residues</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">residue_list</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">residue_list</span><span class="p">)</span>
+        
+        <span class="c1"># Rotate x labels</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xticklabels</span><span class="p">(),</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Add colorbar</span>
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;H-bond Count&#39;</span><span class="p">)</span>
+        
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Residue Index&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Residue Index&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Hydrogen Bond Network Between Residues&#39;</span><span class="p">)</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">save_path</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H-bond network plot saved to </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+    
+<div class="viewcode-block" id="HydrogenBondAnalyzer.export_statistics_csv">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer.export_statistics_csv">[docs]</a>
+    <span class="k">def</span> <span class="nf">export_statistics_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export hydrogen bond statistics to CSV file.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filepath : str</span>
+<span class="sd">            Path to save CSV file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No analysis data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Prepare data for CSV</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Add individual bond data</span>
+        <span class="k">for</span> <span class="n">frame_idx</span><span class="p">,</span> <span class="n">frame_bonds</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_bonds</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">frame_bonds</span><span class="p">:</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;frame&#39;</span><span class="p">:</span> <span class="n">frame_idx</span><span class="p">,</span>
+                    <span class="s1">&#39;donor_atom&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">donor_atom_idx</span><span class="p">,</span>
+                    <span class="s1">&#39;hydrogen_atom&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">hydrogen_idx</span><span class="p">,</span>
+                    <span class="s1">&#39;acceptor_atom&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">acceptor_atom_idx</span><span class="p">,</span>
+                    <span class="s1">&#39;donor_residue&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">donor_residue</span><span class="p">,</span>
+                    <span class="s1">&#39;acceptor_residue&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">acceptor_residue</span><span class="p">,</span>
+                    <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">distance</span><span class="p">,</span>
+                    <span class="s1">&#39;angle&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">angle</span><span class="p">,</span>
+                    <span class="s1">&#39;bond_type&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">bond_type</span><span class="p">,</span>
+                    <span class="s1">&#39;strength&#39;</span><span class="p">:</span> <span class="n">bond</span><span class="o">.</span><span class="n">strength</span>
+                <span class="p">})</span>
+        
+        <span class="c1"># Write CSV</span>
+        <span class="k">if</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+                <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">,</span> <span class="s1">&#39;donor_atom&#39;</span><span class="p">,</span> <span class="s1">&#39;hydrogen_atom&#39;</span><span class="p">,</span> <span class="s1">&#39;acceptor_atom&#39;</span><span class="p">,</span> 
+                             <span class="s1">&#39;donor_residue&#39;</span><span class="p">,</span> <span class="s1">&#39;acceptor_residue&#39;</span><span class="p">,</span> <span class="s1">&#39;distance&#39;</span><span class="p">,</span> <span class="s1">&#39;angle&#39;</span><span class="p">,</span> 
+                             <span class="s1">&#39;bond_type&#39;</span><span class="p">,</span> <span class="s1">&#39;strength&#39;</span><span class="p">]</span>
+                <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">fieldnames</span><span class="p">)</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Write empty CSV with headers</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+                <span class="n">fieldnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">,</span> <span class="s1">&#39;donor_atom&#39;</span><span class="p">,</span> <span class="s1">&#39;hydrogen_atom&#39;</span><span class="p">,</span> <span class="s1">&#39;acceptor_atom&#39;</span><span class="p">,</span> 
+                             <span class="s1">&#39;donor_residue&#39;</span><span class="p">,</span> <span class="s1">&#39;acceptor_residue&#39;</span><span class="p">,</span> <span class="s1">&#39;distance&#39;</span><span class="p">,</span> <span class="s1">&#39;angle&#39;</span><span class="p">,</span> 
+                             <span class="s1">&#39;bond_type&#39;</span><span class="p">,</span> <span class="s1">&#39;strength&#39;</span><span class="p">]</span>
+                <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">fieldnames</span><span class="p">)</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H-bond statistics exported to </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="HydrogenBondAnalyzer.export_lifetime_analysis">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer.export_lifetime_analysis">[docs]</a>
+    <span class="k">def</span> <span class="nf">export_lifetime_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Export detailed lifetime analysis to JSON file.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filepath : str</span>
+<span class="sd">            Path to save JSON file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No lifetime data available. Run analyze_trajectory first.&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Convert bond IDs to strings for JSON serialization</span>
+        <span class="n">export_data</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="k">for</span> <span class="p">(</span><span class="n">donor_idx</span><span class="p">,</span> <span class="n">acceptor_idx</span><span class="p">),</span> <span class="n">bond_data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetime_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">bond_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;bond_</span><span class="si">{</span><span class="n">donor_idx</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">acceptor_idx</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">export_data</span><span class="p">[</span><span class="n">bond_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;donor_atom_idx&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">donor_idx</span><span class="p">),</span>
+                <span class="s1">&#39;acceptor_atom_idx&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">acceptor_idx</span><span class="p">),</span>
+                <span class="s1">&#39;lifetimes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">bond_data</span><span class="p">[</span><span class="s1">&#39;lifetimes&#39;</span><span class="p">]],</span>
+                <span class="s1">&#39;mean_lifetime&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">bond_data</span><span class="p">[</span><span class="s1">&#39;mean_lifetime&#39;</span><span class="p">]),</span>
+                <span class="s1">&#39;max_lifetime&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">bond_data</span><span class="p">[</span><span class="s1">&#39;max_lifetime&#39;</span><span class="p">]),</span>
+                <span class="s1">&#39;total_occurrences&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">bond_data</span><span class="p">[</span><span class="s1">&#39;total_occurrences&#39;</span><span class="p">]),</span>
+                <span class="s1">&#39;formation_events&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">bond_data</span><span class="p">[</span><span class="s1">&#39;formation_events&#39;</span><span class="p">]),</span>
+                <span class="s1">&#39;occupancy&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_statistics</span><span class="p">[</span><span class="s1">&#39;occupancy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">donor_idx</span><span class="p">,</span> <span class="n">acceptor_idx</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">))</span>
+            <span class="p">}</span>
+        
+        <span class="c1"># Add summary statistics (convert numpy types to native Python types)</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_summary_statistics</span><span class="p">()</span>
+        <span class="k">def</span> <span class="nf">convert_numpy_types</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Recursively convert numpy types to native Python types.&quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">convert_numpy_types</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">convert_numpy_types</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">obj</span>
+        
+        <span class="n">export_data</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert_numpy_types</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">jsonfile</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">export_data</span><span class="p">,</span> <span class="n">jsonfile</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;H-bond lifetime analysis exported to </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># Factory functions for common analyses</span>
+<div class="viewcode-block" id="analyze_hydrogen_bonds">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.analyze_hydrogen_bonds">[docs]</a>
+<span class="k">def</span> <span class="nf">analyze_hydrogen_bonds</span><span class="p">(</span><span class="n">atoms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                          <span class="n">detector_params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HydrogenBondAnalyzer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience function for hydrogen bond analysis.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    atoms : List</span>
+<span class="sd">        List of atom objects</span>
+<span class="sd">    trajectory : np.ndarray</span>
+<span class="sd">        Trajectory coordinates (n_frames, n_atoms, 3) in Angstroms</span>
+<span class="sd">    detector_params : Dict, optional</span>
+<span class="sd">        Parameters for hydrogen bond detector</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    HydrogenBondAnalyzer</span>
+<span class="sd">        Analyzer with completed analysis</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create detector with custom parameters if provided</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">HydrogenBondDetector</span><span class="p">(</span><span class="o">**</span><span class="p">(</span><span class="n">detector_params</span> <span class="ow">or</span> <span class="p">{}))</span>
+    
+    <span class="c1"># Create analyzer and run analysis</span>
+    <span class="n">analyzer</span> <span class="o">=</span> <span class="n">HydrogenBondAnalyzer</span><span class="p">(</span><span class="n">detector</span><span class="p">)</span>
+    <span class="n">analyzer</span><span class="o">.</span><span class="n">analyze_trajectory</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">analyzer</span></div>
+
+
+
+<div class="viewcode-block" id="quick_hydrogen_bond_summary">
+<a class="viewcode-back" href="../../../api/analysis.html#proteinMD.analysis.hydrogen_bonds.quick_hydrogen_bond_summary">[docs]</a>
+<span class="k">def</span> <span class="nf">quick_hydrogen_bond_summary</span><span class="p">(</span><span class="n">atoms</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Quick hydrogen bond analysis with summary statistics.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    atoms : List</span>
+<span class="sd">        List of atom objects</span>
+<span class="sd">    trajectory : np.ndarray</span>
+<span class="sd">        Trajectory coordinates (n_frames, n_atoms, 3) in Angstroms</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Dict[str, Any]</span>
+<span class="sd">        Summary statistics</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">analyzer</span> <span class="o">=</span> <span class="n">analyze_hydrogen_bonds</span><span class="p">(</span><span class="n">atoms</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_summary_statistics</span><span class="p">()</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">ProteinMD</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/cli_reference.html">CLI Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utils.html">Utilities API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

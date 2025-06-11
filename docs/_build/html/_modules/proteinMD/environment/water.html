@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proteinMD.environment.water &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for proteinMD.environment.water</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TIP3P Water Model for Explicit Solvation</span>
+
+<span class="sd">This module implements the TIP3P (Transferable Intermolecular Potential 3-Point) water model</span>
+<span class="sd">for explicit solvation in molecular dynamics simulations.</span>
+
+<span class="sd">The TIP3P model represents water molecules with three interaction sites:</span>
+<span class="sd">- Oxygen atom with Lennard-Jones and electrostatic interactions</span>
+<span class="sd">- Two hydrogen atoms with only electrostatic interactions</span>
+<span class="sd">- Rigid geometry with fixed bond lengths and angles</span>
+
+<span class="sd">Reference: W. L. Jorgensen et al., J. Chem. Phys. 79, 926 (1983)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TIP3PWaterModel">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.TIP3PWaterModel">[docs]</a>
+<span class="k">class</span> <span class="nc">TIP3PWaterModel</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TIP3P water model implementation.</span>
+<span class="sd">    </span>
+<span class="sd">    This class provides the TIP3P water model parameters and geometry</span>
+<span class="sd">    for explicit water solvation in molecular dynamics simulations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># TIP3P Parameters (standard values)</span>
+    <span class="c1"># Oxygen parameters</span>
+    <span class="n">OXYGEN_SIGMA</span> <span class="o">=</span> <span class="mf">0.31507</span>  <span class="c1"># nm (Lennard-Jones sigma)</span>
+    <span class="n">OXYGEN_EPSILON</span> <span class="o">=</span> <span class="mf">0.636</span>  <span class="c1"># kJ/mol (Lennard-Jones epsilon)</span>
+    <span class="n">OXYGEN_CHARGE</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.834</span>  <span class="c1"># elementary charges</span>
+    <span class="n">OXYGEN_MASS</span> <span class="o">=</span> <span class="mf">15.9994</span>  <span class="c1"># atomic mass units (u)</span>
+    
+    <span class="c1"># Hydrogen parameters</span>
+    <span class="n">HYDROGEN_SIGMA</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># nm (no LJ interaction for H in TIP3P)</span>
+    <span class="n">HYDROGEN_EPSILON</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># kJ/mol</span>
+    <span class="n">HYDROGEN_CHARGE</span> <span class="o">=</span> <span class="mf">0.417</span>  <span class="c1"># elementary charges (2 * 0.417 + (-0.834) = 0)</span>
+    <span class="n">HYDROGEN_MASS</span> <span class="o">=</span> <span class="mf">1.008</span>  <span class="c1"># atomic mass units (u)</span>
+    
+    <span class="c1"># Geometry parameters</span>
+    <span class="n">OH_BOND_LENGTH</span> <span class="o">=</span> <span class="mf">0.09572</span>  <span class="c1"># nm</span>
+    <span class="n">HOH_ANGLE</span> <span class="o">=</span> <span class="mf">104.52</span>  <span class="c1"># degrees</span>
+    
+    <span class="c1"># Water density parameters</span>
+    <span class="n">WATER_DENSITY</span> <span class="o">=</span> <span class="mf">997.0</span>  <span class="c1"># kg/m³ at 25°C, 1 atm</span>
+    <span class="n">WATER_MOLAR_MASS</span> <span class="o">=</span> <span class="mf">18.01528</span>  <span class="c1"># g/mol</span>
+    <span class="n">AVOGADRO</span> <span class="o">=</span> <span class="mf">6.02214076e23</span>  <span class="c1"># molecules/mol</span>
+    
+<div class="viewcode-block" id="TIP3PWaterModel.__init__">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.TIP3PWaterModel.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the TIP3P water model.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initialized TIP3P water model&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate derived properties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">water_molecule_mass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OXYGEN_MASS</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_MASS</span>  <span class="c1"># u</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expected_number_density</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_number_density</span><span class="p">()</span>  <span class="c1"># molecules/nm³</span></div>
+
+        
+    <span class="k">def</span> <span class="nf">_calculate_number_density</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the expected number density of water molecules.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Number density in molecules/nm³</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Convert density from kg/m³ to molecules/nm³</span>
+        <span class="c1"># 1 kg/m³ = 1e-21 kg/nm³</span>
+        <span class="c1"># molecules/nm³ = (density in kg/nm³) * (Avogadro/molar_mass)</span>
+        
+        <span class="n">density_kg_per_nm3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">WATER_DENSITY</span> <span class="o">*</span> <span class="mf">1e-21</span>  <span class="c1"># kg/nm³</span>
+        <span class="n">molar_mass_kg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">WATER_MOLAR_MASS</span> <span class="o">*</span> <span class="mf">1e-3</span>  <span class="c1"># kg/mol</span>
+        
+        <span class="n">number_density</span> <span class="o">=</span> <span class="n">density_kg_per_nm3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">AVOGADRO</span> <span class="o">/</span> <span class="n">molar_mass_kg</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected water number density: </span><span class="si">{</span><span class="n">number_density</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> molecules/nm³&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">number_density</span>
+    
+<div class="viewcode-block" id="TIP3PWaterModel.create_single_water_molecule">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.TIP3PWaterModel.create_single_water_molecule">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_single_water_molecule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                                   <span class="n">center_position</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                                   <span class="n">orientation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a single TIP3P water molecule at a specified position.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        center_position : np.ndarray</span>
+<span class="sd">            Position of the oxygen atom (center) in nm</span>
+<span class="sd">        orientation : np.ndarray, optional</span>
+<span class="sd">            Orientation vector for the molecule. If None, random orientation is used.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary containing positions, masses, charges, and atom types</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">orientation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Random orientation</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+            <span class="n">orientation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="p">])</span>
+        
+        <span class="c1"># Normalize orientation vector</span>
+        <span class="n">orientation</span> <span class="o">=</span> <span class="n">orientation</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">orientation</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate positions of hydrogen atoms</span>
+        <span class="n">angle_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HOH_ANGLE</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># Half angle from O-H to O-H bisector</span>
+        
+        <span class="c1"># Create two H positions symmetrically around the orientation axis</span>
+        <span class="c1"># First, create a perpendicular vector</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">orientation</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.9</span><span class="p">:</span>
+            <span class="n">perp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">perp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        
+        <span class="c1"># Make it perpendicular to orientation</span>
+        <span class="n">perp</span> <span class="o">=</span> <span class="n">perp</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">perp</span><span class="p">,</span> <span class="n">orientation</span><span class="p">)</span> <span class="o">*</span> <span class="n">orientation</span>
+        <span class="n">perp</span> <span class="o">=</span> <span class="n">perp</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">perp</span><span class="p">)</span>
+        
+        <span class="c1"># Create the second perpendicular vector</span>
+        <span class="n">perp2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="n">perp</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate H positions</span>
+        <span class="n">h1_direction</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">orientation</span> <span class="o">+</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">perp</span>
+        <span class="p">)</span>
+        <span class="n">h2_direction</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle_rad</span><span class="p">)</span> <span class="o">*</span> <span class="n">orientation</span> <span class="o">+</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle_rad</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">perp</span><span class="p">)</span>  <span class="c1"># Symmetric to h1</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Scale by bond length and add to oxygen position</span>
+        <span class="n">h1_position</span> <span class="o">=</span> <span class="n">center_position</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">OH_BOND_LENGTH</span> <span class="o">*</span> <span class="n">h1_direction</span>
+        <span class="n">h2_position</span> <span class="o">=</span> <span class="n">center_position</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">OH_BOND_LENGTH</span> <span class="o">*</span> <span class="n">h2_direction</span>
+        
+        <span class="c1"># Return molecule data</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;positions&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">center_position</span><span class="p">,</span> <span class="n">h1_position</span><span class="p">,</span> <span class="n">h2_position</span><span class="p">]),</span>
+            <span class="s1">&#39;masses&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">OXYGEN_MASS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_MASS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_MASS</span><span class="p">]),</span>
+            <span class="s1">&#39;charges&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">OXYGEN_CHARGE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_CHARGE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_CHARGE</span><span class="p">]),</span>
+            <span class="s1">&#39;atom_types&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;molecule_type&#39;</span><span class="p">:</span> <span class="s1">&#39;TIP3P_water&#39;</span>
+        <span class="p">}</span></div>
+
+    
+<div class="viewcode-block" id="TIP3PWaterModel.get_water_force_field_parameters">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.TIP3PWaterModel.get_water_force_field_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_water_force_field_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get force field parameters for TIP3P water model.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary containing force field parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;nonbonded&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;O&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">OXYGEN_SIGMA</span><span class="p">,</span>
+                    <span class="s1">&#39;epsilon&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">OXYGEN_EPSILON</span><span class="p">,</span>
+                    <span class="s1">&#39;charge&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">OXYGEN_CHARGE</span><span class="p">,</span>
+                    <span class="s1">&#39;mass&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">OXYGEN_MASS</span>
+                <span class="p">},</span>
+                <span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_SIGMA</span><span class="p">,</span>
+                    <span class="s1">&#39;epsilon&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_EPSILON</span><span class="p">,</span>
+                    <span class="s1">&#39;charge&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_CHARGE</span><span class="p">,</span>
+                    <span class="s1">&#39;mass&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">HYDROGEN_MASS</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;bonds&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">):</span> <span class="p">{</span>
+                    <span class="s1">&#39;length&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">OH_BOND_LENGTH</span><span class="p">,</span>
+                    <span class="s1">&#39;force_constant&#39;</span><span class="p">:</span> <span class="mf">4518.72</span>  <span class="c1"># kJ/(mol·nm²) - very stiff for rigid water</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;angles&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">):</span> <span class="p">{</span>
+                    <span class="s1">&#39;angle&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">HOH_ANGLE</span><span class="p">,</span>
+                    <span class="s1">&#39;force_constant&#39;</span><span class="p">:</span> <span class="mf">682.02</span>  <span class="c1"># kJ/(mol·rad²) - very stiff for rigid water</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span></div>
+</div>
+
+
+<div class="viewcode-block" id="WaterSolvationBox">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSolvationBox">[docs]</a>
+<span class="k">class</span> <span class="nc">WaterSolvationBox</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for creating and managing water solvation around biomolecules.</span>
+<span class="sd">    </span>
+<span class="sd">    This class provides functionality to:</span>
+<span class="sd">    - Place water molecules around proteins</span>
+<span class="sd">    - Maintain minimum distances</span>
+<span class="sd">    - Calculate densities</span>
+<span class="sd">    - Validate solvation quality</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="WaterSolvationBox.__init__">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSolvationBox.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">tip3p_model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TIP3PWaterModel</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">min_distance_to_solute</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.23</span><span class="p">,</span>  <span class="c1"># nm</span>
+                 <span class="n">min_water_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.23</span><span class="p">,</span>  <span class="c1"># nm</span>
+                 <span class="n">target_density</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the water solvation box.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tip3p_model : TIP3PWaterModel, optional</span>
+<span class="sd">            TIP3P model instance. If None, creates a new one.</span>
+<span class="sd">        min_distance_to_solute : float, optional</span>
+<span class="sd">            Minimum distance from water to solute atoms in nm</span>
+<span class="sd">        min_water_distance : float, optional</span>
+<span class="sd">            Minimum distance between water molecules in nm</span>
+<span class="sd">        target_density : float, optional</span>
+<span class="sd">            Target density in kg/m³. If None, uses standard water density.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tip3p</span> <span class="o">=</span> <span class="n">tip3p_model</span> <span class="k">if</span> <span class="n">tip3p_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">TIP3PWaterModel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_distance_to_solute</span> <span class="o">=</span> <span class="n">min_distance_to_solute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_water_distance</span> <span class="o">=</span> <span class="n">min_water_distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_density</span> <span class="o">=</span> <span class="n">target_density</span> <span class="k">if</span> <span class="n">target_density</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">tip3p</span><span class="o">.</span><span class="n">WATER_DENSITY</span>
+        
+        <span class="c1"># Storage for placed water molecules</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">water_positions</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Only oxygen positions for distance checking</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized water solvation box with min distances: &quot;</span>
+                   <span class="sa">f</span><span class="s2">&quot;solute=</span><span class="si">{</span><span class="n">min_distance_to_solute</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm, water=</span><span class="si">{</span><span class="n">min_water_distance</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="WaterSolvationBox.solvate_protein">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSolvationBox.solvate_protein">[docs]</a>
+    <span class="k">def</span> <span class="nf">solvate_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                       <span class="n">protein_positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                       <span class="n">box_dimensions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                       <span class="n">padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                       <span class="n">max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solvate a protein with TIP3P water molecules.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        protein_positions : np.ndarray</span>
+<span class="sd">            Positions of protein atoms with shape (n_atoms, 3) in nm</span>
+<span class="sd">        box_dimensions : np.ndarray</span>
+<span class="sd">            Box dimensions [x, y, z] in nm</span>
+<span class="sd">        padding : float, optional</span>
+<span class="sd">            Minimum padding around protein in nm</span>
+<span class="sd">        max_attempts : int, optional</span>
+<span class="sd">            Maximum attempts to place water molecules</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary containing water molecule data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting protein solvation in box </span><span class="si">{</span><span class="n">box_dimensions</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Clear existing water</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">water_positions</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Calculate available volume for water</span>
+        <span class="n">protein_bbox_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">protein_positions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">padding</span>
+        <span class="n">protein_bbox_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">protein_positions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">padding</span>
+        
+        <span class="c1"># Ensure protein fits in box</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">protein_bbox_min</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">protein_bbox_max</span> <span class="o">&gt;</span> <span class="n">box_dimensions</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Protein with padding extends beyond box boundaries&quot;</span><span class="p">)</span>
+            
+        <span class="c1"># Estimate number of water molecules needed</span>
+        <span class="n">total_volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">box_dimensions</span><span class="p">)</span>  <span class="c1"># nm³</span>
+        <span class="n">protein_volume</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_protein_volume</span><span class="p">(</span><span class="n">protein_positions</span><span class="p">)</span>
+        <span class="n">available_volume</span> <span class="o">=</span> <span class="n">total_volume</span> <span class="o">-</span> <span class="n">protein_volume</span>
+        
+        <span class="n">target_n_waters</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">available_volume</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tip3p</span><span class="o">.</span><span class="n">expected_number_density</span> <span class="o">*</span> <span class="mf">0.9</span><span class="p">)</span>  <span class="c1"># 90% of max density</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Target number of water molecules: </span><span class="si">{</span><span class="n">target_n_waters</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Place water molecules</span>
+        <span class="n">placed_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">attempts</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">while</span> <span class="n">placed_count</span> <span class="o">&lt;</span> <span class="n">target_n_waters</span> <span class="ow">and</span> <span class="n">attempts</span> <span class="o">&lt;</span> <span class="n">max_attempts</span><span class="p">:</span>
+            <span class="c1"># Generate random position in box</span>
+            <span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">box_dimensions</span><span class="p">)</span>
+            
+            <span class="c1"># Check distance to protein</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_distance_to_protein</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">protein_positions</span><span class="p">):</span>
+                <span class="c1"># Check distance to existing water</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_distance_to_water</span><span class="p">(</span><span class="n">position</span><span class="p">):</span>
+                    <span class="c1"># Place water molecule</span>
+                    <span class="n">water_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tip3p</span><span class="o">.</span><span class="n">create_single_water_molecule</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">water_mol</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">water_positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+                    <span class="n">placed_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    
+                    <span class="k">if</span> <span class="n">placed_count</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Placed </span><span class="si">{</span><span class="n">placed_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">target_n_waters</span><span class="si">}</span><span class="s2"> water molecules&quot;</span><span class="p">)</span>
+            
+            <span class="n">attempts</span> <span class="o">+=</span> <span class="mi">1</span>
+            
+            <span class="k">if</span> <span class="n">attempts</span> <span class="o">%</span> <span class="mi">10000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempt </span><span class="si">{</span><span class="n">attempts</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">max_attempts</span><span class="si">}</span><span class="s2">, placed </span><span class="si">{</span><span class="n">placed_count</span><span class="si">}</span><span class="s2"> waters&quot;</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Placed </span><span class="si">{</span><span class="n">placed_count</span><span class="si">}</span><span class="s2"> water molecules in </span><span class="si">{</span><span class="n">attempts</span><span class="si">}</span><span class="s2"> attempts&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Combine all water molecule data</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_water_data</span><span class="p">()</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">_estimate_protein_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein_positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate the volume occupied by the protein.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        protein_positions : np.ndarray</span>
+<span class="sd">            Protein atom positions</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Estimated volume in nm³</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Simple bounding box estimate</span>
+        <span class="n">bbox_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">protein_positions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">bbox_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">protein_positions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">bbox_volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">bbox_max</span> <span class="o">-</span> <span class="n">bbox_min</span><span class="p">)</span>
+        
+        <span class="c1"># Assume protein occupies ~60% of its bounding box</span>
+        <span class="k">return</span> <span class="n">bbox_volume</span> <span class="o">*</span> <span class="mf">0.6</span>
+    
+    <span class="k">def</span> <span class="nf">_check_distance_to_protein</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">protein_positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if a water position is far enough from protein atoms.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position : np.ndarray</span>
+<span class="sd">            Proposed water position</span>
+<span class="sd">        protein_positions : np.ndarray</span>
+<span class="sd">            Protein atom positions</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if position is acceptable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">min_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">protein_positions</span> <span class="o">-</span> <span class="n">position</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">min_dist</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_distance_to_solute</span>
+    
+    <span class="k">def</span> <span class="nf">_check_distance_to_water</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if a water position is far enough from existing water molecules.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position : np.ndarray</span>
+<span class="sd">            Proposed water position</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if position is acceptable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">water_positions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+            
+        <span class="n">water_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">water_positions</span><span class="p">)</span>
+        <span class="n">min_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">water_positions</span> <span class="o">-</span> <span class="n">position</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">min_dist</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_water_distance</span>
+    
+    <span class="k">def</span> <span class="nf">_combine_water_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Combine data from all water molecules into simulation arrays.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Combined water molecule data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;positions&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+                <span class="s1">&#39;masses&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                <span class="s1">&#39;charges&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                <span class="s1">&#39;atom_types&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;molecule_indices&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span>
+                <span class="s1">&#39;bonds&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;angles&#39;</span><span class="p">:</span> <span class="p">[]</span>
+            <span class="p">}</span>
+        
+        <span class="c1"># Combine positions, masses, charges</span>
+        <span class="n">all_positions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_masses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_charges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_atom_types</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">molecule_indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">bonds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="n">atom_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">mol_idx</span><span class="p">,</span> <span class="n">mol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span><span class="p">):</span>
+            <span class="n">all_positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mol</span><span class="p">[</span><span class="s1">&#39;positions&#39;</span><span class="p">])</span>
+            <span class="n">all_masses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mol</span><span class="p">[</span><span class="s1">&#39;masses&#39;</span><span class="p">])</span>
+            <span class="n">all_charges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mol</span><span class="p">[</span><span class="s1">&#39;charges&#39;</span><span class="p">])</span>
+            <span class="n">all_atom_types</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">mol</span><span class="p">[</span><span class="s1">&#39;atom_types&#39;</span><span class="p">])</span>
+            
+            <span class="c1"># Track which atoms belong to which molecule</span>
+            <span class="n">molecule_indices</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">mol_idx</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>  <span class="c1"># 3 atoms per water</span>
+            
+            <span class="c1"># Add bonds (O-H1, O-H2)</span>
+            <span class="n">bonds</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">atom_index</span><span class="p">,</span> <span class="n">atom_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># O-H1</span>
+            <span class="n">bonds</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">atom_index</span><span class="p">,</span> <span class="n">atom_index</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># O-H2</span>
+            
+            <span class="c1"># Add angle (H1-O-H2)</span>
+            <span class="n">angles</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">atom_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">atom_index</span><span class="p">,</span> <span class="n">atom_index</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># H1-O-H2</span>
+            
+            <span class="n">atom_index</span> <span class="o">+=</span> <span class="mi">3</span>
+        
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;positions&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">all_positions</span><span class="p">),</span>
+            <span class="s1">&#39;masses&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">all_masses</span><span class="p">),</span>
+            <span class="s1">&#39;charges&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">all_charges</span><span class="p">),</span>
+            <span class="s1">&#39;atom_types&#39;</span><span class="p">:</span> <span class="n">all_atom_types</span><span class="p">,</span>
+            <span class="s1">&#39;molecule_indices&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">molecule_indices</span><span class="p">),</span>
+            <span class="s1">&#39;bonds&#39;</span><span class="p">:</span> <span class="n">bonds</span><span class="p">,</span>
+            <span class="s1">&#39;angles&#39;</span><span class="p">:</span> <span class="n">angles</span><span class="p">,</span>
+            <span class="s1">&#39;n_molecules&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span><span class="p">)</span>
+        <span class="p">}</span>
+    
+<div class="viewcode-block" id="WaterSolvationBox.calculate_water_density">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSolvationBox.calculate_water_density">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_water_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box_dimensions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the density of the water in the box.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        box_dimensions : np.ndarray</span>
+<span class="sd">            Box dimensions in nm</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Water density in kg/m³</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        
+        <span class="n">n_water</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span><span class="p">)</span>
+        <span class="n">box_volume_nm3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">box_dimensions</span><span class="p">)</span>  <span class="c1"># nm³</span>
+        <span class="n">box_volume_m3</span> <span class="o">=</span> <span class="n">box_volume_nm3</span> <span class="o">*</span> <span class="mf">1e-27</span>  <span class="c1"># m³</span>
+        
+        <span class="c1"># Mass of water molecules</span>
+        <span class="n">total_mass_u</span> <span class="o">=</span> <span class="n">n_water</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tip3p</span><span class="o">.</span><span class="n">water_molecule_mass</span>  <span class="c1"># atomic mass units</span>
+        <span class="n">total_mass_kg</span> <span class="o">=</span> <span class="n">total_mass_u</span> <span class="o">*</span> <span class="mf">1.66054e-27</span>  <span class="c1"># kg</span>
+        
+        <span class="n">density</span> <span class="o">=</span> <span class="n">total_mass_kg</span> <span class="o">/</span> <span class="n">box_volume_m3</span>  <span class="c1"># kg/m³</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Water density: </span><span class="si">{</span><span class="n">density</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kg/m³ (target: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target_density</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kg/m³)&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">density</span></div>
+
+    
+<div class="viewcode-block" id="WaterSolvationBox.validate_solvation">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSolvationBox.validate_solvation">[docs]</a>
+    <span class="k">def</span> <span class="nf">validate_solvation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box_dimensions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">protein_positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the quality of the solvation.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        box_dimensions : np.ndarray</span>
+<span class="sd">            Box dimensions in nm</span>
+<span class="sd">        protein_positions : np.ndarray</span>
+<span class="sd">            Protein atom positions</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Validation metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># Calculate density</span>
+        <span class="n">density</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_water_density</span><span class="p">(</span><span class="n">box_dimensions</span><span class="p">)</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;density_kg_m3&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">density</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;density_relative_error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">density</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_density</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_density</span>
+        
+        <span class="c1"># Check minimum distances</span>
+        <span class="n">water_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_water_data</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">water_data</span><span class="p">[</span><span class="s1">&#39;positions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">water_oxygens</span> <span class="o">=</span> <span class="n">water_data</span><span class="p">[</span><span class="s1">&#39;positions&#39;</span><span class="p">][::</span><span class="mi">3</span><span class="p">]</span>  <span class="c1"># Every third atom is oxygen</span>
+            
+            <span class="c1"># Distance to protein</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">protein_positions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">distances_to_protein</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">water_oxygens</span><span class="p">,</span> <span class="n">protein_positions</span><span class="p">)</span>
+                <span class="n">min_dist_to_protein</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">distances_to_protein</span><span class="p">)</span>
+                <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;min_distance_to_protein&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_dist_to_protein</span>
+                <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;protein_distance_violations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">distances_to_protein</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_distance_to_solute</span><span class="p">)</span>
+            
+            <span class="c1"># Water-water distances</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">water_oxygens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">water_distances</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">water_oxygens</span><span class="p">,</span> <span class="n">water_oxygens</span><span class="p">)</span>
+                <span class="c1"># Set diagonal to large value to ignore self-distances</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">water_distances</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">)</span>
+                <span class="n">min_water_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">water_distances</span><span class="p">)</span>
+                <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;min_water_distance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_water_dist</span>
+                <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;water_distance_violations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">water_distances</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_water_distance</span><span class="p">)</span>
+        
+        <span class="c1"># Number of water molecules</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;n_water_molecules&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span><span class="p">)</span>
+        
+        <span class="c1"># Volume fraction</span>
+        <span class="n">total_volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">box_dimensions</span><span class="p">)</span>
+        <span class="n">water_volume</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">water_molecules</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tip3p</span><span class="o">.</span><span class="n">expected_number_density</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;water_volume_fraction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">water_volume</span> <span class="o">/</span> <span class="n">total_volume</span>
+        
+        <span class="k">return</span> <span class="n">metrics</span></div>
+</div>
+
+
+<div class="viewcode-block" id="create_pure_water_box">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.create_pure_water_box">[docs]</a>
+<span class="k">def</span> <span class="nf">create_pure_water_box</span><span class="p">(</span><span class="n">box_dimensions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                         <span class="n">target_density</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                         <span class="n">min_water_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.23</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a box of pure TIP3P water for density validation.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    box_dimensions : np.ndarray</span>
+<span class="sd">        Box dimensions [x, y, z] in nm</span>
+<span class="sd">    target_density : float, optional</span>
+<span class="sd">        Target density in kg/m³</span>
+<span class="sd">    min_water_distance : float, optional</span>
+<span class="sd">        Minimum distance between water molecules in nm</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Water system data including positions, masses, charges, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating pure water box with dimensions </span><span class="si">{</span><span class="n">box_dimensions</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Create solvation box</span>
+    <span class="n">solvation</span> <span class="o">=</span> <span class="n">WaterSolvationBox</span><span class="p">(</span>
+        <span class="n">min_distance_to_solute</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># No solute</span>
+        <span class="n">min_water_distance</span><span class="o">=</span><span class="n">min_water_distance</span><span class="p">,</span>
+        <span class="n">target_density</span><span class="o">=</span><span class="n">target_density</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># &quot;Solvate&quot; with no protein (empty positions array)</span>
+    <span class="n">empty_protein</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">water_data</span> <span class="o">=</span> <span class="n">solvation</span><span class="o">.</span><span class="n">solvate_protein</span><span class="p">(</span><span class="n">empty_protein</span><span class="p">,</span> <span class="n">box_dimensions</span><span class="p">)</span>
+    
+    <span class="c1"># Calculate and report density</span>
+    <span class="n">density</span> <span class="o">=</span> <span class="n">solvation</span><span class="o">.</span><span class="n">calculate_water_density</span><span class="p">(</span><span class="n">box_dimensions</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created pure water box with </span><span class="si">{</span><span class="n">water_data</span><span class="p">[</span><span class="s1">&#39;n_molecules&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> molecules, &quot;</span>
+               <span class="sa">f</span><span class="s2">&quot;density = </span><span class="si">{</span><span class="n">density</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> kg/m³&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">water_data</span></div>
+
+
+<div class="viewcode-block" id="WaterSystem">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSystem">[docs]</a>
+<span class="k">class</span> <span class="nc">WaterSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    High-level interface for water system creation and management.</span>
+<span class="sd">    </span>
+<span class="sd">    This class provides a simplified interface for creating water boxes</span>
+<span class="sd">    and managing TIP3P water systems for molecular dynamics simulations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="WaterSystem.__init__">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSystem.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize water system.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tip3p_model</span> <span class="o">=</span> <span class="n">TIP3PWaterModel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvation_box</span> <span class="o">=</span> <span class="n">WaterSolvationBox</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="WaterSystem.create_water_box">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSystem.create_water_box">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_water_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_water</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">box_size</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a box of water molecules.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            n_water: Number of water molecules</span>
+<span class="sd">            box_size: Size of the cubic box in nm</span>
+<span class="sd">            density: Target density in g/cm³</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (positions, atom_types) where positions is (N, 3) array</span>
+<span class="sd">                  and atom_types is list of atom type strings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Use the existing pure water box creation</span>
+        <span class="n">box_dimensions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">box_size</span><span class="p">,</span> <span class="n">box_size</span><span class="p">,</span> <span class="n">box_size</span><span class="p">])</span>
+        <span class="n">water_data</span> <span class="o">=</span> <span class="n">create_pure_water_box</span><span class="p">(</span><span class="n">box_dimensions</span><span class="p">)</span>
+        
+        <span class="c1"># Extract positions and atom types</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">water_data</span><span class="p">[</span><span class="s1">&#39;positions&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Limit to requested number of water molecules</span>
+        <span class="k">if</span> <span class="n">n_water</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+            <span class="n">positions</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[:</span><span class="n">n_water</span> <span class="o">*</span> <span class="mi">3</span><span class="p">]</span>
+        
+        <span class="n">atom_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="n">n_water</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">positions</span><span class="p">,</span> <span class="n">atom_types</span></div>
+
+    
+<div class="viewcode-block" id="WaterSystem.calculate_water_density">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.water.WaterSystem.calculate_water_density">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_water_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box_dimensions</span><span class="p">,</span> <span class="n">n_water_molecules</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate water density for given box and number of molecules.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            box_dimensions: Box dimensions in nm</span>
+<span class="sd">            n_water_molecules: Number of water molecules</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Density in kg/m³</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">solvation_box</span><span class="o">.</span><span class="n">calculate_water_density</span><span class="p">(</span><span class="n">box_dimensions</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">ProteinMD</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/cli_reference.html">CLI Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utils.html">Utilities API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

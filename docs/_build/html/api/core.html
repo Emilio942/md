@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Core Simulation Engine &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Structure Handling" href="structure.html" />
+    <link rel="prev" title="API Reference" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="core-simulation-engine">
+<h1>Core Simulation Engine<a class="headerlink" href="#core-simulation-engine" title="Link to this heading">¶</a></h1>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.core</span></code> module provides the fundamental molecular dynamics simulation engine and algorithms that power ProteinMD.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The core module implements the heart of the molecular dynamics simulation, including:</p>
+<ul class="simple">
+<li><p><strong>Simulation Engine</strong>: Main MD simulation loop with integrators</p></li>
+<li><p><strong>Force Calculations</strong>: Efficient force computation algorithms</p></li>
+<li><p><strong>Energy Management</strong>: Kinetic and potential energy tracking</p></li>
+<li><p><strong>Thermostats and Barostats</strong>: Temperature and pressure control</p></li>
+<li><p><strong>Trajectory Management</strong>: Coordinate evolution and storage</p></li>
+</ul>
+</section>
+<section id="quick-example">
+<h2>Quick Example<a class="headerlink" href="#quick-example" title="Link to this heading">¶</a></h2>
+<p>Basic simulation setup and execution:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.simulation</span><span class="w"> </span><span class="kn">import</span> <span class="n">MolecularDynamicsSimulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure.protein</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protein</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.amber_ff14sb</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+
+<span class="c1"># Initialize simulation</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;example.pdb&quot;</span><span class="p">)</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">MolecularDynamicsSimulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">protein</span><span class="p">,</span>
+    <span class="n">force_field</span><span class="o">=</span><span class="n">forcefield</span><span class="p">,</span>
+    <span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>  <span class="c1"># 2 fs</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span>  <span class="c1"># 300 K</span>
+<span class="p">)</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">50000</span><span class="p">)</span>  <span class="c1"># 50k steps = 100 ps</span>
+
+<span class="c1"># Access results</span>
+<span class="n">final_energy</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_potential_energy</span><span class="p">()</span>
+<span class="n">trajectory</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_trajectory</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="module-proteinMD.core.simulation">
+<span id="simulation-module"></span><h2>Simulation Module<a class="headerlink" href="#module-proteinMD.core.simulation" title="Link to this heading">¶</a></h2>
+<p>Core simulation module for molecular dynamics.</p>
+<p>This module provides the main simulation classes and methods for running
+molecular dynamics simulations of proteins and cellular components.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.simulation.</span></span><span class="sig-name descname"><span class="pre">MolecularDynamicsSimulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'periodic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'velocity-verlet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thermostat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'berendsen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barostat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrostatics_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pme'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Core molecular dynamics simulation class for simulating proteins and cellular components.</p>
+<p>This class implements a highly efficient and customizable MD simulation engine
+that can handle complex biomolecular systems, including proteins, membranes,
+and cellular environments.</p>
+<p>Features:
+- Multiple force field support
+- Multiple integration algorithms
+- Boundary conditions (periodic, reflective)
+- Temperature control (multiple thermostats)
+- Pressure control (barostats)
+- Constraint algorithms
+- Parallel computation support</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.BOLTZMANN">
+<span class="sig-name descname"><span class="pre">BOLTZMANN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.380649e-23</span></em><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.BOLTZMANN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.AVOGADRO">
+<span class="sig-name descname"><span class="pre">AVOGADRO</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.02214076e+23</span></em><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.AVOGADRO" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.ELEMENTARY_CHARGE">
+<span class="sig-name descname"><span class="pre">ELEMENTARY_CHARGE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.602176634e-19</span></em><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.ELEMENTARY_CHARGE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.VACUUM_PERMITTIVITY">
+<span class="sig-name descname"><span class="pre">VACUUM_PERMITTIVITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8.8541878128e-12</span></em><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.VACUUM_PERMITTIVITY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.VACUUM_PERMEABILITY">
+<span class="sig-name descname"><span class="pre">VACUUM_PERMEABILITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.2566370614359173e-06</span></em><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.VACUUM_PERMEABILITY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.BOLTZMANN_KJmol">
+<span class="sig-name descname"><span class="pre">BOLTZMANN_KJmol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00831446261815324</span></em><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.BOLTZMANN_KJmol" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'periodic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'velocity-verlet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thermostat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'berendsen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barostat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrostatics_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pme'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize a molecular dynamics simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_particles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Initial number of particles in the simulation</p></li>
+<li><p><strong>box_dimensions</strong> (<em>np.ndarray</em>) – 3D box dimensions in nm (can be changed later)</p></li>
+<li><p><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Target temperature in Kelvin</p></li>
+<li><p><strong>time_step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Integration time step in picoseconds</p></li>
+<li><p><strong>cutoff_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Cutoff distance for non-bonded interactions in nm</p></li>
+<li><p><strong>boundary_condition</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Type of boundary conditions (‘periodic’, ‘reflective’)</p></li>
+<li><p><strong>integrator</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Integration algorithm (‘velocity-verlet’, ‘leapfrog’, ‘euler’)</p></li>
+<li><p><strong>thermostat</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Temperature control algorithm (‘berendsen’, ‘nose-hoover’, ‘langevin’)</p></li>
+<li><p><strong>barostat</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Pressure control algorithm (None, ‘berendsen’, ‘parrinello-rahman’)</p></li>
+<li><p><strong>electrostatics_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Method for handling long-range electrostatics (‘pme’, ‘reaction-field’, ‘cutoff’)</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Random seed for reproducibility</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.add_particles">
+<span class="sig-name descname"><span class="pre">add_particles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residue_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_particles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.add_particles" title="Link to this definition">¶</a></dt>
+<dd><p>Add particles to the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>positions</strong> (<em>np.ndarray</em>) – Array of particle positions with shape (n_particles, 3)</p></li>
+<li><p><strong>masses</strong> (<em>np.ndarray</em>) – Array of particle masses with shape (n_particles,)</p></li>
+<li><p><strong>charges</strong> (<em>np.ndarray</em>) – Array of particle charges with shape (n_particles,)</p></li>
+<li><p><strong>residue_indices</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Array of residue indices for each particle</p></li>
+<li><p><strong>chain_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – List of chain identifiers for each particle</p></li>
+<li><p><strong>element_symbols</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – List of element symbols for each particle</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.add_bonds">
+<span class="sig-name descname"><span class="pre">add_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_bonds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.add_bonds" title="Link to this definition">¶</a></dt>
+<dd><p>Add bonds to the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bonds</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><em>tuples</em>) – List of (i, j, k_b, r_0) tuples where:
+- i, j are particle indices
+- k_b is the bond force constant in kJ/(mol·nm²)
+- r_0 is the equilibrium bond length in nm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.generate_angles_from_bonds">
+<span class="sig-name descname"><span class="pre">generate_angles_from_bonds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.generate_angles_from_bonds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.generate_angles_from_bonds" title="Link to this definition">¶</a></dt>
+<dd><p>Automatically generate angle interactions from bond connectivity.</p>
+<p>This method analyzes bond connectivity to identify triplets of particles
+that form angles (i-j-k) and adds them to the simulation with default parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of angle interactions generated</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.generate_dihedrals_from_bonds">
+<span class="sig-name descname"><span class="pre">generate_dihedrals_from_bonds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.generate_dihedrals_from_bonds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.generate_dihedrals_from_bonds" title="Link to this definition">¶</a></dt>
+<dd><p>Automatically generate dihedral interactions from bond connectivity.</p>
+<p>This method analyzes bond connectivity to identify quadruplets of particles
+that form dihedrals (i-j-k-l) and adds them to the simulation with default parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of dihedral interactions generated</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.add_angles">
+<span class="sig-name descname"><span class="pre">add_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_angles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.add_angles" title="Link to this definition">¶</a></dt>
+<dd><p>Add angle potentials to the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>angles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><em>tuples</em>) – List of (i, j, k, k_a, theta_0) tuples where:
+- i, j, k are particle indices
+- k_a is the angle force constant in kJ/(mol·rad²)
+- theta_0 is the equilibrium angle in radians</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.add_dihedrals">
+<span class="sig-name descname"><span class="pre">add_dihedrals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dihedrals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_dihedrals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.add_dihedrals" title="Link to this definition">¶</a></dt>
+<dd><p>Add dihedral potentials to the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dihedrals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><em>tuples</em>) – List of (i, j, k, l, k_d, d, n) tuples where:
+- i, j, k, l are particle indices
+- k_d is the dihedral force constant in kJ/mol
+- d is the phase shift in radians
+- n is the periodicity</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.initialize_velocities">
+<span class="sig-name descname"><span class="pre">initialize_velocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.initialize_velocities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.initialize_velocities" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize particle velocities from a Maxwell-Boltzmann distribution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Temperature in Kelvin. If None, use the simulation temperature.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_kinetic_energy">
+<span class="sig-name descname"><span class="pre">calculate_kinetic_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">velocities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_kinetic_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_kinetic_energy" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the kinetic energy of the system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>velocities</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Particle velocities. If None, use the current simulation velocities.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Kinetic energy in kJ/mol</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_temperature">
+<span class="sig-name descname"><span class="pre">calculate_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kinetic_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_temperature" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the temperature of the system from kinetic energy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kinetic_energy</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Kinetic energy in kJ/mol. If None, calculate from current velocities.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Temperature in Kelvin</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_forces">
+<span class="sig-name descname"><span class="pre">calculate_forces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_forces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_forces" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate forces for all particles.</p>
+<p>This method computes the total force on each particle from:
+- Non-bonded interactions (Lennard-Jones, electrostatics)
+- Bonded interactions (bonds, angles, dihedrals)
+- External forces (restraints, constraints)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Array of forces with shape (n_particles, 3)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.apply_periodic_boundaries">
+<span class="sig-name descname"><span class="pre">apply_periodic_boundaries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.apply_periodic_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.apply_periodic_boundaries" title="Link to this definition">¶</a></dt>
+<dd><p>Apply periodic boundary conditions to particle positions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.apply_thermostat">
+<span class="sig-name descname"><span class="pre">apply_thermostat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.apply_thermostat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.apply_thermostat" title="Link to this definition">¶</a></dt>
+<dd><p>Apply temperature control using the selected thermostat algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current temperature after thermostat application</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.velocity_verlet_integration">
+<span class="sig-name descname"><span class="pre">velocity_verlet_integration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.velocity_verlet_integration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.velocity_verlet_integration" title="Link to this definition">¶</a></dt>
+<dd><p>Perform velocity Verlet integration step.</p>
+<p>This is a two-step integration method:
+1. Update positions using current velocities and forces
+2. Calculate new forces
+3. Update velocities using average of old and new forces</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New forces after integration</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.leapfrog_integration">
+<span class="sig-name descname"><span class="pre">leapfrog_integration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.leapfrog_integration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.leapfrog_integration" title="Link to this definition">¶</a></dt>
+<dd><p>Perform leapfrog integration step.</p>
+<p>This method:
+1. Updates velocities by half time step
+2. Updates positions using new velocities
+3. Updates velocities by another half time step</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New forces after integration</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.euler_integration">
+<span class="sig-name descname"><span class="pre">euler_integration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.euler_integration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.euler_integration" title="Link to this definition">¶</a></dt>
+<dd><p>Perform simple Euler integration step.</p>
+<p>This is the simplest integration method:
+1. Update positions using current velocities
+2. Calculate new forces
+3. Update velocities using new forces</p>
+<p>Note: This method is less accurate than velocity Verlet or leapfrog
+and may lead to energy drift over long simulations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New forces after integration</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.step" title="Link to this definition">¶</a></dt>
+<dd><p>Perform a single integration step.</p>
+<p>This method:
+1. Integrates equations of motion using the selected algorithm
+2. Applies thermostat if enabled
+3. Applies barostat if enabled
+4. Updates energy and statistics
+5. Saves trajectory frame if needed</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with updated energy values</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.run" title="Link to this definition">¶</a></dt>
+<dd><p>Run simulation for a specified number of steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of steps to run</p></li>
+<li><p><strong>callback</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function to call after each step with the current state</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Final simulation state</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.save_trajectory">
+<span class="sig-name descname"><span class="pre">save_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.save_trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.save_trajectory" title="Link to this definition">¶</a></dt>
+<dd><p>Save trajectory data to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Path to the output file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.save_checkpoint">
+<span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.save_checkpoint" title="Link to this definition">¶</a></dt>
+<dd><p>Save simulation state to a checkpoint file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Path to the checkpoint file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.load_checkpoint">
+<span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.load_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.load_checkpoint" title="Link to this definition">¶</a></dt>
+<dd><p>Load simulation state from a checkpoint file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Path to the checkpoint file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if loading was successful, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.add_position_restraint">
+<span class="sig-name descname"><span class="pre">add_position_restraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">particle_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_restraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_position_restraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.add_position_restraint" title="Link to this definition">¶</a></dt>
+<dd><p>Add a harmonic position restraint to a particle.</p>
+<p>Position restraints apply a force to keep particles close to a reference position,
+which is useful for maintaining structural integrity or implementing
+constraints in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particle_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Index of the particle to restrain</p></li>
+<li><p><strong>k_restraint</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Force constant for restraint in kJ/(mol·nm²)</p></li>
+<li><p><strong>ref_position</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Reference position. If None, current position is used.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.apply_position_restraints">
+<span class="sig-name descname"><span class="pre">apply_position_restraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.apply_position_restraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.apply_position_restraints" title="Link to this definition">¶</a></dt>
+<dd><p>Apply forces from position restraints.</p>
+<p>This adds harmonic forces to restrained particles based on
+their distance from the reference positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Forces from position restraints</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.apply_barostat">
+<span class="sig-name descname"><span class="pre">apply_barostat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.apply_barostat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.apply_barostat" title="Link to this definition">¶</a></dt>
+<dd><p>Apply pressure control using the selected barostat algorithm.</p>
+<p>This method scales the simulation box and particle coordinates to maintain
+the target pressure. Currently supports Berendsen and Parrinello-Rahman barostats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current pressure after barostat application</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_pressure">
+<span class="sig-name descname"><span class="pre">calculate_pressure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_pressure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_pressure" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the pressure of the system using the virial theorem.</p>
+<p>Pressure is computed from kinetic energy and virial contributions
+from both bonded and non-bonded interactions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pressure in bar</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_potential_energy">
+<span class="sig-name descname"><span class="pre">calculate_potential_energy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_potential_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#proteinMD.core.simulation.MolecularDynamicsSimulation.calculate_potential_energy" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the potential energy of the system.</p>
+<p>This method computes the total potential energy from:
+- Non-bonded interactions (Lennard-Jones, electrostatics)
+- Bonded interactions (bonds, angles, dihedrals)
+- Position restraints</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Potential energy in kJ/mol</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<section id="main-simulation-class">
+<h3>Main Simulation Class<a class="headerlink" href="#main-simulation-class" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.simulation.</span></span><span class="sig-name descname"><span class="pre">MolecularDynamicsSimulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'periodic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'velocity-verlet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thermostat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'berendsen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barostat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrostatics_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pme'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Core molecular dynamics simulation class for simulating proteins and cellular components.</p>
+<p>This class implements a highly efficient and customizable MD simulation engine
+that can handle complex biomolecular systems, including proteins, membranes,
+and cellular environments.</p>
+<p>Features:
+- Multiple force field support
+- Multiple integration algorithms
+- Boundary conditions (periodic, reflective)
+- Temperature control (multiple thermostats)
+- Pressure control (barostats)
+- Constraint algorithms
+- Parallel computation support</p>
+<p><strong>Examples</strong></p>
+<p>Basic simulation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simple protein simulation</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">MolecularDynamicsSimulation</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">forcefield</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Advanced simulation with custom parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">MolecularDynamicsSimulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">protein</span><span class="p">,</span>
+    <span class="n">force_field</span><span class="o">=</span><span class="n">forcefield</span><span class="p">,</span>
+    <span class="n">timestep</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>      <span class="c1"># Smaller timestep for stability</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">310.0</span><span class="p">,</span>    <span class="c1"># Physiological temperature</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>        <span class="c1"># 1 bar pressure</span>
+    <span class="n">integrator</span><span class="o">=</span><span class="s1">&#39;verlet&#39;</span>   <span class="c1"># Velocity Verlet integrator</span>
+<span class="p">)</span>
+
+<span class="c1"># Set up trajectory output</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">set_trajectory_output</span><span class="p">(</span><span class="s2">&quot;trajectory.npz&quot;</span><span class="p">,</span> <span class="n">save_interval</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Run with progress monitoring</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">100000</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">step</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">BOLTZMANN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.380649e-23</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">AVOGADRO</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6.02214076e+23</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">ELEMENTARY_CHARGE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.602176634e-19</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">VACUUM_PERMITTIVITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8.8541878128e-12</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">VACUUM_PERMEABILITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.2566370614359173e-06</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">BOLTZMANN_KJmol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00831446261815324</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'periodic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'velocity-verlet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thermostat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'berendsen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barostat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrostatics_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pme'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Initialize a molecular dynamics simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_particles</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Initial number of particles in the simulation</p></li>
+<li><p><strong>box_dimensions</strong> (<em>np.ndarray</em>) – 3D box dimensions in nm (can be changed later)</p></li>
+<li><p><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Target temperature in Kelvin</p></li>
+<li><p><strong>time_step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Integration time step in picoseconds</p></li>
+<li><p><strong>cutoff_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Cutoff distance for non-bonded interactions in nm</p></li>
+<li><p><strong>boundary_condition</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Type of boundary conditions (‘periodic’, ‘reflective’)</p></li>
+<li><p><strong>integrator</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Integration algorithm (‘velocity-verlet’, ‘leapfrog’, ‘euler’)</p></li>
+<li><p><strong>thermostat</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Temperature control algorithm (‘berendsen’, ‘nose-hoover’, ‘langevin’)</p></li>
+<li><p><strong>barostat</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Pressure control algorithm (None, ‘berendsen’, ‘parrinello-rahman’)</p></li>
+<li><p><strong>electrostatics_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Method for handling long-range electrostatics (‘pme’, ‘reaction-field’, ‘cutoff’)</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Random seed for reproducibility</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add_particles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residue_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_particles"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add particles to the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>positions</strong> (<em>np.ndarray</em>) – Array of particle positions with shape (n_particles, 3)</p></li>
+<li><p><strong>masses</strong> (<em>np.ndarray</em>) – Array of particle masses with shape (n_particles,)</p></li>
+<li><p><strong>charges</strong> (<em>np.ndarray</em>) – Array of particle charges with shape (n_particles,)</p></li>
+<li><p><strong>residue_indices</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Array of residue indices for each particle</p></li>
+<li><p><strong>chain_ids</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – List of chain identifiers for each particle</p></li>
+<li><p><strong>element_symbols</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – List of element symbols for each particle</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_bonds"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add bonds to the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bonds</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><em>tuples</em>) – List of (i, j, k_b, r_0) tuples where:
+- i, j are particle indices
+- k_b is the bond force constant in kJ/(mol·nm²)
+- r_0 is the equilibrium bond length in nm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">generate_angles_from_bonds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.generate_angles_from_bonds"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Automatically generate angle interactions from bond connectivity.</p>
+<p>This method analyzes bond connectivity to identify triplets of particles
+that form angles (i-j-k) and adds them to the simulation with default parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of angle interactions generated</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">generate_dihedrals_from_bonds</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.generate_dihedrals_from_bonds"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Automatically generate dihedral interactions from bond connectivity.</p>
+<p>This method analyzes bond connectivity to identify quadruplets of particles
+that form dihedrals (i-j-k-l) and adds them to the simulation with default parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of dihedral interactions generated</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_angles"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add angle potentials to the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>angles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><em>tuples</em>) – List of (i, j, k, k_a, theta_0) tuples where:
+- i, j, k are particle indices
+- k_a is the angle force constant in kJ/(mol·rad²)
+- theta_0 is the equilibrium angle in radians</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add_dihedrals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dihedrals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_dihedrals"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add dihedral potentials to the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dihedrals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><em>tuples</em>) – List of (i, j, k, l, k_d, d, n) tuples where:
+- i, j, k, l are particle indices
+- k_d is the dihedral force constant in kJ/mol
+- d is the phase shift in radians
+- n is the periodicity</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_velocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.initialize_velocities"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Initialize particle velocities from a Maxwell-Boltzmann distribution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>temperature</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Temperature in Kelvin. If None, use the simulation temperature.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">calculate_kinetic_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">velocities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_kinetic_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Calculate the kinetic energy of the system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>velocities</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Particle velocities. If None, use the current simulation velocities.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Kinetic energy in kJ/mol</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">calculate_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kinetic_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Calculate the temperature of the system from kinetic energy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kinetic_energy</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Kinetic energy in kJ/mol. If None, calculate from current velocities.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Temperature in Kelvin</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">calculate_forces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_forces"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Calculate forces for all particles.</p>
+<p>This method computes the total force on each particle from:
+- Non-bonded interactions (Lennard-Jones, electrostatics)
+- Bonded interactions (bonds, angles, dihedrals)
+- External forces (restraints, constraints)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Array of forces with shape (n_particles, 3)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">apply_periodic_boundaries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.apply_periodic_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Apply periodic boundary conditions to particle positions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">apply_thermostat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.apply_thermostat"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Apply temperature control using the selected thermostat algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current temperature after thermostat application</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">velocity_verlet_integration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.velocity_verlet_integration"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Perform velocity Verlet integration step.</p>
+<p>This is a two-step integration method:
+1. Update positions using current velocities and forces
+2. Calculate new forces
+3. Update velocities using average of old and new forces</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New forces after integration</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">leapfrog_integration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.leapfrog_integration"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Perform leapfrog integration step.</p>
+<p>This method:
+1. Updates velocities by half time step
+2. Updates positions using new velocities
+3. Updates velocities by another half time step</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New forces after integration</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">euler_integration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.euler_integration"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Perform simple Euler integration step.</p>
+<p>This is the simplest integration method:
+1. Update positions using current velocities
+2. Calculate new forces
+3. Update velocities using new forces</p>
+<p>Note: This method is less accurate than velocity Verlet or leapfrog
+and may lead to energy drift over long simulations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>New forces after integration</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Perform a single integration step.</p>
+<p>This method:
+1. Integrates equations of motion using the selected algorithm
+2. Applies thermostat if enabled
+3. Applies barostat if enabled
+4. Updates energy and statistics
+5. Saves trajectory frame if needed</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with updated energy values</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Run simulation for a specified number of steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of steps to run</p></li>
+<li><p><strong>callback</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function to call after each step with the current state</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Final simulation state</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">save_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.save_trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Save trajectory data to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Path to the output file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Save simulation state to a checkpoint file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Path to the checkpoint file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.load_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Load simulation state from a checkpoint file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Path to the checkpoint file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if loading was successful, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">add_position_restraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">particle_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_restraint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.add_position_restraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add a harmonic position restraint to a particle.</p>
+<p>Position restraints apply a force to keep particles close to a reference position,
+which is useful for maintaining structural integrity or implementing
+constraints in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particle_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Index of the particle to restrain</p></li>
+<li><p><strong>k_restraint</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Force constant for restraint in kJ/(mol·nm²)</p></li>
+<li><p><strong>ref_position</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Reference position. If None, current position is used.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">apply_position_restraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.apply_position_restraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Apply forces from position restraints.</p>
+<p>This adds harmonic forces to restrained particles based on
+their distance from the reference positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Forces from position restraints</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">apply_barostat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.apply_barostat"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Apply pressure control using the selected barostat algorithm.</p>
+<p>This method scales the simulation box and particle coordinates to maintain
+the target pressure. Currently supports Berendsen and Parrinello-Rahman barostats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current pressure after barostat application</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">calculate_pressure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_pressure"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Calculate the pressure of the system using the virial theorem.</p>
+<p>Pressure is computed from kinetic energy and virial contributions
+from both bonded and non-bonded interactions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pressure in bar</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">calculate_potential_energy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/proteinMD/core/simulation.html#MolecularDynamicsSimulation.calculate_potential_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Calculate the potential energy of the system.</p>
+<p>This method computes the total potential energy from:
+- Non-bonded interactions (Lennard-Jones, electrostatics)
+- Bonded interactions (bonds, angles, dihedrals)
+- Position restraints</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Potential energy in kJ/mol</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.core.integrators">
+<span id="integrators-module"></span><h2>Integrators Module<a class="headerlink" href="#module-proteinMD.core.integrators" title="Link to this heading">¶</a></h2>
+<section id="available-integrators">
+<h3>Available Integrators<a class="headerlink" href="#available-integrators" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.integrators.VelocityVerletIntegrator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.integrators.</span></span><span class="sig-name descname"><span class="pre">VelocityVerletIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.integrators.VelocityVerletIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.integrators</span><span class="w"> </span><span class="kn">import</span> <span class="n">VelocityVerletIntegrator</span>
+
+<span class="n">integrator</span> <span class="o">=</span> <span class="n">VelocityVerletIntegrator</span><span class="p">(</span><span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_integrator</span><span class="p">(</span><span class="n">integrator</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.integrators.LeapfrogIntegrator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.integrators.</span></span><span class="sig-name descname"><span class="pre">LeapfrogIntegrator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.integrators.LeapfrogIntegrator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.core.thermostats">
+<span id="thermostats-module"></span><h2>Thermostats Module<a class="headerlink" href="#module-proteinMD.core.thermostats" title="Link to this heading">¶</a></h2>
+<section id="temperature-control">
+<h3>Temperature Control<a class="headerlink" href="#temperature-control" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.thermostats.NoseHooverThermostat">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.thermostats.</span></span><span class="sig-name descname"><span class="pre">NoseHooverThermostat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.thermostats.NoseHooverThermostat" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.thermostats</span><span class="w"> </span><span class="kn">import</span> <span class="n">NoseHooverThermostat</span>
+
+<span class="n">thermostat</span> <span class="o">=</span> <span class="n">NoseHooverThermostat</span><span class="p">(</span>
+    <span class="n">target_temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">coupling_time</span><span class="o">=</span><span class="mf">0.1</span>  <span class="c1"># 0.1 ps coupling time</span>
+<span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_thermostat</span><span class="p">(</span><span class="n">thermostat</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.thermostats.BerendsenThermostat">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.thermostats.</span></span><span class="sig-name descname"><span class="pre">BerendsenThermostat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.thermostats.BerendsenThermostat" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.core.barostats">
+<span id="barostats-module"></span><h2>Barostats Module<a class="headerlink" href="#module-proteinMD.core.barostats" title="Link to this heading">¶</a></h2>
+<section id="pressure-control">
+<h3>Pressure Control<a class="headerlink" href="#pressure-control" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.barostats.BerendsenBarostat">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.barostats.</span></span><span class="sig-name descname"><span class="pre">BerendsenBarostat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.barostats.BerendsenBarostat" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.barostats</span><span class="w"> </span><span class="kn">import</span> <span class="n">BerendsenBarostat</span>
+
+<span class="n">barostat</span> <span class="o">=</span> <span class="n">BerendsenBarostat</span><span class="p">(</span>
+    <span class="n">target_pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># 1 bar</span>
+    <span class="n">coupling_time</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>    <span class="c1"># 1 ps coupling time</span>
+    <span class="n">compressibility</span><span class="o">=</span><span class="mf">4.5e-5</span>  <span class="c1"># Water compressibility</span>
+<span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_barostat</span><span class="p">(</span><span class="n">barostat</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.core.forces">
+<span id="forces-module"></span><h2>Forces Module<a class="headerlink" href="#module-proteinMD.core.forces" title="Link to this heading">¶</a></h2>
+<section id="force-calculation-engine">
+<h3>Force Calculation Engine<a class="headerlink" href="#force-calculation-engine" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.forces.ForceCalculator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.forces.</span></span><span class="sig-name descname"><span class="pre">ForceCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.forces.ForceCalculator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.forces</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForceCalculator</span>
+
+<span class="n">force_calc</span> <span class="o">=</span> <span class="n">ForceCalculator</span><span class="p">(</span>
+    <span class="n">cutoff</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>           <span class="c1"># 1.2 nm cutoff</span>
+    <span class="n">switch_distance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># 1.0 nm switch distance</span>
+    <span class="n">use_pme</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>         <span class="c1"># Use PME for electrostatics</span>
+    <span class="n">pme_grid_spacing</span><span class="o">=</span><span class="mf">0.1</span>  <span class="c1"># 0.1 nm PME grid spacing</span>
+<span class="p">)</span>
+
+<span class="c1"># Calculate forces and energy</span>
+<span class="n">forces</span><span class="p">,</span> <span class="n">potential_energy</span> <span class="o">=</span> <span class="n">force_calc</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span>
+    <span class="n">positions</span><span class="o">=</span><span class="n">protein</span><span class="o">.</span><span class="n">get_positions</span><span class="p">(),</span>
+    <span class="n">forcefield</span><span class="o">=</span><span class="n">amber_ff14sb</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.core.energy">
+<span id="energy-module"></span><h2>Energy Module<a class="headerlink" href="#module-proteinMD.core.energy" title="Link to this heading">¶</a></h2>
+<section id="energy-tracking">
+<h3>Energy Tracking<a class="headerlink" href="#energy-tracking" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.energy.EnergyMonitor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.energy.</span></span><span class="sig-name descname"><span class="pre">EnergyMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.energy.EnergyMonitor" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.energy</span><span class="w"> </span><span class="kn">import</span> <span class="n">EnergyMonitor</span>
+
+<span class="n">energy_monitor</span> <span class="o">=</span> <span class="n">EnergyMonitor</span><span class="p">()</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">add_observer</span><span class="p">(</span><span class="n">energy_monitor</span><span class="p">)</span>
+
+<span class="c1"># After simulation</span>
+<span class="n">kinetic_energies</span> <span class="o">=</span> <span class="n">energy_monitor</span><span class="o">.</span><span class="n">get_kinetic_energy_history</span><span class="p">()</span>
+<span class="n">potential_energies</span> <span class="o">=</span> <span class="n">energy_monitor</span><span class="o">.</span><span class="n">get_potential_energy_history</span><span class="p">()</span>
+<span class="n">total_energies</span> <span class="o">=</span> <span class="n">energy_monitor</span><span class="o">.</span><span class="n">get_total_energy_history</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-proteinMD.core.trajectory">
+<span id="trajectory-module"></span><h2>Trajectory Module<a class="headerlink" href="#module-proteinMD.core.trajectory" title="Link to this heading">¶</a></h2>
+<section id="trajectory-management">
+<h3>Trajectory Management<a class="headerlink" href="#trajectory-management" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.trajectory.TrajectoryWriter">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.trajectory.</span></span><span class="sig-name descname"><span class="pre">TrajectoryWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.trajectory.TrajectoryWriter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajectoryWriter</span>
+
+<span class="n">writer</span> <span class="o">=</span> <span class="n">TrajectoryWriter</span><span class="p">(</span><span class="s2">&quot;simulation.npz&quot;</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">add_observer</span><span class="p">(</span><span class="n">writer</span><span class="p">)</span>
+
+<span class="c1"># Writer automatically saves trajectory during simulation</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="proteinMD.core.trajectory.TrajectoryReader">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">proteinMD.core.trajectory.</span></span><span class="sig-name descname"><span class="pre">TrajectoryReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#proteinMD.core.trajectory.TrajectoryReader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p><strong>Example Usage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajectoryReader</span>
+
+<span class="n">reader</span> <span class="o">=</span> <span class="n">TrajectoryReader</span><span class="p">(</span><span class="s2">&quot;simulation.npz&quot;</span><span class="p">)</span>
+
+<span class="c1"># Read trajectory data</span>
+<span class="n">frames</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_all_frames</span><span class="p">()</span>
+<span class="n">frame_10</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_frame</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Iterate through trajectory</span>
+<span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">positions</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">time</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="common-usage-patterns">
+<h2>Common Usage Patterns<a class="headerlink" href="#common-usage-patterns" title="Link to this heading">¶</a></h2>
+<section id="complete-simulation-setup">
+<h3>Complete Simulation Setup<a class="headerlink" href="#complete-simulation-setup" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.simulation</span><span class="w"> </span><span class="kn">import</span> <span class="n">MolecularDynamicsSimulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.thermostats</span><span class="w"> </span><span class="kn">import</span> <span class="n">NoseHooverThermostat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.barostats</span><span class="w"> </span><span class="kn">import</span> <span class="n">BerendsenBarostat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure.pdb_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDBParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.amber_ff14sb</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+
+<span class="c1"># Load system</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;system.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Setup force field</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+
+<span class="c1"># Create simulation with advanced options</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">MolecularDynamicsSimulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">protein</span><span class="p">,</span>
+    <span class="n">force_field</span><span class="o">=</span><span class="n">forcefield</span><span class="p">,</span>
+    <span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Configure thermostats and barostats</span>
+<span class="n">thermostat</span> <span class="o">=</span> <span class="n">NoseHooverThermostat</span><span class="p">(</span><span class="mf">300.0</span><span class="p">,</span> <span class="n">coupling_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">barostat</span> <span class="o">=</span> <span class="n">BerendsenBarostat</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">coupling_time</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_thermostat</span><span class="p">(</span><span class="n">thermostat</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_barostat</span><span class="p">(</span><span class="n">barostat</span><span class="p">)</span>
+
+<span class="c1"># Setup trajectory output</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_trajectory_output</span><span class="p">(</span><span class="s2">&quot;trajectory.npz&quot;</span><span class="p">,</span> <span class="n">save_interval</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">100000</span><span class="p">)</span>  <span class="c1"># 100k steps = 200 ps</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-optimization">
+<h3>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Optimize for large systems</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">MolecularDynamicsSimulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">large_protein</span><span class="p">,</span>
+    <span class="n">force_field</span><span class="o">=</span><span class="n">forcefield</span><span class="p">,</span>
+    <span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Enable parallel force calculation</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_parallel_forces</span><span class="p">(</span><span class="n">n_threads</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Use optimized neighbor lists</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_neighbor_list_cutoff</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_neighbor_list_update_frequency</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="c1"># Memory-efficient trajectory storage</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">set_trajectory_output</span><span class="p">(</span>
+    <span class="s2">&quot;trajectory.npz&quot;</span><span class="p">,</span>
+    <span class="n">save_interval</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>  <span class="c1"># Save every 1000 steps</span>
+    <span class="n">compression</span><span class="o">=</span><span class="kc">True</span>     <span class="c1"># Compress trajectory data</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="structure.html"><span class="doc">Structure Handling</span></a> - Protein structure handling</p></li>
+<li><p><a class="reference internal" href="forcefield.html"><span class="doc">Force Fields</span></a> - Force field implementations</p></li>
+<li><p><a class="reference internal" href="environment.html"><span class="doc">Environment Models</span></a> - Environment setup (water, boundaries)</p></li>
+<li><p><a class="reference internal" href="../user_guide/tutorials.html"><span class="doc">Tutorials</span></a> - Step-by-step tutorials</p></li>
+<li><p><a class="reference internal" href="../advanced/performance.html"><span class="doc">Performance Optimization</span></a> - Performance optimization guide</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Core Simulation Engine</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.core.simulation">Simulation Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#proteinMD.core.simulation.MolecularDynamicsSimulation"><code class="docutils literal notranslate"><span class="pre">MolecularDynamicsSimulation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main-simulation-class">Main Simulation Class</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.core.integrators">Integrators Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#available-integrators">Available Integrators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.core.thermostats">Thermostats Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#temperature-control">Temperature Control</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.core.barostats">Barostats Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pressure-control">Pressure Control</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.core.forces">Forces Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#force-calculation-engine">Force Calculation Engine</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.core.energy">Energy Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#energy-tracking">Energy Tracking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-proteinMD.core.trajectory">Trajectory Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#trajectory-management">Trajectory Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#complete-simulation-setup">Complete Simulation Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-optimization">Performance Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/scientific_background.html">Scientific Background and Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">API Reference</a></li>
+      <li>Next: <a href="structure.html" title="next chapter">Structure Handling</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/api/core.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

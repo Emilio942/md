@@ -1,0 +1,468 @@
+{
+  "name": "AMBER ff14SB Amino Acid Library",
+  "version": "ff14SB",
+  "description": "Complete amino acid residue templates for AMBER ff14SB force field",
+  
+  "residues": {
+    "ALA": {
+      "name": "Alanine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": 0.0337, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0823, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.1825, "element": "C"},
+        {"name": "HB1", "type": "HP", "charge": 0.0603, "element": "H"},
+        {"name": "HB2", "type": "HP", "charge": 0.0603, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0603, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ],
+      "bonds": [
+        ["N", "H"], ["N", "CA"], ["CA", "HA"], ["CA", "CB"], ["CA", "C"],
+        ["CB", "HB1"], ["CB", "HB2"], ["CB", "HB3"], ["C", "O"]
+      ],
+      "angles": [
+        ["H", "N", "CA"], ["N", "CA", "HA"], ["N", "CA", "CB"], ["N", "CA", "C"],
+        ["HA", "CA", "CB"], ["HA", "CA", "C"], ["CB", "CA", "C"],
+        ["CA", "CB", "HB1"], ["CA", "CB", "HB2"], ["CA", "CB", "HB3"],
+        ["HB1", "CB", "HB2"], ["HB1", "CB", "HB3"], ["HB2", "CB", "HB3"],
+        ["CA", "C", "O"]
+      ],
+      "dihedrals": [
+        ["H", "N", "CA", "HA"], ["H", "N", "CA", "CB"], ["H", "N", "CA", "C"],
+        ["N", "CA", "CB", "HB1"], ["N", "CA", "CB", "HB2"], ["N", "CA", "CB", "HB3"],
+        ["HA", "CA", "CB", "HB1"], ["HA", "CA", "CB", "HB2"], ["HA", "CA", "CB", "HB3"],
+        ["N", "CA", "C", "O"], ["HA", "CA", "C", "O"], ["CB", "CA", "C", "O"]
+      ]
+    },
+    
+    "ARG": {
+      "name": "Arginine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.3479, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2747, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.2637, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.1560, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0007, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0327, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0327, "element": "H"},
+        {"name": "CG", "type": "CT", "charge": 0.0390, "element": "C"},
+        {"name": "HG2", "type": "HP", "charge": 0.0285, "element": "H"},
+        {"name": "HG3", "type": "HP", "charge": 0.0285, "element": "H"},
+        {"name": "CD", "type": "CT", "charge": 0.0486, "element": "C"},
+        {"name": "HD2", "type": "HP", "charge": 0.0687, "element": "H"},
+        {"name": "HD3", "type": "HP", "charge": 0.0687, "element": "H"},
+        {"name": "NE", "type": "N2", "charge": -0.5295, "element": "N"},
+        {"name": "HE", "type": "H", "charge": 0.3456, "element": "H"},
+        {"name": "CZ", "type": "CA", "charge": 0.8076, "element": "C"},
+        {"name": "NH1", "type": "N2", "charge": -0.8627, "element": "N"},
+        {"name": "HH11", "type": "H", "charge": 0.4478, "element": "H"},
+        {"name": "HH12", "type": "H", "charge": 0.4478, "element": "H"},
+        {"name": "NH2", "type": "N2", "charge": -0.8627, "element": "N"},
+        {"name": "HH21", "type": "H", "charge": 0.4478, "element": "H"},
+        {"name": "HH22", "type": "H", "charge": 0.4478, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.7341, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5894, "element": "O"}
+      ]
+    },
+    
+    "ASN": {
+      "name": "Asparagine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": 0.0143, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.1048, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.2041, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0797, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0797, "element": "H"},
+        {"name": "CG", "type": "C", "charge": 0.7130, "element": "C"},
+        {"name": "OD1", "type": "O", "charge": -0.5931, "element": "O"},
+        {"name": "ND2", "type": "N", "charge": -0.9191, "element": "N"},
+        {"name": "HD21", "type": "H", "charge": 0.4196, "element": "H"},
+        {"name": "HD22", "type": "H", "charge": 0.4196, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "ASP": {
+      "name": "Aspartic Acid",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.5163, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2936, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": 0.0381, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0880, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0303, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": -0.0122, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": -0.0122, "element": "H"},
+        {"name": "CG", "type": "C", "charge": 0.7994, "element": "C"},
+        {"name": "OD1", "type": "O2", "charge": -0.8014, "element": "O"},
+        {"name": "OD2", "type": "O2", "charge": -0.8014, "element": "O"},
+        {"name": "C", "type": "C", "charge": 0.5366, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5819, "element": "O"}
+      ]
+    },
+    
+    "CYS": {
+      "name": "Cysteine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": 0.0213, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.1124, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.1231, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.1112, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.1112, "element": "H"},
+        {"name": "SG", "type": "SH", "charge": -0.3119, "element": "S"},
+        {"name": "HG", "type": "HS", "charge": 0.1933, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "GLN": {
+      "name": "Glutamine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0031, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0850, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0036, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0171, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0171, "element": "H"},
+        {"name": "CG", "type": "CT", "charge": -0.0645, "element": "C"},
+        {"name": "HG2", "type": "HP", "charge": 0.0352, "element": "H"},
+        {"name": "HG3", "type": "HP", "charge": 0.0352, "element": "H"},
+        {"name": "CD", "type": "C", "charge": 0.6951, "element": "C"},
+        {"name": "OE1", "type": "O", "charge": -0.6086, "element": "O"},
+        {"name": "NE2", "type": "N", "charge": -0.9407, "element": "N"},
+        {"name": "HE21", "type": "H", "charge": 0.4251, "element": "H"},
+        {"name": "HE22", "type": "H", "charge": 0.4251, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "GLU": {
+      "name": "Glutamic Acid",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.5163, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2936, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": 0.0397, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.1105, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": 0.0560, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": -0.0173, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": -0.0173, "element": "H"},
+        {"name": "CG", "type": "CT", "charge": 0.0136, "element": "C"},
+        {"name": "HG2", "type": "HP", "charge": -0.0425, "element": "H"},
+        {"name": "HG3", "type": "HP", "charge": -0.0425, "element": "H"},
+        {"name": "CD", "type": "C", "charge": 0.8054, "element": "C"},
+        {"name": "OE1", "type": "O2", "charge": -0.8188, "element": "O"},
+        {"name": "OE2", "type": "O2", "charge": -0.8188, "element": "O"},
+        {"name": "C", "type": "C", "charge": 0.5366, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5819, "element": "O"}
+      ]
+    },
+    
+    "GLY": {
+      "name": "Glycine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0252, "element": "C"},
+        {"name": "HA2", "type": "HP", "charge": 0.0698, "element": "H"},
+        {"name": "HA3", "type": "HP", "charge": 0.0698, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "HIS": {
+      "name": "Histidine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.3479, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2747, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.1354, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.1212, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0414, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0810, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0810, "element": "H"},
+        {"name": "CG", "type": "CC", "charge": -0.0266, "element": "C"},
+        {"name": "ND1", "type": "NA", "charge": -0.3811, "element": "N"},
+        {"name": "HD1", "type": "H", "charge": 0.3649, "element": "H"},
+        {"name": "CE1", "type": "CR", "charge": 0.2057, "element": "C"},
+        {"name": "HE1", "type": "H5", "charge": 0.1392, "element": "H"},
+        {"name": "NE2", "type": "NB", "charge": -0.5727, "element": "N"},
+        {"name": "CD2", "type": "CV", "charge": 0.1292, "element": "C"},
+        {"name": "HD2", "type": "H4", "charge": 0.1147, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.7341, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5894, "element": "O"}
+      ]
+    },
+    
+    "ILE": {
+      "name": "Isoleucine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0597, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0869, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": 0.1303, "element": "C"},
+        {"name": "HB", "type": "HP", "charge": 0.0187, "element": "H"},
+        {"name": "CG2", "type": "CT", "charge": -0.3204, "element": "C"},
+        {"name": "HG21", "type": "HP", "charge": 0.0882, "element": "H"},
+        {"name": "HG22", "type": "HP", "charge": 0.0882, "element": "H"},
+        {"name": "HG23", "type": "HP", "charge": 0.0882, "element": "H"},
+        {"name": "CG1", "type": "CT", "charge": -0.0430, "element": "C"},
+        {"name": "HG12", "type": "HP", "charge": 0.0236, "element": "H"},
+        {"name": "HG13", "type": "HP", "charge": 0.0236, "element": "H"},
+        {"name": "CD1", "type": "CT", "charge": -0.0660, "element": "C"},
+        {"name": "HD11", "type": "HP", "charge": 0.0186, "element": "H"},
+        {"name": "HD12", "type": "HP", "charge": 0.0186, "element": "H"},
+        {"name": "HD13", "type": "HP", "charge": 0.0186, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "LEU": {
+      "name": "Leucine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0518, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0922, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.1102, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0457, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0457, "element": "H"},
+        {"name": "CG", "type": "CT", "charge": 0.3531, "element": "C"},
+        {"name": "HG", "type": "HP", "charge": -0.0361, "element": "H"},
+        {"name": "CD1", "type": "CT", "charge": -0.4121, "element": "C"},
+        {"name": "HD11", "type": "HP", "charge": 0.1000, "element": "H"},
+        {"name": "HD12", "type": "HP", "charge": 0.1000, "element": "H"},
+        {"name": "HD13", "type": "HP", "charge": 0.1000, "element": "H"},
+        {"name": "CD2", "type": "CT", "charge": -0.4121, "element": "C"},
+        {"name": "HD21", "type": "HP", "charge": 0.1000, "element": "H"},
+        {"name": "HD22", "type": "HP", "charge": 0.1000, "element": "H"},
+        {"name": "HD23", "type": "HP", "charge": 0.1000, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "LYS": {
+      "name": "Lysine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.3479, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2747, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.2400, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.1426, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0094, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0362, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0362, "element": "H"},
+        {"name": "CG", "type": "CT", "charge": 0.0187, "element": "C"},
+        {"name": "HG2", "type": "HP", "charge": 0.0103, "element": "H"},
+        {"name": "HG3", "type": "HP", "charge": 0.0103, "element": "H"},
+        {"name": "CD", "type": "CT", "charge": -0.0479, "element": "C"},
+        {"name": "HD2", "type": "HP", "charge": 0.0621, "element": "H"},
+        {"name": "HD3", "type": "HP", "charge": 0.0621, "element": "H"},
+        {"name": "CE", "type": "CT", "charge": -0.0143, "element": "C"},
+        {"name": "HE2", "type": "HP", "charge": 0.1135, "element": "H"},
+        {"name": "HE3", "type": "HP", "charge": 0.1135, "element": "H"},
+        {"name": "NZ", "type": "N3", "charge": -0.3854, "element": "N"},
+        {"name": "HZ1", "type": "H3", "charge": 0.3400, "element": "H"},
+        {"name": "HZ2", "type": "H3", "charge": 0.3400, "element": "H"},
+        {"name": "HZ3", "type": "H3", "charge": 0.3400, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.7341, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5894, "element": "O"}
+      ]
+    },
+    
+    "MET": {
+      "name": "Methionine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0237, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0880, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": 0.0342, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0241, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0241, "element": "H"},
+        {"name": "CG", "type": "CT", "charge": 0.0018, "element": "C"},
+        {"name": "HG2", "type": "HP", "charge": 0.0440, "element": "H"},
+        {"name": "HG3", "type": "HP", "charge": 0.0440, "element": "H"},
+        {"name": "SD", "type": "S", "charge": -0.2737, "element": "S"},
+        {"name": "CE", "type": "CT", "charge": -0.0536, "element": "C"},
+        {"name": "HE1", "type": "HP", "charge": 0.0684, "element": "H"},
+        {"name": "HE2", "type": "HP", "charge": 0.0684, "element": "H"},
+        {"name": "HE3", "type": "HP", "charge": 0.0684, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "PHE": {
+      "name": "Phenylalanine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0024, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0978, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0343, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0295, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0295, "element": "H"},
+        {"name": "CG", "type": "CA", "charge": 0.0118, "element": "C"},
+        {"name": "CD1", "type": "CA", "charge": -0.1256, "element": "C"},
+        {"name": "HD1", "type": "HA", "charge": 0.1330, "element": "H"},
+        {"name": "CE1", "type": "CA", "charge": -0.1704, "element": "C"},
+        {"name": "HE1", "type": "HA", "charge": 0.1430, "element": "H"},
+        {"name": "CZ", "type": "CA", "charge": -0.1072, "element": "C"},
+        {"name": "HZ", "type": "HA", "charge": 0.1297, "element": "H"},
+        {"name": "CE2", "type": "CA", "charge": -0.1704, "element": "C"},
+        {"name": "HE2", "type": "HA", "charge": 0.1430, "element": "H"},
+        {"name": "CD2", "type": "CA", "charge": -0.1256, "element": "C"},
+        {"name": "HD2", "type": "HA", "charge": 0.1330, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "PRO": {
+      "name": "Proline",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.2548, "element": "N"},
+        {"name": "CD", "type": "CT", "charge": 0.0192, "element": "C"},
+        {"name": "HD2", "type": "HP", "charge": 0.0391, "element": "H"},
+        {"name": "HD3", "type": "HP", "charge": 0.0391, "element": "H"},
+        {"name": "CG", "type": "CT", "charge": 0.0189, "element": "C"},
+        {"name": "HG2", "type": "HP", "charge": 0.0213, "element": "H"},
+        {"name": "HG3", "type": "HP", "charge": 0.0213, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0070, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0253, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0253, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0266, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0641, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5896, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5748, "element": "O"}
+      ]
+    },
+    
+    "SER": {
+      "name": "Serine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0249, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0843, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": 0.2117, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0352, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0352, "element": "H"},
+        {"name": "OG", "type": "OH", "charge": -0.6546, "element": "O"},
+        {"name": "HG", "type": "HO", "charge": 0.4275, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "THR": {
+      "name": "Threonine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0389, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.1007, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": 0.3654, "element": "C"},
+        {"name": "HB", "type": "HP", "charge": 0.0043, "element": "H"},
+        {"name": "CG2", "type": "CT", "charge": -0.2438, "element": "C"},
+        {"name": "HG21", "type": "HP", "charge": 0.0642, "element": "H"},
+        {"name": "HG22", "type": "HP", "charge": 0.0642, "element": "H"},
+        {"name": "HG23", "type": "HP", "charge": 0.0642, "element": "H"},
+        {"name": "OG1", "type": "OH", "charge": -0.6761, "element": "O"},
+        {"name": "HG1", "type": "HO", "charge": 0.4102, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "TRP": {
+      "name": "Tryptophan",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0275, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.1123, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0050, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0339, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0339, "element": "H"},
+        {"name": "CG", "type": "C*", "charge": -0.1415, "element": "C"},
+        {"name": "CD1", "type": "CW", "charge": -0.1638, "element": "C"},
+        {"name": "HD1", "type": "H4", "charge": 0.2062, "element": "H"},
+        {"name": "NE1", "type": "NA", "charge": -0.3418, "element": "N"},
+        {"name": "HE1", "type": "H", "charge": 0.3412, "element": "H"},
+        {"name": "CE2", "type": "CN", "charge": 0.1380, "element": "C"},
+        {"name": "CZ2", "type": "CA", "charge": -0.2601, "element": "C"},
+        {"name": "HZ2", "type": "HA", "charge": 0.1572, "element": "H"},
+        {"name": "CH2", "type": "CA", "charge": -0.1134, "element": "C"},
+        {"name": "HH2", "type": "HA", "charge": 0.1417, "element": "H"},
+        {"name": "CZ3", "type": "CA", "charge": -0.1972, "element": "C"},
+        {"name": "HZ3", "type": "HA", "charge": 0.1447, "element": "H"},
+        {"name": "CE3", "type": "CA", "charge": -0.2387, "element": "C"},
+        {"name": "HE3", "type": "HA", "charge": 0.1700, "element": "H"},
+        {"name": "CD2", "type": "CB", "charge": 0.1243, "element": "C"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "TYR": {
+      "name": "Tyrosine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0014, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0876, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": -0.0152, "element": "C"},
+        {"name": "HB2", "type": "HP", "charge": 0.0295, "element": "H"},
+        {"name": "HB3", "type": "HP", "charge": 0.0295, "element": "H"},
+        {"name": "CG", "type": "CA", "charge": -0.0011, "element": "C"},
+        {"name": "CD1", "type": "CA", "charge": -0.1906, "element": "C"},
+        {"name": "HD1", "type": "HA", "charge": 0.1699, "element": "H"},
+        {"name": "CE1", "type": "CA", "charge": -0.2341, "element": "C"},
+        {"name": "HE1", "type": "HA", "charge": 0.1656, "element": "H"},
+        {"name": "CZ", "type": "C", "charge": 0.3226, "element": "C"},
+        {"name": "OH", "type": "OH", "charge": -0.5579, "element": "O"},
+        {"name": "HH", "type": "HO", "charge": 0.3992, "element": "H"},
+        {"name": "CE2", "type": "CA", "charge": -0.2341, "element": "C"},
+        {"name": "HE2", "type": "HA", "charge": 0.1656, "element": "H"},
+        {"name": "CD2", "type": "CA", "charge": -0.1906, "element": "C"},
+        {"name": "HD2", "type": "HA", "charge": 0.1699, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    },
+    
+    "VAL": {
+      "name": "Valine",
+      "atoms": [
+        {"name": "N", "type": "N", "charge": -0.4157, "element": "N"},
+        {"name": "H", "type": "H", "charge": 0.2719, "element": "H"},
+        {"name": "CA", "type": "CT", "charge": -0.0875, "element": "C"},
+        {"name": "HA", "type": "HP", "charge": 0.0969, "element": "H"},
+        {"name": "CB", "type": "CT", "charge": 0.2985, "element": "C"},
+        {"name": "HB", "type": "HP", "charge": -0.0297, "element": "H"},
+        {"name": "CG1", "type": "CT", "charge": -0.3192, "element": "C"},
+        {"name": "HG11", "type": "HP", "charge": 0.0791, "element": "H"},
+        {"name": "HG12", "type": "HP", "charge": 0.0791, "element": "H"},
+        {"name": "HG13", "type": "HP", "charge": 0.0791, "element": "H"},
+        {"name": "CG2", "type": "CT", "charge": -0.3192, "element": "C"},
+        {"name": "HG21", "type": "HP", "charge": 0.0791, "element": "H"},
+        {"name": "HG22", "type": "HP", "charge": 0.0791, "element": "H"},
+        {"name": "HG23", "type": "HP", "charge": 0.0791, "element": "H"},
+        {"name": "C", "type": "C", "charge": 0.5973, "element": "C"},
+        {"name": "O", "type": "O", "charge": -0.5679, "element": "O"}
+      ]
+    }
+  }
+}

@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Profiling Guide &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Benchmarking Guide" href="benchmarking.html" />
+    <link rel="prev" title="Memory Optimization Guide" href="memory_optimization.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="profiling-guide">
+<h1>Profiling Guide<a class="headerlink" href="#profiling-guide" title="Link to this heading">¶</a></h1>
+<p>This comprehensive guide covers profiling techniques and tools for optimizing ProteinMD performance, from basic Python profiling to advanced GPU analysis.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p>
+<ul>
+<li><p><a class="reference internal" href="#profiling-philosophy" id="id2">Profiling Philosophy</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#python-profiling" id="id3">Python Profiling</a></p>
+<ul>
+<li><p><a class="reference internal" href="#built-in-profilers" id="id4">Built-in Profilers</a></p></li>
+<li><p><a class="reference internal" href="#line-by-line-profiling" id="id5">Line-by-Line Profiling</a></p></li>
+<li><p><a class="reference internal" href="#advanced-python-profiling" id="id6">Advanced Python Profiling</a></p></li>
+<li><p><a class="reference internal" href="#statistical-profiling" id="id7">Statistical Profiling</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#numpy-and-scientific-computing-profiling" id="id8">NumPy and Scientific Computing Profiling</a></p>
+<ul>
+<li><p><a class="reference internal" href="#vectorization-analysis" id="id9">Vectorization Analysis</a></p></li>
+<li><p><a class="reference internal" href="#memory-access-pattern-analysis" id="id10">Memory Access Pattern Analysis</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#gpu-profiling" id="id11">GPU Profiling</a></p>
+<ul>
+<li><p><a class="reference internal" href="#cuda-profiling-with-cupy" id="id12">CUDA Profiling with CuPy</a></p></li>
+<li><p><a class="reference internal" href="#nvidia-profiling-tools" id="id13">NVIDIA Profiling Tools</a></p></li>
+<li><p><a class="reference internal" href="#gpu-memory-profiling" id="id14">GPU Memory Profiling</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#molecular-dynamics-specific-profiling" id="id15">Molecular Dynamics Specific Profiling</a></p>
+<ul>
+<li><p><a class="reference internal" href="#force-calculation-profiling" id="id16">Force Calculation Profiling</a></p></li>
+<li><p><a class="reference internal" href="#scalability-profiling" id="id17">Scalability Profiling</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-bottleneck-analysis" id="id18">Performance Bottleneck Analysis</a></p>
+<ul>
+<li><p><a class="reference internal" href="#hotspot-identification" id="id19">Hotspot Identification</a></p></li>
+<li><p><a class="reference internal" href="#i-o-profiling" id="id20">I/O Profiling</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#automated-performance-monitoring" id="id21">Automated Performance Monitoring</a></p>
+<ul>
+<li><p><a class="reference internal" href="#continuous-performance-tracking" id="id22">Continuous Performance Tracking</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#visualization-and-reporting" id="id23">Visualization and Reporting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#performance-visualization" id="id24">Performance Visualization</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices" id="id25">Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#profiling-guidelines" id="id26">Profiling Guidelines</a></p></li>
+<li><p><a class="reference internal" href="#common-profiling-pitfalls" id="id27">Common Profiling Pitfalls</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#tools-summary" id="id28">Tools Summary</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Profiling is essential for identifying performance bottlenecks and optimizing molecular dynamics simulations. This guide provides systematic approaches to profiling at different levels of the ProteinMD stack.</p>
+<section id="profiling-philosophy">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Profiling Philosophy</a><a class="headerlink" href="#profiling-philosophy" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Profile before optimizing:</strong> Measure to identify real bottlenecks</p></li>
+<li><p><strong>Use appropriate tools:</strong> Different tools for different types of analysis</p></li>
+<li><p><strong>Profile realistic workloads:</strong> Use representative simulation conditions</p></li>
+<li><p><strong>Iterative optimization:</strong> Profile, optimize, measure, repeat</p></li>
+<li><p><strong>Document findings:</strong> Keep records of optimization results</p></li>
+</ul>
+</section>
+</section>
+<section id="python-profiling">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Python Profiling</a><a class="headerlink" href="#python-profiling" title="Link to this heading">¶</a></h2>
+<section id="built-in-profilers">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Built-in Profilers</a><a class="headerlink" href="#built-in-profilers" title="Link to this heading">¶</a></h3>
+<p><strong>cProfile - Function-Level Profiling:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cProfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pstats</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pstats</span><span class="w"> </span><span class="kn">import</span> <span class="n">SortKey</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">profile_simulation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Profile a complete simulation.&quot;&quot;&quot;</span>
+    <span class="n">pr</span> <span class="o">=</span> <span class="n">cProfile</span><span class="o">.</span><span class="n">Profile</span><span class="p">()</span>
+
+    <span class="c1"># Start profiling</span>
+    <span class="n">pr</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+
+    <span class="c1"># Run simulation code</span>
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">()</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+    <span class="c1"># Stop profiling</span>
+    <span class="n">pr</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+
+    <span class="c1"># Analyze results</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+    <span class="n">sortby</span> <span class="o">=</span> <span class="n">SortKey</span><span class="o">.</span><span class="n">CUMULATIVE</span>
+    <span class="n">ps</span> <span class="o">=</span> <span class="n">pstats</span><span class="o">.</span><span class="n">Stats</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="n">sortby</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+
+    <span class="c1"># Save detailed report</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">dump_stats</span><span class="p">(</span><span class="s1">&#39;simulation_profile.prof&#39;</span><span class="p">)</span>
+
+<span class="c1"># Analyze saved profile</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_profile</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;simulation_profile.prof&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyze saved profile data.&quot;&quot;&quot;</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">pstats</span><span class="o">.</span><span class="n">Stats</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="c1"># Top 20 functions by cumulative time</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Top 20 functions by cumulative time:&quot;</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="s1">&#39;cumulative&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+    <span class="c1"># Functions taking most self-time</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Top 20 functions by self time:&quot;</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">sort_stats</span><span class="p">(</span><span class="s1">&#39;tottime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+    <span class="c1"># Specific function details</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Force calculation details:&quot;</span><span class="p">)</span>
+    <span class="n">stats</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="s1">&#39;force&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Using cProfile from Command Line:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Profile script execution</span>
+python<span class="w"> </span>-m<span class="w"> </span>cProfile<span class="w"> </span>-o<span class="w"> </span>profile_output.prof<span class="w"> </span>simulation_script.py
+
+<span class="c1"># Analyze with snakeviz (visual profiler)</span>
+pip<span class="w"> </span>install<span class="w"> </span>snakeviz
+snakeviz<span class="w"> </span>profile_output.prof
+</pre></div>
+</div>
+</section>
+<section id="line-by-line-profiling">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Line-by-Line Profiling</a><a class="headerlink" href="#line-by-line-profiling" title="Link to this heading">¶</a></h3>
+<p><strong>line_profiler for Detailed Analysis:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install: pip install line_profiler</span>
+
+<span class="nd">@profile</span>  <span class="c1"># Add this decorator to functions you want to profile</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_forces</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">charges</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate electrostatic forces between particles.&quot;&quot;&quot;</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+    <span class="n">forces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">):</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">r_mag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">r_mag</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">force_mag</span> <span class="o">=</span> <span class="n">charges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">charges</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">r_mag</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">force</span> <span class="o">=</span> <span class="n">force_mag</span> <span class="o">*</span> <span class="n">r</span>
+
+                <span class="n">forces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">force</span>
+                <span class="n">forces</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">force</span>
+
+    <span class="k">return</span> <span class="n">forces</span>
+
+<span class="c1"># Run with: kernprof -l -v script.py</span>
+</pre></div>
+</div>
+<p><strong>Memory Profiling with memory_profiler:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install: pip install memory_profiler</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">memory_profiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">profile</span>
+
+<span class="nd">@profile</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">memory_intensive_function</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function to profile memory usage.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="c1"># Large array allocation</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">velocities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">forces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+    <span class="c1"># Some computation</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">forces</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">positions</span><span class="p">,</span> <span class="n">velocities</span><span class="p">,</span> <span class="n">forces</span>
+
+<span class="c1"># Run with: python -m memory_profiler script.py</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-python-profiling">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Advanced Python Profiling</a><a class="headerlink" href="#advanced-python-profiling" title="Link to this heading">¶</a></h3>
+<p><strong>Custom Profiling Context Manager:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">profile_block</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager for profiling code blocks.&quot;&quot;&quot;</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Completed </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">timing_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorator for timing function calls.&quot;&quot;&quot;</span>
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> took </span><span class="si">{</span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+<span class="c1"># Usage examples</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">example_profiling</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Example of using profiling tools.&quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">profile_block</span><span class="p">(</span><span class="s2">&quot;Force calculation&quot;</span><span class="p">):</span>
+        <span class="n">forces</span> <span class="o">=</span> <span class="n">calculate_forces</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">charges</span><span class="p">)</span>
+
+    <span class="nd">@timing_decorator</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">expensive_operation</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="n">large_matrix</span><span class="p">)</span>
+
+    <span class="n">eigenvalues</span> <span class="o">=</span> <span class="n">expensive_operation</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="statistical-profiling">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Statistical Profiling</a><a class="headerlink" href="#statistical-profiling" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">statistics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">StatisticalProfiler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Statistical profiler for benchmarking functions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_runs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">warmup_runs</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_runs</span> <span class="o">=</span> <span class="n">n_runs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warmup_runs</span> <span class="o">=</span> <span class="n">warmup_runs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Profile function with statistical analysis.&quot;&quot;&quot;</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Warmup runs</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">warmup_runs</span><span class="p">):</span>
+            <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Timing runs</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_runs</span><span class="p">):</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;mean_time&#39;</span><span class="p">:</span> <span class="n">statistics</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;median_time&#39;</span><span class="p">:</span> <span class="n">statistics</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;std_time&#39;</span><span class="p">:</span> <span class="n">statistics</span><span class="o">.</span><span class="n">stdev</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;min_time&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;max_time&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;n_runs&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_runs</span><span class="p">,</span>
+            <span class="s1">&#39;all_times&#39;</span><span class="p">:</span> <span class="n">times</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compare_functions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">functions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare performance of multiple functions.&quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">functions</span><span class="p">:</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile_function</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Print comparison</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Function Performance Comparison:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s ± </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;std_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="numpy-and-scientific-computing-profiling">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">NumPy and Scientific Computing Profiling</a><a class="headerlink" href="#numpy-and-scientific-computing-profiling" title="Link to this heading">¶</a></h2>
+<section id="vectorization-analysis">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Vectorization Analysis</a><a class="headerlink" href="#vectorization-analysis" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compare_vectorization</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compare vectorized vs. loop-based implementations.&quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">1000000</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+    <span class="c1"># Pure Python loop (slow)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">python_loop</span><span class="p">():</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="c1"># NumPy loop (medium)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">numpy_loop</span><span class="p">():</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)):</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="c1"># Vectorized (fast)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vectorized</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span> <span class="o">+</span> <span class="n">a</span><span class="o">**</span><span class="mi">2</span>
+
+    <span class="c1"># Benchmark</span>
+    <span class="n">profiler</span> <span class="o">=</span> <span class="n">StatisticalProfiler</span><span class="p">(</span><span class="n">n_runs</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Vectorization Comparison:&quot;</span><span class="p">)</span>
+    <span class="n">results_python</span> <span class="o">=</span> <span class="n">profiler</span><span class="o">.</span><span class="n">profile_function</span><span class="p">(</span><span class="n">python_loop</span><span class="p">)</span>
+    <span class="n">results_numpy</span> <span class="o">=</span> <span class="n">profiler</span><span class="o">.</span><span class="n">profile_function</span><span class="p">(</span><span class="n">numpy_loop</span><span class="p">)</span>
+    <span class="n">results_vectorized</span> <span class="o">=</span> <span class="n">profiler</span><span class="o">.</span><span class="n">profile_function</span><span class="p">(</span><span class="n">vectorized</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Python loop:    </span><span class="si">{</span><span class="n">results_python</span><span class="p">[</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NumPy loop:     </span><span class="si">{</span><span class="n">results_numpy</span><span class="p">[</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vectorized:     </span><span class="si">{</span><span class="n">results_vectorized</span><span class="p">[</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+    <span class="n">speedup</span> <span class="o">=</span> <span class="n">results_python</span><span class="p">[</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">results_vectorized</span><span class="p">[</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vectorization speedup: </span><span class="si">{</span><span class="n">speedup</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-access-pattern-analysis">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Memory Access Pattern Analysis</a><a class="headerlink" href="#memory-access-pattern-analysis" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_memory_patterns</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyze different memory access patterns.&quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">row_major_access</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cache-friendly row-major access.&quot;&quot;&quot;</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">total</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">column_major_access</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cache-unfriendly column-major access.&quot;&quot;&quot;</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">total</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">strided_access</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Strided access pattern.&quot;&quot;&quot;</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">total</span>
+
+    <span class="n">profiler</span> <span class="o">=</span> <span class="n">StatisticalProfiler</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Memory Access Pattern Analysis:&quot;</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">profiler</span><span class="o">.</span><span class="n">compare_functions</span><span class="p">([</span>
+        <span class="n">row_major_access</span><span class="p">,</span>
+        <span class="n">column_major_access</span><span class="p">,</span>
+        <span class="n">strided_access</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="gpu-profiling">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">GPU Profiling</a><a class="headerlink" href="#gpu-profiling" title="Link to this heading">¶</a></h2>
+<section id="cuda-profiling-with-cupy">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">CUDA Profiling with CuPy</a><a class="headerlink" href="#cuda-profiling-with-cupy" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">GPUProfiler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Profiler for GPU operations using CuPy.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile_kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">n_runs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Profile GPU kernel execution.&quot;&quot;&quot;</span>
+        <span class="c1"># Warmup</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">kernel_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">null</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+        <span class="c1"># Profile</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_runs</span><span class="p">):</span>
+            <span class="n">start_event</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+            <span class="n">end_event</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+
+            <span class="n">start_event</span><span class="o">.</span><span class="n">record</span><span class="p">()</span>
+            <span class="n">kernel_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">end_event</span><span class="o">.</span><span class="n">record</span><span class="p">()</span>
+            <span class="n">end_event</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_elapsed_time</span><span class="p">(</span><span class="n">start_event</span><span class="p">,</span> <span class="n">end_event</span><span class="p">)</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;mean_time_ms&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;std_time_ms&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;min_time_ms&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;max_time_ms&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile_memory_transfer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_size_mb</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Profile CPU-GPU memory transfer rates.&quot;&quot;&quot;</span>
+        <span class="c1"># Create test data</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data_size_mb</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>  <span class="c1"># float32</span>
+        <span class="n">cpu_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># Host to Device</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">gpu_data</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cpu_data</span><span class="p">)</span>
+        <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">null</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+        <span class="n">h2d_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="c1"># Device to Host</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">gpu_data</span><span class="p">)</span>
+        <span class="n">d2h_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="n">h2d_bandwidth</span> <span class="o">=</span> <span class="n">data_size_mb</span> <span class="o">/</span> <span class="n">h2d_time</span>
+        <span class="n">d2h_bandwidth</span> <span class="o">=</span> <span class="n">data_size_mb</span> <span class="o">/</span> <span class="n">d2h_time</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;h2d_time_s&#39;</span><span class="p">:</span> <span class="n">h2d_time</span><span class="p">,</span>
+            <span class="s1">&#39;d2h_time_s&#39;</span><span class="p">:</span> <span class="n">d2h_time</span><span class="p">,</span>
+            <span class="s1">&#39;h2d_bandwidth_mb_s&#39;</span><span class="p">:</span> <span class="n">h2d_bandwidth</span><span class="p">,</span>
+            <span class="s1">&#39;d2h_bandwidth_mb_s&#39;</span><span class="p">:</span> <span class="n">d2h_bandwidth</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="nvidia-profiling-tools">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">NVIDIA Profiling Tools</a><a class="headerlink" href="#nvidia-profiling-tools" title="Link to this heading">¶</a></h3>
+<p><strong>Using nvprof:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Profile Python script with CUDA</span>
+nvprof<span class="w"> </span>python<span class="w"> </span>simulation_gpu.py
+
+<span class="c1"># Detailed profiling with metrics</span>
+nvprof<span class="w"> </span>--metrics<span class="w"> </span>gld_efficiency,gst_efficiency<span class="w"> </span>python<span class="w"> </span>simulation_gpu.py
+
+<span class="c1"># Timeline profiling</span>
+nvprof<span class="w"> </span>--output-profile<span class="w"> </span>timeline.nvvp<span class="w"> </span>python<span class="w"> </span>simulation_gpu.py
+</pre></div>
+</div>
+<p><strong>Using Nsight Systems:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Modern replacement for nvprof</span>
+nsys<span class="w"> </span>profile<span class="w"> </span>--trace<span class="o">=</span>cuda,nvtx<span class="w"> </span>python<span class="w"> </span>simulation_gpu.py
+
+<span class="c1"># With detailed options</span>
+nsys<span class="w"> </span>profile<span class="w"> </span>--trace<span class="o">=</span>cuda,nvtx,osrt<span class="w"> </span>--cuda-memory-usage<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>--output<span class="o">=</span>simulation_profile<span class="w"> </span>python<span class="w"> </span>simulation_gpu.py
+</pre></div>
+</div>
+</section>
+<section id="gpu-memory-profiling">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">GPU Memory Profiling</a><a class="headerlink" href="#gpu-memory-profiling" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">profile_gpu_memory</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Profile GPU memory usage patterns.&quot;&quot;&quot;</span>
+    <span class="n">mempool</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_default_memory_pool</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_memory_info</span><span class="p">():</span>
+        <span class="n">used_bytes</span> <span class="o">=</span> <span class="n">mempool</span><span class="o">.</span><span class="n">used_bytes</span><span class="p">()</span>
+        <span class="n">total_bytes</span> <span class="o">=</span> <span class="n">mempool</span><span class="o">.</span><span class="n">total_bytes</span><span class="p">()</span>
+        <span class="n">free_bytes</span><span class="p">,</span> <span class="n">device_total</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">memGetInfo</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;pool_used_mb&#39;</span><span class="p">:</span> <span class="n">used_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;pool_total_mb&#39;</span><span class="p">:</span> <span class="n">total_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;device_free_mb&#39;</span><span class="p">:</span> <span class="n">free_bytes</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;device_total_mb&#39;</span><span class="p">:</span> <span class="n">device_total</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+        <span class="p">}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initial GPU memory:&quot;</span><span class="p">)</span>
+    <span class="n">initial_memory</span> <span class="o">=</span> <span class="n">get_memory_info</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pool used: </span><span class="si">{</span><span class="n">initial_memory</span><span class="p">[</span><span class="s1">&#39;pool_used_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device free: </span><span class="si">{</span><span class="n">initial_memory</span><span class="p">[</span><span class="s1">&#39;device_free_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Allocate test arrays</span>
+    <span class="n">arrays</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">size_mb</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size_mb</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+
+        <span class="n">current_memory</span> <span class="o">=</span> <span class="n">get_memory_info</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After allocation </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;Pool used: </span><span class="si">{</span><span class="n">current_memory</span><span class="p">[</span><span class="s1">&#39;pool_used_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB, &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;Device free: </span><span class="si">{</span><span class="n">current_memory</span><span class="p">[</span><span class="s1">&#39;device_free_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Clean up</span>
+    <span class="k">del</span> <span class="n">arrays</span>
+    <span class="n">mempool</span><span class="o">.</span><span class="n">free_all_blocks</span><span class="p">()</span>
+
+    <span class="n">final_memory</span> <span class="o">=</span> <span class="n">get_memory_info</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After cleanup: Pool used: </span><span class="si">{</span><span class="n">final_memory</span><span class="p">[</span><span class="s1">&#39;pool_used_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="molecular-dynamics-specific-profiling">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Molecular Dynamics Specific Profiling</a><a class="headerlink" href="#molecular-dynamics-specific-profiling" title="Link to this heading">¶</a></h2>
+<section id="force-calculation-profiling">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Force Calculation Profiling</a><a class="headerlink" href="#force-calculation-profiling" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MDProfiler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Specialized profiler for molecular dynamics simulations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">force_timings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">integration_timings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighbor_timings</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile_force_calculation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Profile force calculation performance.&quot;&quot;&quot;</span>
+        <span class="n">timings</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;lennard_jones&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;electrostatic&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;bonded&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+            <span class="c1"># Total force calculation time</span>
+            <span class="n">start_total</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+            <span class="c1"># Individual force components</span>
+            <span class="n">start_lj</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">calculate_lennard_jones_forces</span><span class="p">()</span>
+            <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;lennard_jones&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_lj</span><span class="p">)</span>
+
+            <span class="n">start_elec</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">calculate_electrostatic_forces</span><span class="p">()</span>
+            <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;electrostatic&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_elec</span><span class="p">)</span>
+
+            <span class="n">start_bonded</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">calculate_bonded_forces</span><span class="p">()</span>
+            <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;bonded&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_bonded</span><span class="p">)</span>
+
+            <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_total</span><span class="p">)</span>
+
+        <span class="c1"># Analyze timings</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">force_type</span><span class="p">,</span> <span class="n">times</span> <span class="ow">in</span> <span class="n">timings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">force_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;mean_time&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+                <span class="s1">&#39;std_time&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+                <span class="s1">&#39;percentage&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">timings</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="mi">100</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile_neighbor_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">n_updates</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Profile neighbor list construction.&quot;&quot;&quot;</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_updates</span><span class="p">):</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">update_neighbor_list</span><span class="p">()</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;mean_time&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;std_time&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;atoms_per_second&#39;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">n_atoms</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+        <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="scalability-profiling">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Scalability Profiling</a><a class="headerlink" href="#scalability-profiling" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">profile_scalability</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Profile simulation performance vs. system size.&quot;&quot;&quot;</span>
+    <span class="n">system_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">,</span> <span class="mi">20000</span><span class="p">]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">n_atoms</span> <span class="ow">in</span> <span class="n">system_sizes</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Profiling system with </span><span class="si">{</span><span class="n">n_atoms</span><span class="si">}</span><span class="s2"> atoms...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Create simulation</span>
+        <span class="n">simulation</span> <span class="o">=</span> <span class="n">create_simulation</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">)</span>
+
+        <span class="c1"># Profile single step</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="n">step_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="c1"># Calculate performance metrics</span>
+        <span class="n">atoms_per_second</span> <span class="o">=</span> <span class="n">n_atoms</span> <span class="o">/</span> <span class="n">step_time</span>
+        <span class="n">time_per_atom</span> <span class="o">=</span> <span class="n">step_time</span> <span class="o">/</span> <span class="n">n_atoms</span> <span class="o">*</span> <span class="mf">1e6</span>  <span class="c1"># microseconds</span>
+
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;n_atoms&#39;</span><span class="p">:</span> <span class="n">n_atoms</span><span class="p">,</span>
+            <span class="s1">&#39;step_time&#39;</span><span class="p">:</span> <span class="n">step_time</span><span class="p">,</span>
+            <span class="s1">&#39;atoms_per_second&#39;</span><span class="p">:</span> <span class="n">atoms_per_second</span><span class="p">,</span>
+            <span class="s1">&#39;time_per_atom_us&#39;</span><span class="p">:</span> <span class="n">time_per_atom</span>
+        <span class="p">})</span>
+
+    <span class="c1"># Analyze scaling</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+    <span class="n">n_atoms_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;n_atoms&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+    <span class="n">step_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;step_time&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">n_atoms_list</span><span class="p">,</span> <span class="n">step_times</span><span class="p">,</span> <span class="s1">&#39;o-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Actual&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Theoretical O(N) scaling</span>
+    <span class="n">theoretical</span> <span class="o">=</span> <span class="p">[</span><span class="n">step_times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span> <span class="o">/</span> <span class="n">n_atoms_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">n_atoms_list</span><span class="p">]</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">n_atoms_list</span><span class="p">,</span> <span class="n">theoretical</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;O(N) theoretical&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Theoretical O(N²) scaling</span>
+    <span class="n">theoretical_n2</span> <span class="o">=</span> <span class="p">[</span><span class="n">step_times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="n">n_atoms_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">n_atoms_list</span><span class="p">]</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">n_atoms_list</span><span class="p">,</span> <span class="n">theoretical_n2</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;O(N²) theoretical&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Atoms&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Step Time (s)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Simulation Performance Scaling&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;scaling_analysis.png&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-bottleneck-analysis">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Performance Bottleneck Analysis</a><a class="headerlink" href="#performance-bottleneck-analysis" title="Link to this heading">¶</a></h2>
+<section id="hotspot-identification">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Hotspot Identification</a><a class="headerlink" href="#hotspot-identification" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BottleneckAnalyzer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Identify and analyze performance bottlenecks.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function_times</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">time_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decorator to time function calls.&quot;&quot;&quot;</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+            <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">func_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_times</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">function_times</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">function_times</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">return</span> <span class="n">result</span>
+            <span class="k">return</span> <span class="n">wrapper</span>
+        <span class="k">return</span> <span class="n">decorator</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze_bottlenecks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze collected timing data.&quot;&quot;&quot;</span>
+        <span class="n">analysis</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">func_name</span><span class="p">,</span> <span class="n">times</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">function_times</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">total_time</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+            <span class="n">mean_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+            <span class="n">call_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">call_counts</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span>
+
+            <span class="n">analysis</span><span class="p">[</span><span class="n">func_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;total_time&#39;</span><span class="p">:</span> <span class="n">total_time</span><span class="p">,</span>
+                <span class="s1">&#39;mean_time&#39;</span><span class="p">:</span> <span class="n">mean_time</span><span class="p">,</span>
+                <span class="s1">&#39;call_count&#39;</span><span class="p">:</span> <span class="n">call_count</span><span class="p">,</span>
+                <span class="s1">&#39;percentage&#39;</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># Will be calculated below</span>
+            <span class="p">}</span>
+
+        <span class="c1"># Calculate percentages</span>
+        <span class="n">total_all_time</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_time&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">analysis</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">analysis</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;percentage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_time&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">total_all_time</span> <span class="o">*</span> <span class="mi">100</span>
+
+        <span class="c1"># Sort by total time</span>
+        <span class="n">sorted_analysis</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">analysis</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+                               <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;total_time&#39;</span><span class="p">],</span>
+                               <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Performance Bottleneck Analysis:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Function&#39;</span><span class="si">:</span><span class="s2">&lt;25</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Total(s)&#39;</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Mean(s)&#39;</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Calls&#39;</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;%&#39;</span><span class="si">:</span><span class="s2">&lt;6</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">func_name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">sorted_analysis</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">func_name</span><span class="si">:</span><span class="s2">&lt;25</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;total_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;10.4f</span><span class="si">}</span><span class="s2"> &quot;</span>
+                  <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;10.6f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;call_count&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> &quot;</span>
+                  <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;6.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">analysis</span>
+</pre></div>
+</div>
+</section>
+<section id="i-o-profiling">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">I/O Profiling</a><a class="headerlink" href="#i-o-profiling" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">profile_io_operations</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Profile file I/O operations.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile_trajectory_writing</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Profile trajectory file writing.&quot;&quot;&quot;</span>
+        <span class="n">n_atoms</span> <span class="o">=</span> <span class="mi">10000</span>
+        <span class="n">n_frames</span> <span class="o">=</span> <span class="mi">100</span>
+
+        <span class="c1"># Generate test data</span>
+        <span class="n">trajectory_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">n_frames</span><span class="p">,</span> <span class="n">n_atoms</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># Profile different file formats</span>
+        <span class="n">formats</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;numpy_binary&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;test.npy&#39;</span><span class="p">,</span> <span class="n">trajectory_data</span><span class="p">),</span>
+            <span class="s1">&#39;numpy_compressed&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">savez_compressed</span><span class="p">(</span><span class="s1">&#39;test.npz&#39;</span><span class="p">,</span>
+                                                          <span class="n">trajectory</span><span class="o">=</span><span class="n">trajectory_data</span><span class="p">),</span>
+            <span class="s1">&#39;hdf5&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">save_hdf5</span><span class="p">(</span><span class="s1">&#39;test.h5&#39;</span><span class="p">,</span> <span class="n">trajectory_data</span><span class="p">),</span>
+            <span class="s1">&#39;pickle&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">,</span>
+                                        <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;test.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">))</span>
+        <span class="p">}</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">format_name</span><span class="p">,</span> <span class="n">save_func</span> <span class="ow">in</span> <span class="n">formats</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Time the save operation</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">save_func</span><span class="p">()</span>
+            <span class="n">save_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+            <span class="c1"># Get file size</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;test.</span><span class="si">{</span><span class="n">format_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">if</span> <span class="n">format_name</span> <span class="o">==</span> <span class="s1">&#39;numpy_compressed&#39;</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;test.npz&#39;</span>
+            <span class="k">elif</span> <span class="n">format_name</span> <span class="o">==</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;test.h5&#39;</span>
+            <span class="k">elif</span> <span class="n">format_name</span> <span class="o">==</span> <span class="s1">&#39;pickle&#39;</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;test.pkl&#39;</span>
+
+            <span class="n">file_size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># MB</span>
+
+            <span class="n">results</span><span class="p">[</span><span class="n">format_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;save_time&#39;</span><span class="p">:</span> <span class="n">save_time</span><span class="p">,</span>
+                <span class="s1">&#39;file_size_mb&#39;</span><span class="p">:</span> <span class="n">file_size</span><span class="p">,</span>
+                <span class="s1">&#39;throughput_mb_s&#39;</span><span class="p">:</span> <span class="n">file_size</span> <span class="o">/</span> <span class="n">save_time</span>
+            <span class="p">}</span>
+
+            <span class="c1"># Clean up</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_hdf5</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper function to save HDF5.&quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="automated-performance-monitoring">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Automated Performance Monitoring</a><a class="headerlink" href="#automated-performance-monitoring" title="Link to this heading">¶</a></h2>
+<section id="continuous-performance-tracking">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Continuous Performance Tracking</a><a class="headerlink" href="#continuous-performance-tracking" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PerformanceTracker</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Track performance over time for regression detection.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s1">&#39;performance_log.json&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span> <span class="o">=</span> <span class="n">log_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_history</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_history</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load historical performance data.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_history</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save performance history.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">benchmark_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_config</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Benchmark simulation and record results.&quot;&quot;&quot;</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+
+        <span class="c1"># Run benchmark</span>
+        <span class="n">simulation</span> <span class="o">=</span> <span class="n">create_simulation</span><span class="p">(</span><span class="o">**</span><span class="n">simulation_config</span><span class="p">)</span>
+
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">total_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="c1"># Collect system info</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">timestamp</span><span class="p">,</span>
+            <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="n">simulation_config</span><span class="p">,</span>
+            <span class="s1">&#39;performance&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;total_time&#39;</span><span class="p">:</span> <span class="n">total_time</span><span class="p">,</span>
+                <span class="s1">&#39;steps_per_second&#39;</span><span class="p">:</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">total_time</span><span class="p">,</span>
+                <span class="s1">&#39;atoms_per_step_per_second&#39;</span><span class="p">:</span> <span class="n">simulation</span><span class="o">.</span><span class="n">n_atoms</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">total_time</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;system_info&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;python_version&#39;</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">(),</span>
+                <span class="s1">&#39;cpu_count&#39;</span><span class="p">:</span> <span class="n">psutil</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(),</span>
+                <span class="s1">&#39;memory_gb&#39;</span><span class="p">:</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">total</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span>
+                <span class="s1">&#39;platform&#39;</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">platform</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_history</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect_regressions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Detect performance regressions.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">recent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">regressions</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;total_time&#39;</span><span class="p">,</span> <span class="s1">&#39;steps_per_second&#39;</span><span class="p">]:</span>
+            <span class="n">recent_value</span> <span class="o">=</span> <span class="n">recent</span><span class="p">[</span><span class="s1">&#39;performance&#39;</span><span class="p">][</span><span class="n">metric</span><span class="p">]</span>
+            <span class="n">baseline_value</span> <span class="o">=</span> <span class="n">baseline</span><span class="p">[</span><span class="s1">&#39;performance&#39;</span><span class="p">][</span><span class="n">metric</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;total_time&#39;</span><span class="p">:</span>
+                <span class="c1"># Lower is better for time</span>
+                <span class="n">change</span> <span class="o">=</span> <span class="p">(</span><span class="n">recent_value</span> <span class="o">-</span> <span class="n">baseline_value</span><span class="p">)</span> <span class="o">/</span> <span class="n">baseline_value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Higher is better for throughput</span>
+                <span class="n">change</span> <span class="o">=</span> <span class="p">(</span><span class="n">baseline_value</span> <span class="o">-</span> <span class="n">recent_value</span><span class="p">)</span> <span class="o">/</span> <span class="n">baseline_value</span>
+
+            <span class="k">if</span> <span class="n">change</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">:</span>
+                <span class="n">regressions</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s1">&#39;metric&#39;</span><span class="p">:</span> <span class="n">metric</span><span class="p">,</span>
+                    <span class="s1">&#39;change_percent&#39;</span><span class="p">:</span> <span class="n">change</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
+                    <span class="s1">&#39;recent_value&#39;</span><span class="p">:</span> <span class="n">recent_value</span><span class="p">,</span>
+                    <span class="s1">&#39;baseline_value&#39;</span><span class="p">:</span> <span class="n">baseline_value</span>
+                <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">regressions</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="visualization-and-reporting">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Visualization and Reporting</a><a class="headerlink" href="#visualization-and-reporting" title="Link to this heading">¶</a></h2>
+<section id="performance-visualization">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Performance Visualization</a><a class="headerlink" href="#performance-visualization" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_performance_dashboard</span><span class="p">(</span><span class="n">profiling_results</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create comprehensive performance dashboard.&quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+    <span class="c1"># Force calculation breakdown</span>
+    <span class="n">force_data</span> <span class="o">=</span> <span class="n">profiling_results</span><span class="p">[</span><span class="s1">&#39;force_breakdown&#39;</span><span class="p">]</span>
+    <span class="n">force_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">force_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">force_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">force_data</span><span class="p">[</span><span class="n">ft</span><span class="p">][</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="n">force_types</span><span class="p">]</span>
+
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">force_times</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">force_types</span><span class="p">,</span> <span class="n">autopct</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%1.1f%%</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Force Calculation Breakdown&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Scaling analysis</span>
+    <span class="n">scaling_data</span> <span class="o">=</span> <span class="n">profiling_results</span><span class="p">[</span><span class="s1">&#39;scaling&#39;</span><span class="p">]</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;n_atoms&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">scaling_data</span><span class="p">]</span>
+    <span class="n">step_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;step_time&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">scaling_data</span><span class="p">]</span>
+
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">n_atoms</span><span class="p">,</span> <span class="n">step_times</span><span class="p">,</span> <span class="s1">&#39;o-&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Atoms&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Step Time (s)&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Performance Scaling&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Memory usage over time</span>
+    <span class="n">memory_data</span> <span class="o">=</span> <span class="n">profiling_results</span><span class="p">[</span><span class="s1">&#39;memory_usage&#39;</span><span class="p">]</span>
+    <span class="n">times</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">memory_data</span><span class="p">))</span>
+    <span class="n">memory_mb</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">memory_data</span><span class="p">]</span>
+
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">memory_mb</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time Step&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Memory Usage (MB)&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Memory Usage Over Time&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Performance timeline</span>
+    <span class="n">timeline_data</span> <span class="o">=</span> <span class="n">profiling_results</span><span class="p">[</span><span class="s1">&#39;timeline&#39;</span><span class="p">]</span>
+    <span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">timeline_data</span><span class="p">]</span>
+    <span class="n">throughput</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s1">&#39;performance&#39;</span><span class="p">][</span><span class="s1">&#39;steps_per_second&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">timeline_data</span><span class="p">]</span>
+
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="n">throughput</span><span class="p">,</span> <span class="s1">&#39;o-&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Date&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Steps per Second&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Performance Over Time&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;performance_dashboard.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_performance_report</span><span class="p">(</span><span class="n">profiling_results</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="s1">&#39;performance_report.html&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate comprehensive HTML performance report.&quot;&quot;&quot;</span>
+    <span class="n">html_template</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    &lt;!DOCTYPE html&gt;</span>
+<span class="s2">    &lt;html&gt;</span>
+<span class="s2">    &lt;head&gt;</span>
+<span class="s2">        &lt;title&gt;ProteinMD Performance Report&lt;/title&gt;</span>
+<span class="s2">        &lt;style&gt;</span>
+<span class="s2">            body { font-family: Arial, sans-serif; margin: 40px; }</span>
+<span class="s2">            .metric { background: #f0f0f0; padding: 10px; margin: 10px 0; }</span>
+<span class="s2">            .warning { background: #ffeeaa; border-left: 4px solid #ff9900; }</span>
+<span class="s2">            .good { background: #eeffee; border-left: 4px solid #00aa00; }</span>
+<span class="s2">            table { border-collapse: collapse; width: 100%; }</span>
+<span class="s2">            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }</span>
+<span class="s2">            th { background-color: #f2f2f2; }</span>
+<span class="s2">        &lt;/style&gt;</span>
+<span class="s2">    &lt;/head&gt;</span>
+<span class="s2">    &lt;body&gt;</span>
+<span class="s2">        &lt;h1&gt;ProteinMD Performance Report&lt;/h1&gt;</span>
+<span class="s2">        &lt;h2&gt;Summary&lt;/h2&gt;</span>
+<span class="s2">        &lt;div class=&quot;metric&quot;&gt;</span>
+<span class="s2">            &lt;strong&gt;Total Simulation Time:&lt;/strong&gt; </span><span class="si">{total_time:.4f}</span><span class="s2"> seconds&lt;br&gt;</span>
+<span class="s2">            &lt;strong&gt;Steps per Second:&lt;/strong&gt; </span><span class="si">{steps_per_second:.2f}</span><span class="s2">&lt;br&gt;</span>
+<span class="s2">            &lt;strong&gt;Atoms per Step per Second:&lt;/strong&gt; </span><span class="si">{atoms_per_step_per_second:.2e}</span>
+<span class="s2">        &lt;/div&gt;</span>
+
+<span class="s2">        &lt;h2&gt;Force Calculation Breakdown&lt;/h2&gt;</span>
+<span class="s2">        &lt;table&gt;</span>
+<span class="s2">            &lt;tr&gt;&lt;th&gt;Force Type&lt;/th&gt;&lt;th&gt;Mean Time (s)&lt;/th&gt;&lt;th&gt;Percentage&lt;/th&gt;&lt;/tr&gt;</span>
+<span class="s2">            </span><span class="si">{force_table_rows}</span>
+<span class="s2">        &lt;/table&gt;</span>
+
+<span class="s2">        &lt;h2&gt;Performance Recommendations&lt;/h2&gt;</span>
+<span class="s2">        </span><span class="si">{recommendations}</span>
+
+<span class="s2">        &lt;h2&gt;Detailed Metrics&lt;/h2&gt;</span>
+<span class="s2">        &lt;img src=&quot;performance_dashboard.png&quot; alt=&quot;Performance Dashboard&quot;&gt;</span>
+<span class="s2">    &lt;/body&gt;</span>
+<span class="s2">    &lt;/html&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Generate force table rows</span>
+    <span class="n">force_breakdown</span> <span class="o">=</span> <span class="n">profiling_results</span><span class="p">[</span><span class="s1">&#39;force_breakdown&#39;</span><span class="p">]</span>
+    <span class="n">force_rows</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">force_type</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">force_breakdown</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">force_rows</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;tr&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">force_type</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;mean_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&lt;/td&gt;&lt;/tr&gt;&quot;</span>
+
+    <span class="c1"># Generate recommendations</span>
+    <span class="n">recommendations</span> <span class="o">=</span> <span class="n">generate_recommendations</span><span class="p">(</span><span class="n">profiling_results</span><span class="p">)</span>
+
+    <span class="c1"># Fill template</span>
+    <span class="n">html_content</span> <span class="o">=</span> <span class="n">html_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">total_time</span><span class="o">=</span><span class="n">profiling_results</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">][</span><span class="s1">&#39;total_time&#39;</span><span class="p">],</span>
+        <span class="n">steps_per_second</span><span class="o">=</span><span class="n">profiling_results</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">][</span><span class="s1">&#39;steps_per_second&#39;</span><span class="p">],</span>
+        <span class="n">atoms_per_step_per_second</span><span class="o">=</span><span class="n">profiling_results</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">][</span><span class="s1">&#39;atoms_per_step_per_second&#39;</span><span class="p">],</span>
+        <span class="n">force_table_rows</span><span class="o">=</span><span class="n">force_rows</span><span class="p">,</span>
+        <span class="n">recommendations</span><span class="o">=</span><span class="n">recommendations</span>
+    <span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">html_content</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2><a class="toc-backref" href="#id25" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="profiling-guidelines">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Profiling Guidelines</a><a class="headerlink" href="#profiling-guidelines" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Profile Realistic Workloads</strong>
+- Use representative system sizes
+- Include typical simulation conditions
+- Profile complete workflows, not just individual functions</p></li>
+<li><p><strong>Profile at Multiple Levels</strong>
+- Function-level profiling for hotspots
+- Line-level profiling for detailed optimization
+- System-level profiling for resource utilization</p></li>
+<li><p><strong>Establish Baselines</strong>
+- Record performance before optimization
+- Use version control for performance tracking
+- Document hardware and software configurations</p></li>
+<li><p><strong>Focus on Bottlenecks</strong>
+- Optimize the slowest components first
+- Consider Amdahl’s law for parallel optimizations
+- Balance development effort with potential gains</p></li>
+</ol>
+</section>
+<section id="common-profiling-pitfalls">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Common Profiling Pitfalls</a><a class="headerlink" href="#common-profiling-pitfalls" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Profiling Debug Builds</strong>
+- Always profile optimized/release builds
+- Disable debugging flags and assertions
+- Use appropriate compiler optimizations</p></li>
+<li><p><strong>Insufficient Sample Sizes</strong>
+- Run multiple iterations for statistical significance
+- Account for system noise and variability
+- Use warmup runs to eliminate cold start effects</p></li>
+<li><p><strong>Micro-benchmarking Errors</strong>
+- Avoid optimizing unrealistic code patterns
+- Consider whole-system performance impact
+- Validate optimizations with real workloads</p></li>
+</ol>
+</section>
+</section>
+<section id="tools-summary">
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Tools Summary</a><a class="headerlink" href="#tools-summary" title="Link to this heading">¶</a></h2>
+<p><strong>Python Profiling:</strong>
+- <code class="docutils literal notranslate"><span class="pre">cProfile</span></code>: Built-in function profiler
+- <code class="docutils literal notranslate"><span class="pre">line_profiler</span></code>: Line-by-line profiling
+- <code class="docutils literal notranslate"><span class="pre">memory_profiler</span></code>: Memory usage profiling
+- <code class="docutils literal notranslate"><span class="pre">py-spy</span></code>: Sampling profiler for production</p>
+<p><strong>GPU Profiling:</strong>
+- <code class="docutils literal notranslate"><span class="pre">nvprof</span></code>: Legacy CUDA profiler
+- <code class="docutils literal notranslate"><span class="pre">nsys</span></code>: Nsight Systems for modern profiling
+- <code class="docutils literal notranslate"><span class="pre">ncu</span></code>: Nsight Compute for kernel analysis</p>
+<p><strong>Visualization:</strong>
+- <code class="docutils literal notranslate"><span class="pre">snakeviz</span></code>: Interactive cProfile visualization
+- <code class="docutils literal notranslate"><span class="pre">gprof2dot</span></code>: Call graph visualization
+- <code class="docutils literal notranslate"><span class="pre">matplotlib/seaborn</span></code>: Custom performance plots</p>
+<p><strong>System Profiling:</strong>
+- <code class="docutils literal notranslate"><span class="pre">htop/top</span></code>: System resource monitoring
+- <code class="docutils literal notranslate"><span class="pre">perf</span></code>: Linux performance analysis
+- <code class="docutils literal notranslate"><span class="pre">Intel</span> <span class="pre">VTune</span></code>: Comprehensive profiler</p>
+<p>This comprehensive profiling guide provides the tools and techniques needed to identify and eliminate performance bottlenecks in ProteinMD simulations, ensuring optimal performance across different system configurations and scales.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#quick-start-for-developers">Quick Start for Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#core-documentation">Core Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developer_guide.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#contributing-workflow">Contributing Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#key-development-areas">Key Development Areas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="memory_optimization.html" title="previous chapter">Memory Optimization Guide</a></li>
+      <li>Next: <a href="benchmarking.html" title="next chapter">Benchmarking Guide</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/profiling.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

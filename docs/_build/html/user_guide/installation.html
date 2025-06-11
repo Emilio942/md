@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Installation &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Quick Start" href="quick_start.html" />
+    <link rel="prev" title="User Manual" href="user_manual.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
+<p>This guide covers installation of ProteinMD for different use cases and operating systems.</p>
+<section id="quick-installation">
+<h2>Quick Installation<a class="headerlink" href="#quick-installation" title="Link to this heading">¶</a></h2>
+<p>For most users, install via pip:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+<p>Or from conda-forge:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</section>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<section id="system-requirements">
+<h3>System Requirements<a class="headerlink" href="#system-requirements" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><strong>Operating Systems</strong></dt><dd><ul class="simple">
+<li><p>Linux (Ubuntu 18.04+, CentOS 7+, RHEL 7+)</p></li>
+<li><p>macOS (10.14+)</p></li>
+<li><p>Windows 10/11 (with WSL2 recommended)</p></li>
+</ul>
+</dd>
+<dt><strong>Hardware Requirements</strong></dt><dd><ul class="simple">
+<li><p>CPU: Multi-core processor (8+ cores recommended)</p></li>
+<li><p>RAM: 8GB minimum, 16GB+ recommended</p></li>
+<li><p>GPU: CUDA-compatible GPU optional but recommended</p></li>
+<li><p>Storage: 10GB+ free space</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="python-requirements">
+<h3>Python Requirements<a class="headerlink" href="#python-requirements" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><strong>Python Version</strong></dt><dd><ul class="simple">
+<li><p>Python 3.8 or higher</p></li>
+<li><p>Python 3.9-3.11 recommended</p></li>
+</ul>
+</dd>
+<dt><strong>Core Dependencies</strong></dt><dd><ul class="simple">
+<li><p>NumPy &gt;= 1.19.0</p></li>
+<li><p>SciPy &gt;= 1.6.0</p></li>
+<li><p>MDAnalysis &gt;= 2.0.0</p></li>
+<li><p>OpenMM &gt;= 7.6.0 (optional, for GPU acceleration)</p></li>
+<li><p>matplotlib &gt;= 3.3.0</p></li>
+<li><p>pandas &gt;= 1.2.0</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="installation-methods">
+<h2>Installation Methods<a class="headerlink" href="#installation-methods" title="Link to this heading">¶</a></h2>
+<section id="method-1-pip-recommended">
+<h3>Method 1: pip (Recommended)<a class="headerlink" href="#method-1-pip-recommended" title="Link to this heading">¶</a></h3>
+<p>Install the latest stable release:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+<p>Install with optional dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># For GPU acceleration</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span><span class="p">[</span><span class="n">gpu</span><span class="p">]</span>
+
+<span class="c1"># For visualization</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span><span class="p">[</span><span class="n">viz</span><span class="p">]</span>
+
+<span class="c1"># For development</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span><span class="p">[</span><span class="n">dev</span><span class="p">]</span>
+
+<span class="c1"># Install everything</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span><span class="p">[</span><span class="nb">all</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="method-2-conda">
+<h3>Method 2: conda<a class="headerlink" href="#method-2-conda" title="Link to this heading">¶</a></h3>
+<p>Using conda-forge:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+<p>Create a dedicated environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">proteinmd</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">proteinmd</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</section>
+<section id="method-3-development-installation">
+<h3>Method 3: Development Installation<a class="headerlink" href="#method-3-development-installation" title="Link to this heading">¶</a></h3>
+<p>For development or the latest features:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">proteinmd</span><span class="o">/</span><span class="n">proteinMD</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">proteinMD</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>Install development dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span><span class="p">[</span><span class="n">dev</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="method-4-docker">
+<h3>Method 4: Docker<a class="headerlink" href="#method-4-docker" title="Link to this heading">¶</a></h3>
+<p>Use the official Docker image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">pull</span> <span class="n">proteinmd</span><span class="o">/</span><span class="n">proteinmd</span><span class="p">:</span><span class="n">latest</span>
+<span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">it</span> <span class="n">proteinmd</span><span class="o">/</span><span class="n">proteinmd</span><span class="p">:</span><span class="n">latest</span>
+</pre></div>
+</div>
+<p>Create a container with volume mounting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>docker run -it -v $(pwd):/workspace proteinmd/proteinmd:latest
+</pre></div>
+</div>
+</section>
+</section>
+<section id="optional-dependencies">
+<h2>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading">¶</a></h2>
+<section id="gpu-acceleration">
+<h3>GPU Acceleration<a class="headerlink" href="#gpu-acceleration" title="Link to this heading">¶</a></h3>
+<p>For NVIDIA GPUs with CUDA support:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install CUDA toolkit (system-wide)</span>
+<span class="c1"># Follow NVIDIA CUDA installation guide</span>
+
+<span class="c1"># Install OpenMM with CUDA</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">openmm</span> <span class="n">cudatoolkit</span>
+</pre></div>
+</div>
+<p>For AMD GPUs with OpenCL:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">openmm</span> <span class="n">ocl</span><span class="o">-</span><span class="n">icd</span><span class="o">-</span><span class="n">system</span>
+</pre></div>
+</div>
+</section>
+<section id="visualization-tools">
+<h3>Visualization Tools<a class="headerlink" href="#visualization-tools" title="Link to this heading">¶</a></h3>
+<p>For 3D molecular visualization:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyMOL (recommended)</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">pymol</span><span class="o">-</span><span class="nb">open</span><span class="o">-</span><span class="n">source</span>
+
+<span class="c1"># VMD (manual installation)</span>
+<span class="c1"># Download from https://www.ks.uiuc.edu/Research/vmd/</span>
+
+<span class="c1"># NGL viewer for Jupyter</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">nglview</span>
+<span class="n">jupyter</span><span class="o">-</span><span class="n">nbextension</span> <span class="n">enable</span> <span class="n">nglview</span> <span class="o">--</span><span class="n">py</span> <span class="o">--</span><span class="n">sys</span><span class="o">-</span><span class="n">prefix</span>
+</pre></div>
+</div>
+</section>
+<section id="additional-analysis-tools">
+<h3>Additional Analysis Tools<a class="headerlink" href="#additional-analysis-tools" title="Link to this heading">¶</a></h3>
+<p>For enhanced analysis capabilities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># MDTraj for trajectory analysis</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">mdtraj</span>
+
+<span class="c1"># ProDy for protein dynamics</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">ProDy</span>
+
+<span class="c1"># NetworkX for graph analysis</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">networkx</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="verification">
+<h2>Verification<a class="headerlink" href="#verification" title="Link to this heading">¶</a></h2>
+<section id="test-installation">
+<h3>Test Installation<a class="headerlink" href="#test-installation" title="Link to this heading">¶</a></h3>
+<p>Verify your installation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;import proteinMD; print(proteinMD.__version__)&quot;</span>
+</pre></div>
+</div>
+<p>Run basic tests:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDBParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ProteinMD installation successful!&#39;</span><span class="p">)</span>
+<span class="s2">&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-test">
+<h3>Performance Test<a class="headerlink" href="#performance-test" title="Link to this heading">¶</a></h3>
+<p>Test computational performance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">proteinMD</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">benchmark</span>
+</pre></div>
+</div>
+<p>This will run basic benchmarks and report performance metrics.</p>
+</section>
+<section id="gpu-test">
+<h3>GPU Test<a class="headerlink" href="#gpu-test" title="Link to this heading">¶</a></h3>
+<p>If you installed GPU support:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_gpu_support</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;GPU support: </span><span class="si">{</span><span class="n">check_gpu_support</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="s2">&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
+<section id="common-issues">
+<h3>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading">¶</a></h3>
+<p><strong>Import Error: No module named ‘proteinMD’</strong></p>
+<p>Solution:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure pip installed to correct Python</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+
+<span class="c1"># Or check Python path</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;import sys; print(sys.path)&quot;</span>
+</pre></div>
+</div>
+<p><strong>CUDA/GPU Issues</strong></p>
+<p>Solution:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check CUDA installation</span>
+<span class="n">nvidia</span><span class="o">-</span><span class="n">smi</span>
+
+<span class="c1"># Check OpenMM CUDA platforms</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">openmm</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">platform</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span> <span class="k">for</span> <span class="n">platform</span> <span class="ow">in</span>
+       <span class="p">[</span><span class="n">openmm</span><span class="o">.</span><span class="n">Platform</span><span class="o">.</span><span class="n">getPlatform</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">openmm</span><span class="o">.</span><span class="n">Platform</span><span class="o">.</span><span class="n">getNumPlatforms</span><span class="p">())]])</span>
+<span class="s2">&quot;</span>
+</pre></div>
+</div>
+<p><strong>Memory Issues During Installation</strong></p>
+<p>Solution:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install without cache</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">cache</span><span class="o">-</span><span class="nb">dir</span> <span class="n">proteinMD</span>
+
+<span class="c1"># Or increase swap space (Linux)</span>
+<span class="n">sudo</span> <span class="n">fallocate</span> <span class="o">-</span><span class="n">l</span> <span class="mi">4</span><span class="n">G</span> <span class="o">/</span><span class="n">swapfile</span>
+<span class="n">sudo</span> <span class="n">chmod</span> <span class="mi">600</span> <span class="o">/</span><span class="n">swapfile</span>
+<span class="n">sudo</span> <span class="n">mkswap</span> <span class="o">/</span><span class="n">swapfile</span>
+<span class="n">sudo</span> <span class="n">swapon</span> <span class="o">/</span><span class="n">swapfile</span>
+</pre></div>
+</div>
+<p><strong>Conflicting Dependencies</strong></p>
+<p>Solution:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create clean environment</span>
+<span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">proteinmd</span><span class="o">-</span><span class="n">clean</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">proteinmd</span><span class="o">-</span><span class="n">clean</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="platform-specific-notes">
+<h2>Platform-Specific Notes<a class="headerlink" href="#platform-specific-notes" title="Link to this heading">¶</a></h2>
+<section id="linux">
+<h3>Linux<a class="headerlink" href="#linux" title="Link to this heading">¶</a></h3>
+<p><strong>Ubuntu/Debian</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install system dependencies</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span> <span class="n">python3</span><span class="o">-</span><span class="n">dev</span>
+
+<span class="c1"># For visualization</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">pymol</span>
+</pre></div>
+</div>
+<p><strong>CentOS/RHEL</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install development tools</span>
+<span class="n">sudo</span> <span class="n">yum</span> <span class="n">groupinstall</span> <span class="s2">&quot;Development Tools&quot;</span>
+<span class="n">sudo</span> <span class="n">yum</span> <span class="n">install</span> <span class="n">python3</span><span class="o">-</span><span class="n">devel</span>
+
+<span class="c1"># Enable EPEL for additional packages</span>
+<span class="n">sudo</span> <span class="n">yum</span> <span class="n">install</span> <span class="n">epel</span><span class="o">-</span><span class="n">release</span>
+</pre></div>
+</div>
+</section>
+<section id="macos">
+<h3>macOS<a class="headerlink" href="#macos" title="Link to this heading">¶</a></h3>
+<p><strong>Using Homebrew</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Python and dependencies</span>
+<span class="n">brew</span> <span class="n">install</span> <span class="n">python</span>
+<span class="n">brew</span> <span class="n">install</span> <span class="n">openmm</span>
+
+<span class="c1"># Install ProteinMD</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+<p><strong>Using MacPorts</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">port</span> <span class="n">install</span> <span class="n">py39</span><span class="o">-</span><span class="n">numpy</span> <span class="n">py39</span><span class="o">-</span><span class="n">scipy</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</section>
+<section id="windows">
+<h3>Windows<a class="headerlink" href="#windows" title="Link to this heading">¶</a></h3>
+<p><strong>WSL2 (Recommended)</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install WSL2 with Ubuntu</span>
+<span class="n">wsl</span> <span class="o">--</span><span class="n">install</span> <span class="o">-</span><span class="n">d</span> <span class="n">Ubuntu</span>
+
+<span class="c1"># Follow Linux installation in WSL</span>
+</pre></div>
+</div>
+<p><strong>Native Windows</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Visual Studio Build Tools</span>
+<span class="c1"># Install Python from python.org</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="hpc-clusters">
+<h2>HPC Clusters<a class="headerlink" href="#hpc-clusters" title="Link to this heading">¶</a></h2>
+<section id="module-systems">
+<h3>Module Systems<a class="headerlink" href="#module-systems" title="Link to this heading">¶</a></h3>
+<p>Many HPC systems use environment modules:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load required modules</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">python</span><span class="o">/</span><span class="mf">3.9</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">cuda</span><span class="o">/</span><span class="mf">11.2</span>
+<span class="n">module</span> <span class="n">load</span> <span class="n">openmpi</span><span class="o">/</span><span class="mf">4.1</span>
+
+<span class="c1"># Install in user space</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">user</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</section>
+<section id="singularity-apptainer">
+<h3>Singularity/Apptainer<a class="headerlink" href="#singularity-apptainer" title="Link to this heading">¶</a></h3>
+<p>Use containers on HPC systems:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pull container</span>
+<span class="n">singularity</span> <span class="n">pull</span> <span class="n">proteinmd</span><span class="o">.</span><span class="n">sif</span> <span class="n">docker</span><span class="p">:</span><span class="o">//</span><span class="n">proteinmd</span><span class="o">/</span><span class="n">proteinmd</span><span class="p">:</span><span class="n">latest</span>
+
+<span class="c1"># Run with container</span>
+<span class="n">singularity</span> <span class="n">exec</span> <span class="n">proteinmd</span><span class="o">.</span><span class="n">sif</span> <span class="n">python</span> <span class="n">your_script</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</section>
+<section id="job-submission-examples">
+<h3>Job Submission Examples<a class="headerlink" href="#job-submission-examples" title="Link to this heading">¶</a></h3>
+<p><strong>SLURM example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --job-name=proteinmd</span>
+<span class="c1">#SBATCH --nodes=1</span>
+<span class="c1">#SBATCH --ntasks=8</span>
+<span class="c1">#SBATCH --gres=gpu:1</span>
+<span class="c1">#SBATCH --time=24:00:00</span>
+
+<span class="n">module</span> <span class="n">load</span> <span class="n">python</span><span class="o">/</span><span class="mf">3.9</span> <span class="n">cuda</span><span class="o">/</span><span class="mf">11.2</span>
+<span class="n">python</span> <span class="n">md_simulation</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p><strong>PBS example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#!/bin/bash
+#PBS -N proteinmd
+#PBS -l nodes=1:ppn=8:gpus=1
+#PBS -l walltime=24:00:00
+
+cd $PBS_O_WORKDIR
+module load python cuda
+python md_simulation.py
+</pre></div>
+</div>
+</section>
+</section>
+<section id="virtual-environments">
+<h2>Virtual Environments<a class="headerlink" href="#virtual-environments" title="Link to this heading">¶</a></h2>
+<section id="best-practices">
+<h3>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h3>
+<p>Always use virtual environments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create environment</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="n">proteinmd</span><span class="o">-</span><span class="n">env</span>
+
+<span class="c1"># Activate (Linux/macOS)</span>
+<span class="n">source</span> <span class="n">proteinmd</span><span class="o">-</span><span class="n">env</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+
+<span class="c1"># Activate (Windows)</span>
+<span class="n">proteinmd</span><span class="o">-</span><span class="n">env</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
+
+<span class="c1"># Install ProteinMD</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</section>
+<section id="conda-environments">
+<h3>Conda Environments<a class="headerlink" href="#conda-environments" title="Link to this heading">¶</a></h3>
+<p>Recommended for scientific computing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create environment with dependencies</span>
+<span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">proteinmd</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">numpy</span> <span class="n">scipy</span> <span class="n">matplotlib</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">proteinmd</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">proteinMD</span>
+</pre></div>
+</div>
+</section>
+<section id="environment-export-import">
+<h3>Environment Export/Import<a class="headerlink" href="#environment-export-import" title="Link to this heading">¶</a></h3>
+<p>Share environments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Export environment</span>
+<span class="n">conda</span> <span class="n">env</span> <span class="n">export</span> <span class="o">&gt;</span> <span class="n">proteinmd</span><span class="o">-</span><span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+
+<span class="c1"># Import environment</span>
+<span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">proteinmd</span><span class="o">-</span><span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h2>
+<section id="environment-variables">
+<h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading">¶</a></h3>
+<p>Set ProteinMD configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">PROTEINMD_DATA_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">data</span>
+<span class="n">export</span> <span class="n">PROTEINMD_TEMP_DIR</span><span class="o">=/</span><span class="n">tmp</span><span class="o">/</span><span class="n">proteinmd</span>
+<span class="n">export</span> <span class="n">PROTEINMD_LOG_LEVEL</span><span class="o">=</span><span class="n">INFO</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration-file">
+<h3>Configuration File<a class="headerlink" href="#configuration-file" title="Link to this heading">¶</a></h3>
+<p>Create <code class="docutils literal notranslate"><span class="pre">~/.proteinmd/config.yaml</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">general</span><span class="p">:</span>
+  <span class="n">data_directory</span><span class="p">:</span> <span class="o">~/</span><span class="n">proteinmd_data</span>
+  <span class="n">temp_directory</span><span class="p">:</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">proteinmd</span>
+  <span class="n">log_level</span><span class="p">:</span> <span class="n">INFO</span>
+
+<span class="n">performance</span><span class="p">:</span>
+  <span class="n">num_threads</span><span class="p">:</span> <span class="mi">8</span>
+  <span class="n">use_gpu</span><span class="p">:</span> <span class="n">true</span>
+
+<span class="n">visualization</span><span class="p">:</span>
+  <span class="n">default_backend</span><span class="p">:</span> <span class="n">pymol</span>
+  <span class="n">image_quality</span><span class="p">:</span> <span class="n">high</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<p>After successful installation:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="quick_start.html"><span class="doc">Quick Start</span></a> - Run your first simulation</p></li>
+<li><p><a class="reference internal" href="tutorials.html"><span class="doc">Tutorials</span></a> - Follow step-by-step tutorials</p></li>
+<li><p><a class="reference internal" href="../api/core.html"><span class="doc">Core Simulation Engine</span></a> - Explore the API reference</p></li>
+<li><p><a class="reference internal" href="cli_reference.html"><span class="doc">CLI Reference</span></a> - Learn the command-line interface</p></li>
+</ol>
+</section>
+<section id="getting-help">
+<h2>Getting Help<a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<p>If you encounter issues:</p>
+<ol class="arabic simple">
+<li><p>Check the <a class="reference internal" href="../advanced/troubleshooting.html"><span class="doc">Troubleshooting Guide</span></a> guide</p></li>
+<li><p>Search existing issues on GitHub</p></li>
+<li><p>Post questions in the community forum</p></li>
+<li><p>Report bugs with detailed error messages</p></li>
+</ol>
+</section>
+<section id="version-history">
+<h2>Version History<a class="headerlink" href="#version-history" title="Link to this heading">¶</a></h2>
+<p>See <a class="reference internal" href="../about/changelog.html"><span class="doc">Changelog</span></a> for detailed version history and upgrade notes.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_manual.html">User Manual</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#quick-installation">Quick Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-methods">Installation Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#verification">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platform-specific-notes">Platform-Specific Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hpc-clusters">HPC Clusters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#virtual-environments">Virtual Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-history">Version History</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="user_manual.html" title="previous chapter">User Manual</a></li>
+      <li>Next: <a href="quick_start.html" title="next chapter">Quick Start</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/user_guide/installation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

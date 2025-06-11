@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Pull Request Guide &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Review Process" href="review_process.html" />
+    <link rel="prev" title="Git Workflow" href="git_workflow.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pull-request-guide">
+<h1>Pull Request Guide<a class="headerlink" href="#pull-request-guide" title="Link to this heading">¶</a></h1>
+<p>This guide covers the complete process for submitting, reviewing, and merging pull requests in ProteinMD.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#before-you-start" id="id1">Before You Start</a></p>
+<ul>
+<li><p><a class="reference internal" href="#prerequisites" id="id2">Prerequisites</a></p></li>
+<li><p><a class="reference internal" href="#choosing-what-to-work-on" id="id3">Choosing What to Work On</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#pre-development-checklist" id="id4">Pre-Development Checklist</a></p>
+<ul>
+<li><p><a class="reference internal" href="#planning-phase" id="id5">Planning Phase</a></p></li>
+<li><p><a class="reference internal" href="#environment-setup" id="id6">Environment Setup</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#development-workflow" id="id7">Development Workflow</a></p>
+<ul>
+<li><p><a class="reference internal" href="#branch-naming" id="id8">Branch Naming</a></p></li>
+<li><p><a class="reference internal" href="#commit-guidelines" id="id9">Commit Guidelines</a></p></li>
+<li><p><a class="reference internal" href="#development-process" id="id10">Development Process</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#code-quality-checklist" id="id11">Code Quality Checklist</a></p>
+<ul>
+<li><p><a class="reference internal" href="#before-submitting-pr" id="id12">Before Submitting PR</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#submitting-the-pull-request" id="id13">Submitting the Pull Request</a></p>
+<ul>
+<li><p><a class="reference internal" href="#pr-template" id="id14">PR Template</a></p></li>
+<li><p><a class="reference internal" href="#pr-best-practices" id="id15">PR Best Practices</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#review-process" id="id16">Review Process</a></p>
+<ul>
+<li><p><a class="reference internal" href="#automated-checks" id="id17">Automated Checks</a></p></li>
+<li><p><a class="reference internal" href="#human-review" id="id18">Human Review</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#merging-process" id="id19">Merging Process</a></p>
+<ul>
+<li><p><a class="reference internal" href="#merge-requirements" id="id20">Merge Requirements</a></p></li>
+<li><p><a class="reference internal" href="#merge-strategies" id="id21">Merge Strategies</a></p></li>
+<li><p><a class="reference internal" href="#post-merge-tasks" id="id22">Post-Merge Tasks</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#common-issues-and-solutions" id="id23">Common Issues and Solutions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#ci-failures" id="id24">CI Failures</a></p></li>
+<li><p><a class="reference internal" href="#merge-conflicts" id="id25">Merge Conflicts</a></p></li>
+<li><p><a class="reference internal" href="#review-delays" id="id26">Review Delays</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#quality-gates" id="id27">Quality Gates</a></p>
+<ul>
+<li><p><a class="reference internal" href="#automated-quality-checks" id="id28">Automated Quality Checks</a></p></li>
+<li><p><a class="reference internal" href="#manual-review-checklist" id="id29">Manual Review Checklist</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#getting-help" id="id30">Getting Help</a></p>
+<ul>
+<li><p><a class="reference internal" href="#when-to-ask-for-help" id="id31">When to Ask for Help</a></p></li>
+<li><p><a class="reference internal" href="#where-to-get-help" id="id32">Where to Get Help</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices-summary" id="id33">Best Practices Summary</a></p></li>
+</ul>
+</nav>
+<section id="before-you-start">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Before You Start</a><a class="headerlink" href="#before-you-start" title="Link to this heading">¶</a></h2>
+<section id="prerequisites">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Prerequisites</a><a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h3>
+<p>Before submitting a pull request, ensure you have:</p>
+<ul class="simple">
+<li><p>[ ] <strong>Development environment set up</strong> following the <a class="reference internal" href="contributing.html"><span class="doc">Contributing to ProteinMD</span></a> guide</p></li>
+<li><p>[ ] <strong>Issue created or assigned</strong> for the feature/bug you’re working on</p></li>
+<li><p>[ ] <strong>Understanding of the codebase</strong> by reading <a class="reference internal" href="architecture.html"><span class="doc">Software Architecture</span></a> documentation</p></li>
+<li><p>[ ] <strong>Familiarity with coding standards</strong> outlined in <a class="reference internal" href="coding_standards.html"><span class="doc">Coding Standards and Style Guide</span></a></p></li>
+</ul>
+</section>
+<section id="choosing-what-to-work-on">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Choosing What to Work On</a><a class="headerlink" href="#choosing-what-to-work-on" title="Link to this heading">¶</a></h3>
+<p><strong>Good First Contributions</strong></p>
+<p>Look for issues labeled:
+- <code class="docutils literal notranslate"><span class="pre">good-first-issue</span></code>: Well-defined tasks for new contributors
+- <code class="docutils literal notranslate"><span class="pre">documentation</span></code>: Documentation improvements
+- <code class="docutils literal notranslate"><span class="pre">bug</span></code>: Small, well-defined bug fixes
+- <code class="docutils literal notranslate"><span class="pre">enhancement</span></code>: Minor feature improvements</p>
+<p><strong>Larger Contributions</strong></p>
+<p>For significant features:
+1. <strong>Create an issue</strong> first to discuss the approach
+2. <strong>Get feedback</strong> from maintainers before starting implementation
+3. <strong>Consider breaking down</strong> large features into smaller, reviewable pieces</p>
+</section>
+</section>
+<section id="pre-development-checklist">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Pre-Development Checklist</a><a class="headerlink" href="#pre-development-checklist" title="Link to this heading">¶</a></h2>
+<section id="planning-phase">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Planning Phase</a><a class="headerlink" href="#planning-phase" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>[ ] <strong>Issue exists</strong> and is assigned to you</p></li>
+<li><p>[ ] <strong>Scope is clear</strong> - what exactly will be implemented/fixed</p></li>
+<li><p>[ ] <strong>Acceptance criteria</strong> defined in the issue</p></li>
+<li><p>[ ] <strong>Breaking changes</strong> identified and documented</p></li>
+<li><p>[ ] <strong>Tests approach</strong> planned</p></li>
+<li><p>[ ] <strong>Documentation updates</strong> identified</p></li>
+</ul>
+</section>
+<section id="environment-setup">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Environment Setup</a><a class="headerlink" href="#environment-setup" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure your fork is up to date</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
+
+<span class="c1"># Create feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/your-feature-name
+
+<span class="c1"># Verify environment</span>
+pytest<span class="w"> </span>tests/<span class="w"> </span>--tb<span class="o">=</span>short
+black<span class="w"> </span>--check<span class="w"> </span>proteinMD/
+flake8<span class="w"> </span>proteinMD/
+</pre></div>
+</div>
+</section>
+</section>
+<section id="development-workflow">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Development Workflow</a><a class="headerlink" href="#development-workflow" title="Link to this heading">¶</a></h2>
+<section id="branch-naming">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Branch Naming</a><a class="headerlink" href="#branch-naming" title="Link to this heading">¶</a></h3>
+<p>Use descriptive branch names following this pattern:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&lt;type&gt;/&lt;short-description&gt;
+</pre></div>
+</div>
+<p><strong>Types:</strong>
+- <code class="docutils literal notranslate"><span class="pre">feature/</span></code>: New features
+- <code class="docutils literal notranslate"><span class="pre">bugfix/</span></code>: Bug fixes
+- <code class="docutils literal notranslate"><span class="pre">docs/</span></code>: Documentation updates
+- <code class="docutils literal notranslate"><span class="pre">refactor/</span></code>: Code refactoring
+- <code class="docutils literal notranslate"><span class="pre">test/</span></code>: Test improvements
+- <code class="docutils literal notranslate"><span class="pre">chore/</span></code>: Maintenance tasks</p>
+<p><strong>Examples:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>feature/velocity-verlet-integrator
+bugfix/bond-energy-calculation-error
+docs/api-documentation-improvements
+refactor/forcefield-module-structure
+test/integration-test-coverage
+chore/update-dependencies
+</pre></div>
+</div>
+</section>
+<section id="commit-guidelines">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Commit Guidelines</a><a class="headerlink" href="#commit-guidelines" title="Link to this heading">¶</a></h3>
+<p><strong>Commit Message Format</strong></p>
+<p>Use conventional commits format:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&lt;type&gt;[optional scope]: &lt;description&gt;
+
+[optional body]
+
+[optional footer(s)]
+</pre></div>
+</div>
+<p><strong>Examples:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>feat(core): implement velocity Verlet integrator
+
+Add velocity Verlet integration algorithm with improved energy
+conservation properties for molecular dynamics simulations.
+
+- Implements velocity Verlet with configurable time step
+- Includes energy conservation tests
+- Updates documentation with usage examples
+
+Closes #123
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>fix(forcefield): correct harmonic bond energy calculation
+
+Fixed sign error in bond energy calculation that caused incorrect
+energies for stretched bonds.
+
+Breaking change: Energy values will differ for systems with
+significantly stretched bonds.
+
+Fixes #456
+</pre></div>
+</div>
+<p><strong>Commit Best Practices:</strong></p>
+<ul class="simple">
+<li><p><strong>One logical change per commit</strong></p></li>
+<li><p><strong>Clear, descriptive commit messages</strong></p></li>
+<li><p><strong>Atomic commits</strong> - each commit should build and pass tests</p></li>
+<li><p><strong>Logical history</strong> - use <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">rebase</span></code> to clean up history before PR</p></li>
+</ul>
+</section>
+<section id="development-process">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Development Process</a><a class="headerlink" href="#development-process" title="Link to this heading">¶</a></h3>
+<p><strong>1. Write Tests First (TDD)</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_velocity_verlet_integration</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test velocity Verlet integrator for harmonic oscillator.&quot;&quot;&quot;</span>
+    <span class="c1"># Set up harmonic oscillator system</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">create_harmonic_oscillator</span><span class="p">()</span>
+    <span class="n">integrator</span> <span class="o">=</span> <span class="n">VelocityVerletIntegrator</span><span class="p">(</span><span class="n">time_step</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+
+    <span class="c1"># Run integration</span>
+    <span class="n">initial_energy</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">total_energy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">integrator</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+
+    <span class="c1"># Energy should be conserved</span>
+    <span class="n">final_energy</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">total_energy</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">final_energy</span> <span class="o">-</span> <span class="n">initial_energy</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-6</span>
+</pre></div>
+</div>
+<p><strong>2. Implement Feature</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">VelocityVerletIntegrator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Velocity Verlet integration algorithm.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.002</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize integrator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            time_step: Integration time step in ps</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span> <span class="o">=</span> <span class="n">time_step</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">MDSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform one integration step.&quot;&quot;&quot;</span>
+        <span class="c1"># Implementation here</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p><strong>3. Update Documentation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">velocity_verlet_step</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">velocities</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">masses</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform velocity Verlet integration step.</span>
+
+<span class="sd">    The velocity Verlet algorithm is a symplectic integrator that</span>
+<span class="sd">    provides better energy conservation than standard Verlet.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        positions: Current positions, shape (n_atoms, 3)</span>
+<span class="sd">        velocities: Current velocities, shape (n_atoms, 3)</span>
+<span class="sd">        forces: Current forces, shape (n_atoms, 3)</span>
+<span class="sd">        masses: Atomic masses, shape (n_atoms,)</span>
+<span class="sd">        dt: Time step in ps</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple of (new_positions, new_velocities)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; pos, vel = velocity_verlet_step(pos, vel, forces, masses, 0.002)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p><strong>4. Run Tests Locally</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests</span>
+pytest<span class="w"> </span>tests/<span class="w"> </span>-v
+
+<span class="c1"># Run specific test file</span>
+pytest<span class="w"> </span>tests/test_integrators.py<span class="w"> </span>-v
+
+<span class="c1"># Run with coverage</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>proteinMD<span class="w"> </span>--cov-report<span class="o">=</span>html
+
+<span class="c1"># Check formatting and linting</span>
+black<span class="w"> </span>--check<span class="w"> </span>proteinMD/
+flake8<span class="w"> </span>proteinMD/
+mypy<span class="w"> </span>proteinMD/
+</pre></div>
+</div>
+</section>
+</section>
+<section id="code-quality-checklist">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Code Quality Checklist</a><a class="headerlink" href="#code-quality-checklist" title="Link to this heading">¶</a></h2>
+<section id="before-submitting-pr">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Before Submitting PR</a><a class="headerlink" href="#before-submitting-pr" title="Link to this heading">¶</a></h3>
+<p><strong>Code Quality</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Code follows style guidelines</strong> (Black formatted, flake8 clean)</p></li>
+<li><p>[ ] <strong>Type hints added</strong> for all public functions</p></li>
+<li><p>[ ] <strong>Docstrings written</strong> following Google style</p></li>
+<li><p>[ ] <strong>Comments added</strong> for complex logic</p></li>
+<li><p>[ ] <strong>No debugging code</strong> or commented-out sections</p></li>
+<li><p>[ ] <strong>Error handling</strong> appropriate and tested</p></li>
+</ul>
+<p><strong>Testing</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Unit tests written</strong> for new functionality</p></li>
+<li><p>[ ] <strong>Integration tests</strong> for workflow changes</p></li>
+<li><p>[ ] <strong>Edge cases tested</strong> (empty inputs, boundary conditions)</p></li>
+<li><p>[ ] <strong>Error cases tested</strong> (invalid inputs, exceptions)</p></li>
+<li><p>[ ] <strong>All tests pass</strong> locally</p></li>
+<li><p>[ ] <strong>Test coverage</strong> maintained or improved</p></li>
+</ul>
+<p><strong>Documentation</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>API documentation</strong> updated for public functions</p></li>
+<li><p>[ ] <strong>User guide</strong> updated if user-facing changes</p></li>
+<li><p>[ ] <strong>CHANGELOG</strong> entry added</p></li>
+<li><p>[ ] <strong>Examples</strong> provided for new features</p></li>
+<li><p>[ ] <strong>Breaking changes</strong> documented</p></li>
+</ul>
+<p><strong>Git History</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Commits are logical</strong> and atomic</p></li>
+<li><p>[ ] <strong>Commit messages</strong> follow conventional format</p></li>
+<li><p>[ ] <strong>History is clean</strong> (rebased if necessary)</p></li>
+<li><p>[ ] <strong>No merge conflicts</strong> with main branch</p></li>
+</ul>
+</section>
+</section>
+<section id="submitting-the-pull-request">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Submitting the Pull Request</a><a class="headerlink" href="#submitting-the-pull-request" title="Link to this heading">¶</a></h2>
+<section id="pr-template">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">PR Template</a><a class="headerlink" href="#pr-template" title="Link to this heading">¶</a></h3>
+<p>Use the following template for your pull request description:</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">## Description</span>
+
+Brief description of what this PR does.
+
+Fixes #(issue number)
+
+<span class="gu">## Type of Change</span>
+
+<span class="k">- [ ]</span> Bug fix (non-breaking change which fixes an issue)
+<span class="k">- [ ]</span> New feature (non-breaking change which adds functionality)
+<span class="k">- [ ]</span> Breaking change (fix or feature that would cause existing functionality to not work as expected)
+<span class="k">- [ ]</span> Documentation update
+<span class="k">- [ ]</span> Refactoring (no functional changes)
+<span class="k">- [ ]</span> Performance improvement
+
+<span class="gu">## Changes Made</span>
+
+<span class="k">-</span><span class="w"> </span>List specific changes made
+<span class="k">-</span><span class="w"> </span>Include any important implementation details
+<span class="k">-</span><span class="w"> </span>Mention any design decisions
+
+<span class="gu">## Testing</span>
+
+<span class="k">- [ ]</span> Unit tests added/updated
+<span class="k">- [ ]</span> Integration tests added/updated
+<span class="k">- [ ]</span> Manual testing performed
+<span class="k">- [ ]</span> All tests pass
+
+Describe the tests you ran and how to reproduce them.
+
+<span class="gu">## Documentation</span>
+
+<span class="k">- [ ]</span> Code comments added/updated
+<span class="k">- [ ]</span> API documentation updated
+<span class="k">- [ ]</span> User guide updated
+<span class="k">- [ ]</span> CHANGELOG updated
+
+<span class="gu">## Breaking Changes</span>
+
+List any breaking changes and migration path for users.
+
+<span class="gu">## Additional Notes</span>
+
+Any additional information, concerns, or questions for reviewers.
+</pre></div>
+</div>
+</section>
+<section id="pr-best-practices">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">PR Best Practices</a><a class="headerlink" href="#pr-best-practices" title="Link to this heading">¶</a></h3>
+<p><strong>Title and Description</strong></p>
+<ul class="simple">
+<li><p><strong>Clear, descriptive title</strong> summarizing the change</p></li>
+<li><p><strong>Reference the issue number</strong> (e.g., “Fixes #123”)</p></li>
+<li><p><strong>Explain the problem</strong> being solved</p></li>
+<li><p><strong>Describe the solution</strong> implemented</p></li>
+<li><p><strong>Include testing information</strong></p></li>
+</ul>
+<p><strong>Size and Scope</strong></p>
+<ul class="simple">
+<li><p><strong>Keep PRs focused</strong> - one logical change per PR</p></li>
+<li><p><strong>Limit PR size</strong> - aim for &lt;500 lines of changes when possible</p></li>
+<li><p><strong>Break down large features</strong> into smaller, reviewable chunks</p></li>
+<li><p><strong>Separate refactoring</strong> from functional changes</p></li>
+</ul>
+<p><strong>Communication</strong></p>
+<ul class="simple">
+<li><p><strong>Be responsive</strong> to review feedback</p></li>
+<li><p><strong>Ask questions</strong> if review comments are unclear</p></li>
+<li><p><strong>Explain design decisions</strong> in PR description or comments</p></li>
+<li><p><strong>Update PR description</strong> if scope changes during development</p></li>
+</ul>
+</section>
+</section>
+<section id="review-process">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Review Process</a><a class="headerlink" href="#review-process" title="Link to this heading">¶</a></h2>
+<section id="automated-checks">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Automated Checks</a><a class="headerlink" href="#automated-checks" title="Link to this heading">¶</a></h3>
+<p>All PRs must pass automated checks:</p>
+<p><strong>Continuous Integration</strong></p>
+<ul class="simple">
+<li><p><strong>Tests</strong>: All unit and integration tests must pass</p></li>
+<li><p><strong>Linting</strong>: Code must pass flake8 checks</p></li>
+<li><p><strong>Formatting</strong>: Code must be Black formatted</p></li>
+<li><p><strong>Type Checking</strong>: MyPy type checking must pass</p></li>
+<li><p><strong>Coverage</strong>: Test coverage should not decrease</p></li>
+<li><p><strong>Documentation</strong>: Sphinx docs must build successfully</p></li>
+</ul>
+<p><strong>Security Checks</strong></p>
+<ul class="simple">
+<li><p><strong>Dependency scanning</strong>: No known vulnerabilities in dependencies</p></li>
+<li><p><strong>Code scanning</strong>: No obvious security issues detected</p></li>
+</ul>
+</section>
+<section id="human-review">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Human Review</a><a class="headerlink" href="#human-review" title="Link to this heading">¶</a></h3>
+<p><strong>Review Timeline</strong></p>
+<ul class="simple">
+<li><p><strong>Initial response</strong>: Within 2 business days</p></li>
+<li><p><strong>Full review</strong>: Within 1 week for most PRs</p></li>
+<li><p><strong>Complex features</strong>: May require additional review time</p></li>
+</ul>
+<p><strong>Review Criteria</strong></p>
+<p>Reviewers will check:</p>
+<ul class="simple">
+<li><p><strong>Correctness</strong>: Does the code do what it claims?</p></li>
+<li><p><strong>Design</strong>: Is the approach sound and consistent?</p></li>
+<li><p><strong>Testing</strong>: Are tests comprehensive and correct?</p></li>
+<li><p><strong>Documentation</strong>: Is documentation clear and complete?</p></li>
+<li><p><strong>Performance</strong>: Are there any performance implications?</p></li>
+<li><p><strong>Security</strong>: Are there any security concerns?</p></li>
+<li><p><strong>Maintainability</strong>: Is the code easy to understand and modify?</p></li>
+</ul>
+<p><strong>Addressing Review Feedback</strong></p>
+<p><strong>Best Practices for Feedback</strong></p>
+<ul class="simple">
+<li><p><strong>Respond promptly</strong> to review comments</p></li>
+<li><p><strong>Ask for clarification</strong> if feedback is unclear</p></li>
+<li><p><strong>Implement suggestions</strong> or explain why you disagree</p></li>
+<li><p><strong>Push new commits</strong> for changes (don’t force-push during review)</p></li>
+<li><p><strong>Mark conversations resolved</strong> when addressed</p></li>
+</ul>
+<p><strong>Common Review Issues</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Missing tests</strong> for new functionality</p></li>
+<li><p><strong>Insufficient documentation</strong> for public APIs</p></li>
+<li><p><strong>Code style violations</strong> or inconsistencies</p></li>
+<li><p><strong>Performance concerns</strong> for critical paths</p></li>
+<li><p><strong>API design issues</strong> or inconsistencies</p></li>
+<li><p><strong>Missing error handling</strong> or validation</p></li>
+</ol>
+<p><strong>Handling Disagreements</strong></p>
+<p>If you disagree with reviewer feedback:</p>
+<ol class="arabic simple">
+<li><p><strong>Explain your reasoning</strong> clearly</p></li>
+<li><p><strong>Provide evidence</strong> or references if applicable</p></li>
+<li><p><strong>Suggest alternatives</strong> if the concern is valid</p></li>
+<li><p><strong>Escalate to maintainers</strong> if needed</p></li>
+</ol>
+</section>
+</section>
+<section id="merging-process">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Merging Process</a><a class="headerlink" href="#merging-process" title="Link to this heading">¶</a></h2>
+<section id="merge-requirements">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Merge Requirements</a><a class="headerlink" href="#merge-requirements" title="Link to this heading">¶</a></h3>
+<p>Before merging, ensure:</p>
+<ul class="simple">
+<li><p>[ ] <strong>All CI checks pass</strong></p></li>
+<li><p>[ ] <strong>At least one approval</strong> from a maintainer</p></li>
+<li><p>[ ] <strong>All conversations resolved</strong></p></li>
+<li><p>[ ] <strong>Branch is up to date</strong> with main</p></li>
+<li><p>[ ] <strong>No merge conflicts</strong></p></li>
+</ul>
+</section>
+<section id="merge-strategies">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Merge Strategies</a><a class="headerlink" href="#merge-strategies" title="Link to this heading">¶</a></h3>
+<p><strong>Squash and Merge</strong> (Preferred)</p>
+<ul class="simple">
+<li><p>Creates single commit on main branch</p></li>
+<li><p>Keeps main branch history clean</p></li>
+<li><p>Use for most feature PRs</p></li>
+</ul>
+<p><strong>Merge Commit</strong></p>
+<ul class="simple">
+<li><p>Preserves PR branch history</p></li>
+<li><p>Use for complex features with logical commit history</p></li>
+</ul>
+<p><strong>Rebase and Merge</strong></p>
+<ul class="simple">
+<li><p>Replays commits on main branch</p></li>
+<li><p>Use when PR has clean, logical commit history</p></li>
+</ul>
+</section>
+<section id="post-merge-tasks">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Post-Merge Tasks</a><a class="headerlink" href="#post-merge-tasks" title="Link to this heading">¶</a></h3>
+<p>After your PR is merged:</p>
+<ul class="simple">
+<li><p>[ ] <strong>Delete feature branch</strong> (GitHub will prompt)</p></li>
+<li><p>[ ] <strong>Update local repository</strong>:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
+git<span class="w"> </span>branch<span class="w"> </span>-d<span class="w"> </span>feature/your-feature-name
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>[ ] <strong>Close related issues</strong> if not automatically closed</p></li>
+<li><p>[ ] <strong>Update documentation</strong> if needed</p></li>
+<li><p>[ ] <strong>Announce breaking changes</strong> to users</p></li>
+</ul>
+</section>
+</section>
+<section id="common-issues-and-solutions">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Common Issues and Solutions</a><a class="headerlink" href="#common-issues-and-solutions" title="Link to this heading">¶</a></h2>
+<section id="ci-failures">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">CI Failures</a><a class="headerlink" href="#ci-failures" title="Link to this heading">¶</a></h3>
+<p><strong>Test Failures</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run failing tests locally</span>
+pytest<span class="w"> </span>tests/test_specific.py::test_failing_function<span class="w"> </span>-v
+
+<span class="c1"># Debug with print statements or debugger</span>
+pytest<span class="w"> </span>tests/test_specific.py::test_failing_function<span class="w"> </span>-v<span class="w"> </span>-s
+</pre></div>
+</div>
+<p><strong>Formatting Issues</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fix formatting</span>
+black<span class="w"> </span>proteinMD/<span class="w"> </span>tests/
+
+<span class="c1"># Check what changed</span>
+git<span class="w"> </span>diff
+</pre></div>
+</div>
+<p><strong>Linting Issues</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check specific issues</span>
+flake8<span class="w"> </span>proteinMD/
+
+<span class="c1"># Fix common issues</span>
+<span class="c1"># - Remove unused imports</span>
+<span class="c1"># - Break long lines</span>
+<span class="c1"># - Add missing docstrings</span>
+</pre></div>
+</div>
+</section>
+<section id="merge-conflicts">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Merge Conflicts</a><a class="headerlink" href="#merge-conflicts" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update your branch with latest main</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+git<span class="w"> </span>checkout<span class="w"> </span>feature/your-branch
+git<span class="w"> </span>rebase<span class="w"> </span>main
+
+<span class="c1"># Resolve conflicts in your editor</span>
+<span class="c1"># Then continue rebase</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>rebase<span class="w"> </span>--continue
+
+<span class="c1"># Force push updated branch</span>
+git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>feature/your-branch
+</pre></div>
+</div>
+</section>
+<section id="review-delays">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Review Delays</a><a class="headerlink" href="#review-delays" title="Link to this heading">¶</a></h3>
+<p>If your PR isn’t getting reviewed:</p>
+<ol class="arabic simple">
+<li><p><strong>Check if all CI passes</strong> - reviewers often wait for green builds</p></li>
+<li><p><strong>Ping reviewers</strong> politely in PR comments after 1 week</p></li>
+<li><p><strong>Ask in community channels</strong> if you need urgent review</p></li>
+<li><p><strong>Consider breaking down</strong> large PRs into smaller ones</p></li>
+</ol>
+</section>
+</section>
+<section id="quality-gates">
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">Quality Gates</a><a class="headerlink" href="#quality-gates" title="Link to this heading">¶</a></h2>
+<section id="automated-quality-checks">
+<h3><a class="toc-backref" href="#id28" role="doc-backlink">Automated Quality Checks</a><a class="headerlink" href="#automated-quality-checks" title="Link to this heading">¶</a></h3>
+<p>All PRs must pass:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># .github/workflows/ci.yml example</span>
+<span class="nt">quality_checks</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run tests</span>
+<span class="w">    </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pytest tests/ --cov=proteinMD</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Check formatting</span>
+<span class="w">    </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">black --check proteinMD/</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run linting</span>
+<span class="w">    </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flake8 proteinMD/</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Type checking</span>
+<span class="w">    </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy proteinMD/</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Security scan</span>
+<span class="w">    </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bandit -r proteinMD/</span>
+</pre></div>
+</div>
+</section>
+<section id="manual-review-checklist">
+<h3><a class="toc-backref" href="#id29" role="doc-backlink">Manual Review Checklist</a><a class="headerlink" href="#manual-review-checklist" title="Link to this heading">¶</a></h3>
+<p><strong>Code Review Checklist</strong></p>
+<p>Reviewers use this checklist:</p>
+<ul class="simple">
+<li><p>[ ] <strong>Functionality</strong>: Code works as intended</p></li>
+<li><p>[ ] <strong>Tests</strong>: Adequate test coverage for changes</p></li>
+<li><p>[ ] <strong>Documentation</strong>: Public APIs documented</p></li>
+<li><p>[ ] <strong>Design</strong>: Follows project architecture patterns</p></li>
+<li><p>[ ] <strong>Performance</strong>: No obvious performance regressions</p></li>
+<li><p>[ ] <strong>Security</strong>: No security vulnerabilities introduced</p></li>
+<li><p>[ ] <strong>Compatibility</strong>: Backwards compatibility maintained</p></li>
+<li><p>[ ] <strong>Style</strong>: Follows coding standards</p></li>
+</ul>
+<p><strong>Documentation Review</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>API docs</strong>: All public functions documented</p></li>
+<li><p>[ ] <strong>Examples</strong>: Working examples provided</p></li>
+<li><p>[ ] <strong>User guide</strong>: Updated for user-facing changes</p></li>
+<li><p>[ ] <strong>Migration guide</strong>: Breaking changes documented</p></li>
+</ul>
+</section>
+</section>
+<section id="getting-help">
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Getting Help</a><a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<section id="when-to-ask-for-help">
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">When to Ask for Help</a><a class="headerlink" href="#when-to-ask-for-help" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Unclear requirements</strong> in the issue</p></li>
+<li><p><strong>Complex architectural decisions</strong> needed</p></li>
+<li><p><strong>Unsure about testing approach</strong></p></li>
+<li><p><strong>Performance optimization</strong> needed</p></li>
+<li><p><strong>Breaking changes</strong> required</p></li>
+</ul>
+</section>
+<section id="where-to-get-help">
+<h3><a class="toc-backref" href="#id32" role="doc-backlink">Where to Get Help</a><a class="headerlink" href="#where-to-get-help" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Issue comments</strong>: Ask questions in the related issue</p></li>
+<li><p><strong>PR comments</strong>: Ask for guidance in your PR</p></li>
+<li><p><strong>Discussions</strong>: Use GitHub Discussions for broader questions</p></li>
+<li><p><strong>Community channels</strong>: Developer chat or forums</p></li>
+</ol>
+</section>
+</section>
+<section id="best-practices-summary">
+<h2><a class="toc-backref" href="#id33" role="doc-backlink">Best Practices Summary</a><a class="headerlink" href="#best-practices-summary" title="Link to this heading">¶</a></h2>
+<p><strong>Before Starting</strong></p>
+<ul class="simple">
+<li><p>Read the issue carefully and ask questions</p></li>
+<li><p>Set up development environment properly</p></li>
+<li><p>Plan your approach and get feedback</p></li>
+</ul>
+<p><strong>During Development</strong></p>
+<ul class="simple">
+<li><p>Write tests first (TDD approach)</p></li>
+<li><p>Follow coding standards consistently</p></li>
+<li><p>Keep commits atomic and well-described</p></li>
+<li><p>Test thoroughly before submitting</p></li>
+</ul>
+<p><strong>PR Submission</strong></p>
+<ul class="simple">
+<li><p>Use clear title and description</p></li>
+<li><p>Include testing information</p></li>
+<li><p>Reference related issues</p></li>
+<li><p>Keep PR focused and reasonably sized</p></li>
+</ul>
+<p><strong>Review Process</strong></p>
+<ul class="simple">
+<li><p>Respond promptly to feedback</p></li>
+<li><p>Be open to suggestions and improvements</p></li>
+<li><p>Ask questions when unclear</p></li>
+<li><p>Update documentation as needed</p></li>
+</ul>
+<p><strong>After Merge</strong></p>
+<ul class="simple">
+<li><p>Clean up your local repository</p></li>
+<li><p>Monitor for any issues introduced</p></li>
+<li><p>Help with follow-up questions or bugs</p></li>
+</ul>
+<p>Contributing to ProteinMD is a collaborative process, and good pull requests make the review process smooth and efficient for everyone involved!</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pull Request Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#before-you-start">Before You Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pre-development-checklist">Pre-Development Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code-quality-checklist">Code Quality Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#submitting-the-pull-request">Submitting the Pull Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#review-process">Review Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#merging-process">Merging Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-issues-and-solutions">Common Issues and Solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quality-gates">Quality Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="git_workflow.html" title="previous chapter">Git Workflow</a></li>
+      <li>Next: <a href="review_process.html" title="next chapter">Review Process</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/pull_request_guide.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

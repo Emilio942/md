@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ProteinMD Documentation &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User Manual" href="user_guide/user_manual.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="proteinmd-documentation">
+<h1>ProteinMD Documentation<a class="headerlink" href="#proteinmd-documentation" title="Link to this heading">¶</a></h1>
+<a class="reference external image-reference" href="#"><img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue.svg" />
+</a>
+<a class="reference external image-reference" href="#"><img alt="Python Version" src="https://img.shields.io/badge/python-3.8+-green.svg" />
+</a>
+<a class="reference external image-reference" href="#"><img alt="Documentation" src="https://img.shields.io/badge/docs-sphinx-brightgreen.svg" />
+</a>
+<p><strong>ProteinMD</strong> is a comprehensive molecular dynamics simulation package designed for protein structure analysis, simulation, and visualization. This documentation provides complete API reference, tutorials, and examples for all functionality.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This documentation was generated automatically from code docstrings and covers all public APIs, complete with examples and cross-references.</p>
+</div>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
+<p>Install and run your first simulation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure.pdb_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDBParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core.simulation</span><span class="w"> </span><span class="kn">import</span> <span class="n">MolecularDynamicsSimulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.forcefield.amber_ff14sb</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+
+<span class="c1"># Load protein structure</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Setup force field</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+
+<span class="c1"># Create and run simulation</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">MolecularDynamicsSimulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">protein</span><span class="p">,</span>
+    <span class="n">force_field</span><span class="o">=</span><span class="n">forcefield</span><span class="p">,</span>
+    <span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span>
+<span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">50000</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>✅ <strong>Complete MD Simulation Stack</strong></dt><dd><ul class="simple">
+<li><p>Advanced force fields (AMBER ff14SB, CHARMM36)</p></li>
+<li><p>Multiple environment models (explicit/implicit solvent)</p></li>
+<li><p>Enhanced sampling methods (umbrella sampling, REMD, steered MD)</p></li>
+</ul>
+</dd>
+<dt>✅ <strong>Comprehensive Analysis Tools</strong></dt><dd><ul class="simple">
+<li><p>RMSD, radius of gyration, Ramachandran plots</p></li>
+<li><p>Secondary structure analysis</p></li>
+<li><p>Hydrogen bond networks</p></li>
+<li><p>Free energy calculations</p></li>
+</ul>
+</dd>
+<dt>✅ <strong>Advanced Visualization</strong></dt><dd><ul class="simple">
+<li><p>3D protein visualization with multiple rendering modes</p></li>
+<li><p>Real-time simulation monitoring</p></li>
+<li><p>Trajectory animations</p></li>
+<li><p>Energy dashboards and analysis plots</p></li>
+</ul>
+</dd>
+<dt>✅ <strong>Production-Ready CLI</strong></dt><dd><ul class="simple">
+<li><p>Complete command-line interface</p></li>
+<li><p>Batch processing capabilities</p></li>
+<li><p>Workflow templates</p></li>
+<li><p>Integration with computational pipelines</p></li>
+</ul>
+</dd>
+<dt>✅ <strong>Scientific Validation</strong></dt><dd><ul class="simple">
+<li><p>Benchmarked against GROMACS, AMBER, and NAMD</p></li>
+<li><p>Comprehensive test suite (&gt;90% coverage goal)</p></li>
+<li><p>Peer-reviewed validation studies</p></li>
+<li><p>Performance optimization</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/user_manual.html">User Manual</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#installation-methods">Installation Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#verification">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#platform-specific-notes">Platform-Specific Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#hpc-clusters">HPC Clusters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#virtual-environments">Virtual Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#core-concepts">Core Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#simulation-protocols">Simulation Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#analysis-and-visualization">Analysis and Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#advanced-techniques">Advanced Techniques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#command-line-interface">Command-Line Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#id1">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#id2">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#reference-information">Reference Information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/user_manual.html#appendices">Appendices</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#quick-installation">Quick Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#installation-methods">Installation Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#verification">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#platform-specific-notes">Platform-Specific Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#hpc-clusters">HPC Clusters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#virtual-environments">Virtual Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#next-steps">Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/installation.html#version-history">Version History</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/quick_start.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/quick_start.html#your-first-simulation-in-5-minutes">Your First Simulation in 5 Minutes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/quick_start.html#basic-example-step-by-step">Basic Example - Step by Step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/quick_start.html#command-line-interface">Command Line Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/quick_start.html#interactive-tutorials">Interactive Tutorials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/quick_start.html#common-workflows">Common Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/quick_start.html#performance-tips">Performance Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/quick_start.html#next-steps">Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/quick_start.html#common-issues">Common Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/tutorials.html#basic-protein-simulation">Basic Protein Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/tutorials.html#advanced-simulation-techniques">Advanced Simulation Techniques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/tutorials.html#analysis-workflows">Analysis Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/tutorials.html#troubleshooting-common-issues">Troubleshooting Common Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/tutorials.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/cli_reference.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#installation-and-setup">Installation and Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#commands-overview">Commands Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#simulate-run-md-simulations">simulate - Run MD Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#analyze-trajectory-analysis">analyze - Trajectory Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#convert-file-format-conversion">convert - File Format Conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#workflow-predefined-workflows">workflow - Predefined Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#batch-batch-processing">batch - Batch Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#validate-structure-validation">validate - Structure Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#configuration-management">Configuration Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#workflow-templates">Workflow Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#hpc-integration">HPC Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli_reference.html#getting-help">Getting Help</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/examples.html#basic-examples">Basic Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/examples.html#intermediate-examples">Intermediate Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/examples.html#advanced-examples">Advanced Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/examples.html#specialized-applications">Specialized Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/examples.html#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html">Core Simulation Engine</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#quick-example">Quick Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#module-proteinMD.core.simulation">Simulation Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#module-proteinMD.core.integrators">Integrators Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#module-proteinMD.core.thermostats">Thermostats Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#module-proteinMD.core.barostats">Barostats Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#module-proteinMD.core.forces">Forces Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#module-proteinMD.core.energy">Energy Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#module-proteinMD.core.trajectory">Trajectory Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#common-usage-patterns">Common Usage Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html">Structure Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#quick-example">Quick Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.pdb_parser">PDB Parser Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.protein">Protein Data Structures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.validation">Structure Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.utils">Structure Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.formats">File Format Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#common-usage-patterns">Common Usage Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html">Force Fields</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#quick-example">Quick Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.amber_ff14sb">AMBER ff14SB Force Field</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.charmm36">CHARMM36 Force Field</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.custom">Custom Force Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.nonbonded">Non-bonded Interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.bonded">Bonded Interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.validation">Parameter Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#common-usage-patterns">Common Usage Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html">Environment Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#quick-example">Quick Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.water">Explicit Water Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.implicit_solvent">Implicit Solvent Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.periodic_boundary">Periodic Boundary Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.ions">Ion Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.membrane">Membrane Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.utils">Environment Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#common-usage-patterns">Common Usage Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html">Analysis Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#quick-example">Quick Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.rmsd">RMSD Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.radius_of_gyration">Radius of Gyration Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.ramachandran">Ramachandran Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.secondary_structure">Secondary Structure Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.hydrogen_bonds">Hydrogen Bond Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.distances">Distance Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.pca">Principal Component Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.free_energy">Free Energy Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.utils">Analysis Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#common-usage-patterns">Common Usage Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html">Sampling Methods API Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#quick-start">Quick Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#monte-carlo-methods">Monte Carlo Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#enhanced-sampling">Enhanced Sampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#free-energy-methods">Free Energy Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#advanced-sampling-techniques">Advanced Sampling Techniques</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#utilities-and-analysis">Utilities and Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#constants-and-configuration">Constants and Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#see-also">See Also</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html">Visualization Tools API Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#quick-start">Quick Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#d-molecular-rendering">3D Molecular Rendering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#trajectory-visualization">Trajectory Visualization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#data-plotting">Data Plotting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#interactive-visualization">Interactive Visualization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#utilities-and-styling">Utilities and Styling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#constants-and-configuration">Constants and Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#see-also">See Also</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html">Utilities API Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#quick-start">Quick Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#mathematical-utilities">Mathematical Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#file-i-o-operations">File I/O Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#data-structures">Data Structures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#performance-tools">Performance Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#configuration-management">Configuration Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#constants-and-utilities">Constants and Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#logging-utilities">Logging Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#see-also">See Also</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html">Command Line Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#quick-example">Quick Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#main-cli-class">Main CLI Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#simulation-commands">Simulation Commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#analysis-commands">Analysis Commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#batch-processing">Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#template-management">Template Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#utility-commands">Utility Commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#configuration-management">Configuration Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#workflow-templates">Workflow Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#command-line-reference">Command Line Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#error-handling-and-logging">Error Handling and Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#common-usage-patterns">Common Usage Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#core-classes">Core Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#analysis-tools">Analysis Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#force-fields">Force Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#environment">Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#sampling-methods">Sampling Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#visualization">Visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core Simulation Engine</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#module-proteinMD.core.simulation">Simulation Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#proteinMD.core.simulation.MolecularDynamicsSimulation"><code class="docutils literal notranslate"><span class="pre">MolecularDynamicsSimulation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#main-simulation-class">Main Simulation Class</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#module-proteinMD.core.integrators">Integrators Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#available-integrators">Available Integrators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#module-proteinMD.core.thermostats">Thermostats Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#temperature-control">Temperature Control</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#module-proteinMD.core.barostats">Barostats Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#pressure-control">Pressure Control</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#module-proteinMD.core.forces">Forces Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#force-calculation-engine">Force Calculation Engine</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#module-proteinMD.core.energy">Energy Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#energy-tracking">Energy Tracking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#module-proteinMD.core.trajectory">Trajectory Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#trajectory-management">Trajectory Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#complete-simulation-setup">Complete Simulation Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#performance-optimization">Performance Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/structure.html">Structure Handling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.pdb_parser">PDB Parser Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#proteinMD.structure.pdb_parser.PDBParser"><code class="docutils literal notranslate"><span class="pre">PDBParser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#main-parser-classes">Main Parser Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.protein">Protein Data Structures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#proteinMD.structure.protein.Atom"><code class="docutils literal notranslate"><span class="pre">Atom</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#proteinMD.structure.protein.Residue"><code class="docutils literal notranslate"><span class="pre">Residue</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#proteinMD.structure.protein.Chain"><code class="docutils literal notranslate"><span class="pre">Chain</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#proteinMD.structure.protein.Protein"><code class="docutils literal notranslate"><span class="pre">Protein</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#proteinMD.structure.protein.ProteinReader"><code class="docutils literal notranslate"><span class="pre">ProteinReader</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#proteinMD.structure.protein.PDBReader"><code class="docutils literal notranslate"><span class="pre">PDBReader</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#proteinMD.structure.protein.Membrane"><code class="docutils literal notranslate"><span class="pre">Membrane</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#core-classes">Core Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.validation">Structure Validation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#validation-tools">Validation Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.utils">Structure Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#utility-functions">Utility Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#module-proteinMD.structure.formats">File Format Support</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#multiple-format-support">Multiple Format Support</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#loading-and-analyzing-structures">Loading and Analyzing Structures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#structure-comparison">Structure Comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#trajectory-processing">Trajectory Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/structure.html#custom-structure-creation">Custom Structure Creation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/structure.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/forcefield.html">Force Fields</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.amber_ff14sb">AMBER ff14SB Force Field</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#proteinMD.forcefield.amber_ff14sb.AmberFF14SB"><code class="docutils literal notranslate"><span class="pre">AmberFF14SB</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#proteinMD.forcefield.amber_ff14sb.create_amber_ff14sb"><code class="docutils literal notranslate"><span class="pre">create_amber_ff14sb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#main-force-field-class">Main Force Field Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#parameter-classes">Parameter Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.charmm36">CHARMM36 Force Field</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#proteinMD.forcefield.charmm36.CHARMMAtomTypeParameters"><code class="docutils literal notranslate"><span class="pre">CHARMMAtomTypeParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#proteinMD.forcefield.charmm36.CHARMMBondParameters"><code class="docutils literal notranslate"><span class="pre">CHARMMBondParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#proteinMD.forcefield.charmm36.CHARMMAngleParameters"><code class="docutils literal notranslate"><span class="pre">CHARMMAngleParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#proteinMD.forcefield.charmm36.CHARMMDihedralParameters"><code class="docutils literal notranslate"><span class="pre">CHARMMDihedralParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#proteinMD.forcefield.charmm36.PSFParser"><code class="docutils literal notranslate"><span class="pre">PSFParser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#proteinMD.forcefield.charmm36.CHARMM36"><code class="docutils literal notranslate"><span class="pre">CHARMM36</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#charmm-implementation">CHARMM Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.custom">Custom Force Fields</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#custom-force-field-framework">Custom Force Field Framework</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#parameter-file-formats">Parameter File Formats</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.nonbonded">Non-bonded Interactions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#lennard-jones-interactions">Lennard-Jones Interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#electrostatic-interactions">Electrostatic Interactions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.bonded">Bonded Interactions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#bond-potentials">Bond Potentials</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#angle-potentials">Angle Potentials</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#dihedral-potentials">Dihedral Potentials</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#module-proteinMD.forcefield.validation">Parameter Validation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#force-field-validation">Force Field Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#complete-force-field-setup">Complete Force Field Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#energy-component-analysis">Energy Component Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#custom-parameter-modification">Custom Parameter Modification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#force-field-comparison">Force Field Comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/forcefield.html#performance-optimization">Performance Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/forcefield.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/environment.html">Environment Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.water">Explicit Water Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.water.TIP3PWaterModel"><code class="docutils literal notranslate"><span class="pre">TIP3PWaterModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.water.WaterSolvationBox"><code class="docutils literal notranslate"><span class="pre">WaterSolvationBox</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.water.create_pure_water_box"><code class="docutils literal notranslate"><span class="pre">create_pure_water_box()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.water.WaterSystem"><code class="docutils literal notranslate"><span class="pre">WaterSystem</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#tip3p-water-model">TIP3P Water Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#tip4p-water-model">TIP4P Water Model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.implicit_solvent">Implicit Solvent Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.GBModel"><code class="docutils literal notranslate"><span class="pre">GBModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.SAModel"><code class="docutils literal notranslate"><span class="pre">SAModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.AtomGBParameters"><code class="docutils literal notranslate"><span class="pre">AtomGBParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.GBSAParameters"><code class="docutils literal notranslate"><span class="pre">GBSAParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.GeneralizedBornModel"><code class="docutils literal notranslate"><span class="pre">GeneralizedBornModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.SurfaceAreaModel"><code class="docutils literal notranslate"><span class="pre">SurfaceAreaModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.ImplicitSolventModel"><code class="docutils literal notranslate"><span class="pre">ImplicitSolventModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.ImplicitSolventForceTerm"><code class="docutils literal notranslate"><span class="pre">ImplicitSolventForceTerm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.create_default_implicit_solvent"><code class="docutils literal notranslate"><span class="pre">create_default_implicit_solvent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.implicit_solvent.benchmark_implicit_vs_explicit"><code class="docutils literal notranslate"><span class="pre">benchmark_implicit_vs_explicit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#generalized-born-model">Generalized Born Model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.periodic_boundary">Periodic Boundary Conditions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.BoxType"><code class="docutils literal notranslate"><span class="pre">BoxType</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox"><code class="docutils literal notranslate"><span class="pre">PeriodicBox</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.PressureCoupling"><code class="docutils literal notranslate"><span class="pre">PressureCoupling</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBoundaryConditions"><code class="docutils literal notranslate"><span class="pre">PeriodicBoundaryConditions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.create_cubic_box"><code class="docutils literal notranslate"><span class="pre">create_cubic_box()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.create_orthogonal_box"><code class="docutils literal notranslate"><span class="pre">create_orthogonal_box()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.create_triclinic_box"><code class="docutils literal notranslate"><span class="pre">create_triclinic_box()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.minimum_image_distance"><code class="docutils literal notranslate"><span class="pre">minimum_image_distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.validate_minimum_image_convention"><code class="docutils literal notranslate"><span class="pre">validate_minimum_image_convention()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.validate_box_types"><code class="docutils literal notranslate"><span class="pre">validate_box_types()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#proteinMD.environment.periodic_boundary.validate_pressure_coupling"><code class="docutils literal notranslate"><span class="pre">validate_pressure_coupling()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#pbc-implementation">PBC Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.ions">Ion Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#ion-management">Ion Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.membrane">Membrane Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#lipid-bilayer-models">Lipid Bilayer Models</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#module-proteinMD.environment.utils">Environment Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#utility-functions">Utility Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#complete-solvation-setup">Complete Solvation Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#implicit-vs-explicit-solvent-comparison">Implicit vs Explicit Solvent Comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#membrane-protein-setup">Membrane Protein Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#custom-environment-setup">Custom Environment Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/environment.html#performance-considerations">Performance Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/environment.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/analysis.html">Analysis Tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.rmsd">RMSD Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.rmsd.kabsch_algorithm"><code class="docutils literal notranslate"><span class="pre">kabsch_algorithm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.rmsd.calculate_rmsd"><code class="docutils literal notranslate"><span class="pre">calculate_rmsd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.rmsd.align_structures"><code class="docutils literal notranslate"><span class="pre">align_structures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.rmsd.RMSDAnalyzer"><code class="docutils literal notranslate"><span class="pre">RMSDAnalyzer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.rmsd.create_rmsd_analyzer"><code class="docutils literal notranslate"><span class="pre">create_rmsd_analyzer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#rmsd-calculator">RMSD Calculator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.radius_of_gyration">Radius of Gyration Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.radius_of_gyration.calculate_center_of_mass"><code class="docutils literal notranslate"><span class="pre">calculate_center_of_mass()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.radius_of_gyration.calculate_radius_of_gyration"><code class="docutils literal notranslate"><span class="pre">calculate_radius_of_gyration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.radius_of_gyration.calculate_segmental_rg"><code class="docutils literal notranslate"><span class="pre">calculate_segmental_rg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.radius_of_gyration.RadiusOfGyrationAnalyzer"><code class="docutils literal notranslate"><span class="pre">RadiusOfGyrationAnalyzer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.radius_of_gyration.create_rg_analyzer"><code class="docutils literal notranslate"><span class="pre">create_rg_analyzer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#radius-of-gyration-calculator">Radius of Gyration Calculator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.ramachandran">Ramachandran Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.ramachandran.calculate_dihedral_angle"><code class="docutils literal notranslate"><span class="pre">calculate_dihedral_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.ramachandran.get_backbone_atoms"><code class="docutils literal notranslate"><span class="pre">get_backbone_atoms()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.ramachandran.calculate_phi_psi_angles"><code class="docutils literal notranslate"><span class="pre">calculate_phi_psi_angles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.ramachandran.RamachandranAnalyzer"><code class="docutils literal notranslate"><span class="pre">RamachandranAnalyzer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.ramachandran.create_ramachandran_analyzer"><code class="docutils literal notranslate"><span class="pre">create_ramachandran_analyzer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#ramachandran-plot-generator">Ramachandran Plot Generator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.secondary_structure">Secondary Structure Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.secondary_structure.calculate_dihedral_angle"><code class="docutils literal notranslate"><span class="pre">calculate_dihedral_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.secondary_structure.get_backbone_atoms"><code class="docutils literal notranslate"><span class="pre">get_backbone_atoms()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.secondary_structure.calculate_hydrogen_bond_energy"><code class="docutils literal notranslate"><span class="pre">calculate_hydrogen_bond_energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.secondary_structure.identify_hydrogen_bonds"><code class="docutils literal notranslate"><span class="pre">identify_hydrogen_bonds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.secondary_structure.assign_secondary_structure_dssp"><code class="docutils literal notranslate"><span class="pre">assign_secondary_structure_dssp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.secondary_structure.SecondaryStructureAnalyzer"><code class="docutils literal notranslate"><span class="pre">SecondaryStructureAnalyzer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.secondary_structure.create_secondary_structure_analyzer"><code class="docutils literal notranslate"><span class="pre">create_secondary_structure_analyzer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#secondary-structure-analyzer">Secondary Structure Analyzer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.hydrogen_bonds">Hydrogen Bond Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBond"><code class="docutils literal notranslate"><span class="pre">HydrogenBond</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondDetector"><code class="docutils literal notranslate"><span class="pre">HydrogenBondDetector</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.hydrogen_bonds.HydrogenBondAnalyzer"><code class="docutils literal notranslate"><span class="pre">HydrogenBondAnalyzer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.hydrogen_bonds.analyze_hydrogen_bonds"><code class="docutils literal notranslate"><span class="pre">analyze_hydrogen_bonds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#proteinMD.analysis.hydrogen_bonds.quick_hydrogen_bond_summary"><code class="docutils literal notranslate"><span class="pre">quick_hydrogen_bond_summary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#hydrogen-bond-analyzer">Hydrogen Bond Analyzer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.distances">Distance Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#distance-calculator">Distance Calculator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.pca">Principal Component Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#pca-analyzer">PCA Analyzer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.free_energy">Free Energy Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#free-energy-calculator">Free Energy Calculator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#module-proteinMD.analysis.utils">Analysis Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#utility-functions">Utility Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#complete-trajectory-analysis">Complete Trajectory Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#conformational-clustering">Conformational Clustering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#free-energy-landscape-analysis">Free Energy Landscape Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/analysis.html#time-resolved-analysis">Time-resolved Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/sampling.html">Sampling Methods API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#monte-carlo-methods">Monte Carlo Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#metropolismc">MetropolisMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#paralleltempering">ParallelTempering</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#enhanced-sampling">Enhanced Sampling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#umbrellasampling">UmbrellaSampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#metadynamics">Metadynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#replicaexchangemd">ReplicaExchangeMD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#free-energy-methods">Free Energy Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#thermodynamicintegration">ThermodynamicIntegration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#freeenergyperturbation">FreeEnergyPerturbation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#advanced-sampling-techniques">Advanced Sampling Techniques</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#acceleratedmd">AcceleratedMD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#steeredmd">SteeredMD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#adaptivesampling">AdaptiveSampling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#utilities-and-analysis">Utilities and Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/sampling.html#samplinganalyzer">SamplingAnalyzer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#constants-and-configuration">Constants and Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#see-also">See Also</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/sampling.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/visualization.html">Visualization Tools API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#d-molecular-rendering">3D Molecular Rendering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#molecularviewer">MolecularViewer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#pymolrenderer">PyMOLRenderer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#vmdrenderer">VMDRenderer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#nglviewer">NGLViewer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#trajectory-visualization">Trajectory Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#trajectoryplayer">TrajectoryPlayer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#animationcreator">AnimationCreator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#data-plotting">Data Plotting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#scientificplotter">ScientificPlotter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#heatmapgenerator">HeatmapGenerator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#interactive-visualization">Interactive Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#jupytervisualizer">JupyterVisualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#webviewer">WebViewer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#utilities-and-styling">Utilities and Styling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#colorschemes">ColorSchemes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#renderingengine">RenderingEngine</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#constants-and-configuration">Constants and Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#see-also">See Also</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/cli.html">Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#quick-example">Quick Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#main-cli-class">Main CLI Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#proteinMD.cli.ProteinMDCLI"><code class="docutils literal notranslate"><span class="pre">ProteinMDCLI</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#simulation-commands">Simulation Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#run-simulation">Run Simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#analysis-commands">Analysis Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#run-analysis">Run Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#batch-processing">Batch Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#batch-process">Batch Process</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#template-management">Template Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#create-template">Create Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#list-templates">List Templates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#utility-commands">Utility Commands</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#validate-setup">Validate Setup</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#configuration-management">Configuration Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#workflow-templates">Workflow Templates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#built-in-templates">Built-in Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#configuration-hierarchy">Configuration Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#command-line-reference">Command Line Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#complete-command-syntax">Complete Command Syntax</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#error-handling-and-logging">Error Handling and Logging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#return-codes">Return Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#logging-configuration">Logging Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#common-usage-patterns">Common Usage Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#complete-workflow-example">Complete Workflow Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#high-throughput-processing">High-Throughput Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#script-integration">Script Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#python-integration">Python Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cli.html#performance-optimization">Performance Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cli.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/utils.html">Utilities API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#mathematical-utilities">Mathematical Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#vectormath">VectorMath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#statisticalanalysis">StatisticalAnalysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#numericalmethods">NumericalMethods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#linearalgebra">LinearAlgebra</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#file-i-o-operations">File I/O Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#filemanager">FileManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#formatconverter">FormatConverter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#datareader">DataReader</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#data-structures">Data Structures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#atomicdata">AtomicData</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#moleculargraph">MolecularGraph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#parameterset">ParameterSet</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#performance-tools">Performance Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#timer">Timer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#profiler">Profiler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#memorymanager">MemoryManager</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#configuration-management">Configuration Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#configmanager">ConfigManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#progressbar">ProgressBar</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#constants-and-utilities">Constants and Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#logging-utilities">Logging Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#logger">Logger</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#see-also">See Also</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#references">References</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="advanced/scientific_background.html">Scientific Background and Theory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced/md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/best_practices.html">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/performance.html">Performance Optimization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced/performance.html#hardware-considerations">Hardware Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/performance.html#algorithm-optimization">Algorithm Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/performance.html#system-specific-optimizations">System-Specific Optimizations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/performance.html#performance-monitoring">Performance Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/performance.html#platform-specific-optimizations">Platform-Specific Optimizations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/performance.html#performance-tuning-guidelines">Performance Tuning Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/performance.html#troubleshooting-performance-issues">Troubleshooting Performance Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/performance.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/validation.html">Validation and Quality Assurance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced/validation.html#pre-simulation-validation">Pre-Simulation Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/validation.html#simulation-validation">Simulation Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/validation.html#statistical-validation">Statistical Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/validation.html#comparative-validation">Comparative Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/validation.html#validation-reporting">Validation Reporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/validation.html#validation-best-practices">Validation Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/validation.html#common-validation-issues">Common Validation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/validation.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/extending.html">Extending ProteinMD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced/extending.html#custom-force-fields">Custom Force Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/extending.html#custom-integrators">Custom Integrators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/extending.html#custom-analysis-methods">Custom Analysis Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/extending.html#custom-sampling-methods">Custom Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/extending.html#plugin-system">Plugin System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/extending.html#testing-extensions">Testing Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/extending.html#distribution-and-packaging">Distribution and Packaging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/extending.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/troubleshooting.html">Troubleshooting Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#installation-issues">Installation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#structure-preparation-issues">Structure Preparation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#force-field-issues">Force Field Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#simulation-setup-issues">Simulation Setup Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#runtime-simulation-issues">Runtime Simulation Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#performance-issues">Performance Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#analysis-issues">Analysis Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#common-error-messages">Common Error Messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/troubleshooting.html#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/developer_guide.html">ProteinMD Developer Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#quick-start-for-developers">Quick Start for Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#core-documentation">Core Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#contributing-workflow">Contributing Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#key-development-areas">Key Development Areas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/developer_guide.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/architecture.html">Software Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#overall-architecture">Overall Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#module-architecture">Module Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#data-flow-architecture">Data Flow Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#backend-architecture">Backend Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#configuration-management">Configuration Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#performance-architecture">Performance Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#error-handling-and-logging">Error Handling and Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#testing-architecture">Testing Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/architecture.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/contributing.html">Contributing to ProteinMD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/contributing.html#code-guidelines">Code Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/contributing.html#testing-guidelines">Testing Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/contributing.html#pull-request-process">Pull Request Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/contributing.html#types-of-contributions">Types of Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/contributing.html#community-guidelines">Community Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/contributing.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/contributing.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/coding_standards.html">Coding Standards and Style Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#python-code-style">Python Code Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#documentation-standards">Documentation Standards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#code-organization">Code Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#performance-guidelines">Performance Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#testing-guidelines">Testing Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#git-and-version-control">Git and Version Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#code-review-standards">Code Review Standards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#quality-assurance-tools">Quality Assurance Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/coding_standards.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/api_design.html">API Design Principles</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#core-design-philosophy">Core Design Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#api-patterns">API Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#error-handling-patterns">Error Handling Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#data-access-patterns">Data Access Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#extensibility-patterns">Extensibility Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#version-compatibility">Version Compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#documentation-in-code">Documentation in Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#testing-api-design">Testing API Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/api_design.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/testing.html">Testing Framework</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#test-organization">Test Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#test-utilities">Test Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#test-fixtures">Test Fixtures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#test-configuration">Test Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#continuous-integration">Continuous Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#test-data-management">Test Data Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#test-reporting">Test Reporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/testing.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/documentation.html">Documentation Guidelines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html#documentation-structure">Documentation Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html#writing-documentation">Writing Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html#api-documentation">API Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html#building-documentation">Building Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html#documentation-quality">Documentation Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html#accessibility">Accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html#maintenance">Maintenance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/documentation.html#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/git_workflow.html">Git Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#branching-strategy">Branching Strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#workflow-for-contributors">Workflow for Contributors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#commit-guidelines">Commit Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#branch-management">Branch Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#advanced-git-workflows">Advanced Git Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#release-workflow">Release Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#collaboration-patterns">Collaboration Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#emergency-procedures">Emergency Procedures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#tools-and-aliases">Tools and Aliases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/git_workflow.html#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/pull_request_guide.html">Pull Request Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#before-you-start">Before You Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#pre-development-checklist">Pre-Development Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#code-quality-checklist">Code Quality Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#submitting-the-pull-request">Submitting the Pull Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#review-process">Review Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#merging-process">Merging Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#common-issues-and-solutions">Common Issues and Solutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#quality-gates">Quality Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/pull_request_guide.html#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/review_process.html">Review Process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/review_process.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/review_process.html#review-process-workflow">Review Process Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/review_process.html#types-of-reviews">Types of Reviews</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/review_process.html#review-guidelines">Review Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/review_process.html#advanced-review-scenarios">Advanced Review Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/review_process.html#review-tools-and-automation">Review Tools and Automation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/review_process.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/review_process.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/release_process.html">Release Process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#release-planning">Release Planning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#release-process-workflow">Release Process Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#distribution">Distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#post-release-activities">Post-Release Activities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#hotfix-process">Hotfix Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#quality-assurance">Quality Assurance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/release_process.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/performance_guide.html">Performance Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/performance_guide.html#performance-philosophy">Performance Philosophy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/performance_guide.html#profiling-and-benchmarking">Profiling and Benchmarking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/performance_guide.html#optimization-strategies">Optimization Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/performance_guide.html#performance-testing">Performance Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/performance_guide.html#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+</div>
+</section>
+<section id="module-overview">
+<h2>Module Overview<a class="headerlink" href="#module-overview" title="Link to this heading">¶</a></h2>
+<section id="core-modules">
+<h3>Core Modules<a class="headerlink" href="#core-modules" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.core</span></code></dt><dd><p>Core simulation engine and molecular dynamics algorithms</p>
+</dd>
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.structure</span></code></dt><dd><p>Protein structure handling, PDB parsing, and molecular representations</p>
+</dd>
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.forcefield</span></code></dt><dd><p>Force field implementations (AMBER ff14SB, CHARMM36, custom)</p>
+</dd>
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.environment</span></code></dt><dd><p>Simulation environment setup (water models, periodic boundaries, implicit solvent)</p>
+</dd>
+</dl>
+</section>
+<section id="analysis-sampling">
+<h3>Analysis &amp; Sampling<a class="headerlink" href="#analysis-sampling" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.analysis</span></code></dt><dd><p>Analysis tools for trajectory data (RMSD, Rg, secondary structure, H-bonds)</p>
+</dd>
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.sampling</span></code></dt><dd><p>Enhanced sampling methods (umbrella sampling, replica exchange, steered MD)</p>
+</dd>
+</dl>
+</section>
+<section id="visualization-interface">
+<h3>Visualization &amp; Interface<a class="headerlink" href="#visualization-interface" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.visualization</span></code></dt><dd><p>3D visualization, trajectory animation, energy plots, real-time monitoring</p>
+</dd>
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.cli</span></code></dt><dd><p>Command-line interface for automated workflows and batch processing</p>
+</dd>
+</dl>
+</section>
+<section id="utilities-validation">
+<h3>Utilities &amp; Validation<a class="headerlink" href="#utilities-validation" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.utils</span></code></dt><dd><p>Utility functions, benchmarking tools, and helper classes</p>
+</dd>
+<dt><code class="xref py py-mod docutils literal notranslate"><span class="pre">proteinMD.validation</span></code></dt><dd><p>Scientific validation framework and performance benchmarking</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="quick-links">
+<h2>Quick Links<a class="headerlink" href="#quick-links" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="user_guide/installation.html"><span class="doc">Installation</span></a> - Get started with installation</p></li>
+<li><p><a class="reference internal" href="user_guide/quick_start.html"><span class="doc">Quick Start</span></a> - Your first simulation in 5 minutes</p></li>
+<li><p><a class="reference internal" href="api/core.html"><span class="doc">Core Simulation Engine</span></a> - Core simulation engine API</p></li>
+<li><p><a class="reference internal" href="user_guide/cli_reference.html"><span class="doc">CLI Reference</span></a> - Complete CLI documentation</p></li>
+<li><p><a class="reference internal" href="advanced/performance.html"><span class="doc">Performance Optimization</span></a> - Performance optimization guide</p></li>
+<li><p><a class="reference internal" href="developer/contributing.html"><span class="doc">Contributing to ProteinMD</span></a> - Contributing to ProteinMD</p></li>
+</ul>
+</section>
+<section id="search-and-index">
+<h2>Search and Index<a class="headerlink" href="#search-and-index" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a> - General index of all functions and classes</p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a> - Module index with all packages</p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a> - Full-text search across documentation</p></li>
+</ul>
+</section>
+<section id="recent-updates">
+<h2>Recent Updates<a class="headerlink" href="#recent-updates" title="Link to this heading">¶</a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 1.0.0: </span>Initial release with complete MD simulation stack, comprehensive analysis tools,
+and production-ready CLI interface. Full validation against established MD software.</p>
+</div>
+</section>
+<section id="support-and-community">
+<h2>Support and Community<a class="headerlink" href="#support-and-community" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Issues</strong>: Report bugs and request features on GitHub</p></li>
+<li><p><strong>Discussions</strong>: Join the community discussions</p></li>
+<li><p><strong>Citation</strong>: See <a class="reference internal" href="about/citation.html"><span class="doc">Citation Guide</span></a> for how to cite ProteinMD in publications</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>ProteinMD is actively developed and maintained. This documentation is automatically
+updated with each release to reflect the latest API changes and new features.</p>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="advanced/scientific_background.html">Scientific Background and Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="user_guide/user_manual.html" title="next chapter">User Manual</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

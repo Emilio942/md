@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Visualization Tools API Reference &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utilities API Reference" href="utils.html" />
+    <link rel="prev" title="Sampling Methods API Reference" href="sampling.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="visualization-tools-api-reference">
+<h1>Visualization Tools API Reference<a class="headerlink" href="#visualization-tools-api-reference" title="Link to this heading">¶</a></h1>
+<p>The visualization module provides comprehensive tools for creating publication-quality
+molecular visualizations, trajectory animations, and data plots for molecular dynamics simulations.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The visualization module includes:</p>
+<ul class="simple">
+<li><p><strong>3D Molecular Rendering</strong> - PyMOL and VMD integration with custom renderers</p></li>
+<li><p><strong>Trajectory Visualization</strong> - Animation tools and trajectory players</p></li>
+<li><p><strong>Data Plotting</strong> - Scientific plots for analysis results</p></li>
+<li><p><strong>Interactive Visualization</strong> - Web-based and Jupyter notebook integration</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
+<p>Basic protein visualization:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">MolecularViewer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protein</span>
+
+<span class="c1"># Load protein structure</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create viewer</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">MolecularViewer</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s1">&#39;pymol&#39;</span><span class="p">)</span>
+
+<span class="c1"># Visualize structure</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">show_structure</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;cartoon&#39;</span><span class="p">)</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">color_by_secondary_structure</span><span class="p">()</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">save_image</span><span class="p">(</span><span class="s1">&#39;protein_structure.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="d-molecular-rendering">
+<h2>3D Molecular Rendering<a class="headerlink" href="#d-molecular-rendering" title="Link to this heading">¶</a></h2>
+<section id="molecularviewer">
+<h3>MolecularViewer<a class="headerlink" href="#molecularviewer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Advanced protein visualization</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">MolecularViewer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protein</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">SecondaryStructure</span>
+
+<span class="c1"># Load protein and analyze</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">ss_analyzer</span> <span class="o">=</span> <span class="n">SecondaryStructure</span><span class="p">()</span>
+<span class="n">ss_data</span> <span class="o">=</span> <span class="n">ss_analyzer</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Create high-quality viewer</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">MolecularViewer</span><span class="p">(</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;pymol&#39;</span><span class="p">,</span>
+    <span class="n">quality</span><span class="o">=</span><span class="s1">&#39;high&#39;</span><span class="p">,</span>
+    <span class="n">ray_tracing</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup visualization</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">load_structure</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Custom styling</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span><span class="p">)</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="s1">&#39;sticks&#39;</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;ligand&#39;</span><span class="p">)</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="s1">&#39;spheres&#39;</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;water and name O&#39;</span><span class="p">)</span>
+
+<span class="c1"># Color by secondary structure</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">color_by_secondary_structure</span><span class="p">(</span><span class="n">ss_data</span><span class="p">)</span>
+
+<span class="c1"># Add surface representation</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">show_surface</span><span class="p">(</span>
+    <span class="n">transparency</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">color_by</span><span class="o">=</span><span class="s1">&#39;electrostatic&#39;</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Set camera and lighting</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">set_camera_position</span><span class="p">([</span><span class="mi">30</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">set_lighting</span><span class="p">(</span><span class="s1">&#39;dramatic&#39;</span><span class="p">)</span>
+
+<span class="c1"># Save high-resolution image</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">save_image</span><span class="p">(</span>
+    <span class="s1">&#39;protein_detailed.png&#39;</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">1920</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1080</span><span class="p">,</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">antialias</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="pymolrenderer">
+<h3>PyMOLRenderer<a class="headerlink" href="#pymolrenderer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: PyMOL-specific rendering</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">PyMOLRenderer</span>
+
+<span class="c1"># Create PyMOL renderer</span>
+<span class="n">pymol</span> <span class="o">=</span> <span class="n">PyMOLRenderer</span><span class="p">(</span><span class="n">session_name</span><span class="o">=</span><span class="s1">&#39;md_analysis&#39;</span><span class="p">)</span>
+
+<span class="c1"># Load structures</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">load_structure</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">,</span> <span class="n">object_name</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span><span class="p">)</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">load_trajectory</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;protein&#39;</span><span class="p">)</span>
+
+<span class="c1"># Apply visual styles</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span> <span class="s1">&#39;protein&#39;</span><span class="p">)</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s1">&#39;spectrum&#39;</span><span class="p">,</span> <span class="s1">&#39;protein&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create custom selection</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;active_site&#39;</span><span class="p">,</span> <span class="s1">&#39;resi 25+30+45&#39;</span><span class="p">)</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="s1">&#39;sticks&#39;</span><span class="p">,</span> <span class="s1">&#39;active_site&#39;</span><span class="p">)</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;active_site&#39;</span><span class="p">)</span>
+
+<span class="c1"># Generate movie</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">create_movie</span><span class="p">(</span>
+    <span class="n">frames</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span>
+    <span class="n">output</span><span class="o">=</span><span class="s1">&#39;protein_movie.mp4&#39;</span><span class="p">,</span>
+    <span class="n">fps</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+
+<span class="c1"># Ray trace final frame</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">ray</span><span class="p">(</span><span class="mi">1920</span><span class="p">,</span> <span class="mi">1080</span><span class="p">)</span>
+<span class="n">pymol</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">png</span><span class="p">(</span><span class="s1">&#39;final_frame.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="vmdrenderer">
+<h3>VMDRenderer<a class="headerlink" href="#vmdrenderer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: VMD visualization and scripting</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">VMDRenderer</span>
+
+<span class="c1"># Create VMD renderer</span>
+<span class="n">vmd</span> <span class="o">=</span> <span class="n">VMDRenderer</span><span class="p">()</span>
+
+<span class="c1"># Load data</span>
+<span class="n">mol_id</span> <span class="o">=</span> <span class="n">vmd</span><span class="o">.</span><span class="n">load_structure</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">vmd</span><span class="o">.</span><span class="n">load_trajectory</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="n">mol_id</span><span class="p">)</span>
+
+<span class="c1"># Create custom representation</span>
+<span class="n">rep_id</span> <span class="o">=</span> <span class="n">vmd</span><span class="o">.</span><span class="n">add_representation</span><span class="p">(</span>
+    <span class="n">mol_id</span><span class="o">=</span><span class="n">mol_id</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="s1">&#39;NewCartoon&#39;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;ResType&#39;</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Add surface representation</span>
+<span class="n">surface_rep</span> <span class="o">=</span> <span class="n">vmd</span><span class="o">.</span><span class="n">add_representation</span><span class="p">(</span>
+    <span class="n">mol_id</span><span class="o">=</span><span class="n">mol_id</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="s1">&#39;QuickSurf&#39;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;ColorID 1&#39;</span><span class="p">,</span>
+    <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span><span class="p">,</span>
+    <span class="n">material</span><span class="o">=</span><span class="s1">&#39;Transparent&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Animate trajectory</span>
+<span class="n">vmd</span><span class="o">.</span><span class="n">animate_trajectory</span><span class="p">(</span>
+    <span class="n">start_frame</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">end_frame</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">output</span><span class="o">=</span><span class="s1">&#39;trajectory_movie.mp4&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Execute custom TCL script</span>
+<span class="n">vmd</span><span class="o">.</span><span class="n">execute_script</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">    display projection orthographic</span>
+<span class="s1">    axes location off</span>
+<span class="s1">    color Display Background white</span>
+<span class="s1">    material change ambient Transparent 0.3</span>
+<span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="nglviewer">
+<h3>NGLViewer<a class="headerlink" href="#nglviewer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Interactive web-based visualization</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">NGLViewer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ipywidgets</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">widgets</span>
+
+<span class="c1"># Create NGL viewer for Jupyter</span>
+<span class="n">ngl</span> <span class="o">=</span> <span class="n">NGLViewer</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+
+<span class="c1"># Load structure</span>
+<span class="n">ngl</span><span class="o">.</span><span class="n">add_structure</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add multiple representations</span>
+<span class="n">ngl</span><span class="o">.</span><span class="n">add_representation</span><span class="p">(</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;residueindex&#39;</span><span class="p">)</span>
+<span class="n">ngl</span><span class="o">.</span><span class="n">add_representation</span><span class="p">(</span><span class="s1">&#39;ball+stick&#39;</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;ligand&#39;</span><span class="p">)</span>
+<span class="n">ngl</span><span class="o">.</span><span class="n">add_representation</span><span class="p">(</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span>
+                      <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span><span class="p">,</span>
+                      <span class="n">opacity</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+                      <span class="n">color</span><span class="o">=</span><span class="s1">&#39;hydrophobicity&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create interactive controls</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_representation</span><span class="p">(</span><span class="n">representation_type</span><span class="p">):</span>
+    <span class="n">ngl</span><span class="o">.</span><span class="n">clear_representations</span><span class="p">()</span>
+    <span class="n">ngl</span><span class="o">.</span><span class="n">add_representation</span><span class="p">(</span><span class="n">representation_type</span><span class="p">)</span>
+
+<span class="n">rep_dropdown</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+    <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span> <span class="s1">&#39;ball+stick&#39;</span><span class="p">,</span> <span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="s1">&#39;ribbon&#39;</span><span class="p">],</span>
+    <span class="n">value</span><span class="o">=</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Style:&#39;</span>
+<span class="p">)</span>
+
+<span class="n">widgets</span><span class="o">.</span><span class="n">interact</span><span class="p">(</span><span class="n">update_representation</span><span class="p">,</span>
+                <span class="n">representation_type</span><span class="o">=</span><span class="n">rep_dropdown</span><span class="p">)</span>
+
+<span class="c1"># Display viewer</span>
+<span class="n">display</span><span class="p">(</span><span class="n">ngl</span><span class="o">.</span><span class="n">widget</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="trajectory-visualization">
+<h2>Trajectory Visualization<a class="headerlink" href="#trajectory-visualization" title="Link to this heading">¶</a></h2>
+<section id="trajectoryplayer">
+<h3>TrajectoryPlayer<a class="headerlink" href="#trajectoryplayer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Interactive trajectory playback</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajectoryPlayer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Trajectory</span>
+
+<span class="c1"># Load trajectory</span>
+<span class="n">trajectory</span> <span class="o">=</span> <span class="n">Trajectory</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create player</span>
+<span class="n">player</span> <span class="o">=</span> <span class="n">TrajectoryPlayer</span><span class="p">(</span>
+    <span class="n">trajectory</span><span class="o">=</span><span class="n">trajectory</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;ngl&#39;</span><span class="p">,</span>
+    <span class="n">controls</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Configure playback</span>
+<span class="n">player</span><span class="o">.</span><span class="n">set_frame_rate</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>  <span class="c1"># fps</span>
+<span class="n">player</span><span class="o">.</span><span class="n">set_loop</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">player</span><span class="o">.</span><span class="n">set_quality</span><span class="p">(</span><span class="s1">&#39;high&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add visualization layers</span>
+<span class="n">player</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="s1">&#39;protein&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;cartoon&#39;</span><span class="p">)</span>
+<span class="n">player</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="s1">&#39;ligand&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;ball+stick&#39;</span><span class="p">)</span>
+<span class="n">player</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;name O&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add measurement overlay</span>
+<span class="n">player</span><span class="o">.</span><span class="n">add_measurement</span><span class="p">(</span>
+    <span class="s1">&#39;distance&#39;</span><span class="p">,</span>
+    <span class="n">atoms</span><span class="o">=</span><span class="p">[(</span><span class="mi">100</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">)],</span>
+    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Helix distance&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Start interactive session</span>
+<span class="n">player</span><span class="o">.</span><span class="n">play</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="animationcreator">
+<h3>AnimationCreator<a class="headerlink" href="#animationcreator" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Custom animation creation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnimationCreator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">RMSD</span><span class="p">,</span> <span class="n">RadiusOfGyration</span>
+
+<span class="c1"># Create animation with analysis overlay</span>
+<span class="n">animator</span> <span class="o">=</span> <span class="n">AnimationCreator</span><span class="p">(</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s1">&#39;mp4&#39;</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="p">(</span><span class="mi">1920</span><span class="p">,</span> <span class="mi">1080</span><span class="p">),</span>
+    <span class="n">fps</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+
+<span class="c1"># Load trajectory</span>
+<span class="n">animator</span><span class="o">.</span><span class="n">load_trajectory</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Setup main visualization</span>
+<span class="n">animator</span><span class="o">.</span><span class="n">add_structure_view</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span>
+    <span class="n">color_scheme</span><span class="o">=</span><span class="s1">&#39;bfactor&#39;</span><span class="p">,</span>
+    <span class="n">position</span><span class="o">=</span><span class="s1">&#39;left&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Add analysis plots</span>
+<span class="n">rmsd_analyzer</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">()</span>
+<span class="n">rmsd_data</span> <span class="o">=</span> <span class="n">rmsd_analyzer</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+
+<span class="n">animator</span><span class="o">.</span><span class="n">add_plot</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">rmsd_data</span><span class="p">,</span>
+    <span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;line&#39;</span><span class="p">,</span>
+    <span class="n">position</span><span class="o">=</span><span class="s1">&#39;top_right&#39;</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;RMSD vs Time&#39;</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Time (ps)&#39;</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;RMSD (Å)&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Add progress indicator</span>
+<span class="n">animator</span><span class="o">.</span><span class="n">add_progress_indicator</span><span class="p">(</span>
+    <span class="n">rmsd_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+    <span class="n">style</span><span class="o">=</span><span class="s1">&#39;vertical_line&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Render animation</span>
+<span class="n">animator</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;protein_dynamics.mp4&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-plotting">
+<h2>Data Plotting<a class="headerlink" href="#data-plotting" title="Link to this heading">¶</a></h2>
+<section id="scientificplotter">
+<h3>ScientificPlotter<a class="headerlink" href="#scientificplotter" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Publication-quality plots</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScientificPlotter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">RMSD</span><span class="p">,</span> <span class="n">RMSF</span><span class="p">,</span> <span class="n">EnergyAnalyzer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Create plotter with publication style</span>
+<span class="n">plotter</span> <span class="o">=</span> <span class="n">ScientificPlotter</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="s1">&#39;publication&#39;</span><span class="p">,</span>
+    <span class="n">figure_size</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span>
+<span class="p">)</span>
+
+<span class="c1"># Load analysis data</span>
+<span class="n">rmsd_data</span> <span class="o">=</span> <span class="n">RMSD</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+<span class="n">rmsf_data</span> <span class="o">=</span> <span class="n">RMSF</span><span class="p">()</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+<span class="n">energy_data</span> <span class="o">=</span> <span class="n">EnergyAnalyzer</span><span class="p">()</span><span class="o">.</span><span class="n">load_energy_file</span><span class="p">(</span><span class="s1">&#39;energy.txt&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create multi-panel figure</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">create_figure</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Panel 1: RMSD time series</span>
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">plot_time_series</span><span class="p">(</span>
+    <span class="n">rmsd_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">rmsd_data</span><span class="p">[</span><span class="s1">&#39;rmsd&#39;</span><span class="p">],</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Time (ns)&#39;</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;RMSD (Å)&#39;</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Backbone RMSD&#39;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Panel 2: RMSF per residue</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">plot_line</span><span class="p">(</span>
+    <span class="n">rmsf_data</span><span class="p">[</span><span class="s1">&#39;residue&#39;</span><span class="p">],</span> <span class="n">rmsf_data</span><span class="p">[</span><span class="s1">&#39;rmsf&#39;</span><span class="p">],</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Residue Number&#39;</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;RMSF (Å)&#39;</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Residue Flexibility&#39;</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Panel 3: Energy distribution</span>
+<span class="n">ax3</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">plot_histogram</span><span class="p">(</span>
+    <span class="n">energy_data</span><span class="p">[</span><span class="s1">&#39;potential&#39;</span><span class="p">],</span>
+    <span class="n">bins</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Potential Energy (kcal/mol)&#39;</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Frequency&#39;</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Energy Distribution&#39;</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span>
+<span class="p">)</span>
+
+<span class="c1"># Panel 4: Energy correlation</span>
+<span class="n">ax4</span> <span class="o">=</span> <span class="n">plotter</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">plot_scatter</span><span class="p">(</span>
+    <span class="n">energy_data</span><span class="p">[</span><span class="s1">&#39;kinetic&#39;</span><span class="p">],</span> <span class="n">energy_data</span><span class="p">[</span><span class="s1">&#39;potential&#39;</span><span class="p">],</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Kinetic Energy (kcal/mol)&#39;</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Potential Energy (kcal/mol)&#39;</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Energy Correlation&#39;</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span>
+<span class="p">)</span>
+
+<span class="c1"># Save figure</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">save_figure</span><span class="p">(</span><span class="s1">&#39;analysis_summary.png&#39;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="heatmapgenerator">
+<h3>HeatmapGenerator<a class="headerlink" href="#heatmapgenerator" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Contact maps and correlation matrices</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeatmapGenerator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContactMap</span><span class="p">,</span> <span class="n">CrossCorrelation</span>
+
+<span class="c1"># Create heatmap generator</span>
+<span class="n">heatmap</span> <span class="o">=</span> <span class="n">HeatmapGenerator</span><span class="p">(</span>
+    <span class="n">colormap</span><span class="o">=</span><span class="s1">&#39;RdYlBu_r&#39;</span><span class="p">,</span>
+    <span class="n">figure_size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Generate contact map</span>
+<span class="n">contact_analyzer</span> <span class="o">=</span> <span class="n">ContactMap</span><span class="p">(</span><span class="n">cutoff</span><span class="o">=</span><span class="mf">8.0</span><span class="p">)</span>
+<span class="n">contact_matrix</span> <span class="o">=</span> <span class="n">contact_analyzer</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot contact frequency map</span>
+<span class="n">heatmap</span><span class="o">.</span><span class="n">plot_matrix</span><span class="p">(</span>
+    <span class="n">contact_matrix</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Residue i&#39;</span><span class="p">,</span>
+    <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Residue j&#39;</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Residue Contact Frequency&#39;</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">cbar_label</span><span class="o">=</span><span class="s1">&#39;Contact Frequency&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Add secondary structure annotation</span>
+<span class="n">ss_data</span> <span class="o">=</span> <span class="n">SecondaryStructure</span><span class="p">()</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+<span class="n">heatmap</span><span class="o">.</span><span class="n">add_structure_annotation</span><span class="p">(</span><span class="n">ss_data</span><span class="p">)</span>
+
+<span class="c1"># Save with high quality</span>
+<span class="n">heatmap</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;contact_map.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+
+<span class="c1"># Cross-correlation analysis</span>
+<span class="n">cc_analyzer</span> <span class="o">=</span> <span class="n">CrossCorrelation</span><span class="p">()</span>
+<span class="n">cc_matrix</span> <span class="o">=</span> <span class="n">cc_analyzer</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot correlation heatmap</span>
+<span class="n">heatmap</span><span class="o">.</span><span class="n">plot_correlation_matrix</span><span class="p">(</span>
+    <span class="n">cc_matrix</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Residue Cross-Correlation&#39;</span><span class="p">,</span>
+    <span class="n">cluster</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">dendrogram</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="n">heatmap</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;correlation_matrix.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="interactive-visualization">
+<h2>Interactive Visualization<a class="headerlink" href="#interactive-visualization" title="Link to this heading">¶</a></h2>
+<section id="jupytervisualizer">
+<h3>JupyterVisualizer<a class="headerlink" href="#jupytervisualizer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Interactive Jupyter notebook widgets</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">JupyterVisualizer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ipywidgets</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">widgets</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span>
+
+<span class="c1"># Create interactive visualizer</span>
+<span class="n">viz</span> <span class="o">=</span> <span class="n">JupyterVisualizer</span><span class="p">()</span>
+
+<span class="c1"># Load trajectory</span>
+<span class="n">viz</span><span class="o">.</span><span class="n">load_trajectory</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;topology.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create frame slider</span>
+<span class="n">frame_slider</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntSlider</span><span class="p">(</span>
+    <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="nb">max</span><span class="o">=</span><span class="n">viz</span><span class="o">.</span><span class="n">n_frames</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Frame:&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Create representation selector</span>
+<span class="n">rep_selector</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+    <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span> <span class="s1">&#39;ball+stick&#39;</span><span class="p">,</span> <span class="s1">&#39;surface&#39;</span><span class="p">],</span>
+    <span class="n">value</span><span class="o">=</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Style:&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Create color scheme selector</span>
+<span class="n">color_selector</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+    <span class="n">options</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;residueindex&#39;</span><span class="p">,</span> <span class="s1">&#39;secondary_structure&#39;</span><span class="p">,</span> <span class="s1">&#39;bfactor&#39;</span><span class="p">],</span>
+    <span class="n">value</span><span class="o">=</span><span class="s1">&#39;residueindex&#39;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Color:&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Interactive update function</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_visualization</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+    <span class="n">viz</span><span class="o">.</span><span class="n">show_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+    <span class="n">viz</span><span class="o">.</span><span class="n">set_representation</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
+    <span class="n">viz</span><span class="o">.</span><span class="n">set_color_scheme</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">viz</span><span class="o">.</span><span class="n">widget</span>
+
+<span class="c1"># Create interactive widget</span>
+<span class="n">interactive_plot</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">interact</span><span class="p">(</span>
+    <span class="n">update_visualization</span><span class="p">,</span>
+    <span class="n">frame</span><span class="o">=</span><span class="n">frame_slider</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">rep_selector</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="n">color_selector</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="webviewer">
+<h3>WebViewer<a class="headerlink" href="#webviewer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Web-based molecular viewer</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">WebViewer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flask</span>
+
+<span class="c1"># Create web viewer application</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">WebViewer</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">)</span>
+
+<span class="c1"># Configure viewer</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">set_default_style</span><span class="p">(</span><span class="s1">&#39;cartoon&#39;</span><span class="p">)</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">enable_measurements</span><span class="p">()</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">enable_trajectory_controls</span><span class="p">()</span>
+
+<span class="c1"># Add protein structure</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">add_structure</span><span class="p">(</span>
+    <span class="s1">&#39;protein.pdb&#39;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Protein&#39;</span><span class="p">,</span>
+    <span class="n">representations</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;cartoon&#39;</span><span class="p">,</span> <span class="s1">&#39;surface&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Add trajectory</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">add_trajectory</span><span class="p">(</span>
+    <span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span>
+    <span class="n">topology</span><span class="o">=</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;MD Trajectory&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup analysis panels</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">add_analysis_panel</span><span class="p">(</span><span class="s1">&#39;rmsd&#39;</span><span class="p">)</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">add_analysis_panel</span><span class="p">(</span><span class="s1">&#39;secondary_structure&#39;</span><span class="p">)</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">add_analysis_panel</span><span class="p">(</span><span class="s1">&#39;contact_map&#39;</span><span class="p">)</span>
+
+<span class="c1"># Custom route for analysis</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/api/calculate_rmsd&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_rmsd</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">viewer</span><span class="o">.</span><span class="n">calculate_rmsd_json</span><span class="p">()</span>
+
+<span class="c1"># Run web server</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">&#39;0.0.0.0&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="utilities-and-styling">
+<h2>Utilities and Styling<a class="headerlink" href="#utilities-and-styling" title="Link to this heading">¶</a></h2>
+<section id="colorschemes">
+<h3>ColorSchemes<a class="headerlink" href="#colorschemes" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Custom color schemes</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColorSchemes</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># Create custom color scheme</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="n">ColorSchemes</span><span class="p">()</span>
+
+<span class="c1"># Define protein secondary structure colors</span>
+<span class="n">ss_colors</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">create_scheme</span><span class="p">(</span>
+    <span class="s1">&#39;secondary_structure&#39;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;helix&#39;</span><span class="p">:</span> <span class="s1">&#39;#FF6B6B&#39;</span><span class="p">,</span>     <span class="c1"># Red</span>
+        <span class="s1">&#39;sheet&#39;</span><span class="p">:</span> <span class="s1">&#39;#4ECDC4&#39;</span><span class="p">,</span>     <span class="c1"># Teal</span>
+        <span class="s1">&#39;coil&#39;</span><span class="p">:</span> <span class="s1">&#39;#45B7D1&#39;</span><span class="p">,</span>      <span class="c1"># Blue</span>
+        <span class="s1">&#39;turn&#39;</span><span class="p">:</span> <span class="s1">&#39;#96CEB4&#39;</span>       <span class="c1"># Green</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># Define residue type colors</span>
+<span class="n">residue_colors</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">create_scheme</span><span class="p">(</span>
+    <span class="s1">&#39;residue_type&#39;</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;hydrophobic&#39;</span><span class="p">:</span> <span class="s1">&#39;#8B4513&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;polar&#39;</span><span class="p">:</span> <span class="s1">&#39;#4169E1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;charged_positive&#39;</span><span class="p">:</span> <span class="s1">&#39;#FF0000&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;charged_negative&#39;</span><span class="p">:</span> <span class="s1">&#39;#0000FF&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;special&#39;</span><span class="p">:</span> <span class="s1">&#39;#800080&#39;</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># Apply to visualization</span>
+<span class="n">viewer</span> <span class="o">=</span> <span class="n">MolecularViewer</span><span class="p">()</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">load_structure</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">viewer</span><span class="o">.</span><span class="n">apply_color_scheme</span><span class="p">(</span><span class="n">ss_colors</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="s1">&#39;ss&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="renderingengine">
+<h3>RenderingEngine<a class="headerlink" href="#renderingengine" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Custom rendering pipeline</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">RenderingEngine</span>
+
+<span class="c1"># Create custom rendering engine</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">RenderingEngine</span><span class="p">(</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;custom&#39;</span><span class="p">,</span>
+    <span class="n">quality</span><span class="o">=</span><span class="s1">&#39;ultra&#39;</span><span class="p">,</span>
+    <span class="n">multisample</span><span class="o">=</span><span class="mi">8</span>
+<span class="p">)</span>
+
+<span class="c1"># Configure lighting</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">add_light</span><span class="p">(</span>
+    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;directional&#39;</span><span class="p">,</span>
+    <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">intensity</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span>
+<span class="p">)</span>
+
+<span class="n">engine</span><span class="o">.</span><span class="n">add_light</span><span class="p">(</span>
+    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ambient&#39;</span><span class="p">,</span>
+    <span class="n">intensity</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#F0F0F0&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Setup materials</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">create_material</span><span class="p">(</span>
+    <span class="s1">&#39;protein_cartoon&#39;</span><span class="p">,</span>
+    <span class="n">diffuse</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">specular</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">shininess</span><span class="o">=</span><span class="mi">50</span>
+<span class="p">)</span>
+
+<span class="c1"># Render scene</span>
+<span class="n">scene</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">create_scene</span><span class="p">()</span>
+<span class="n">scene</span><span class="o">.</span><span class="n">add_structure</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s1">&#39;protein_cartoon&#39;</span><span class="p">)</span>
+
+<span class="c1"># Set camera and render</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">set_camera</span><span class="p">(</span>
+    <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">],</span>
+    <span class="n">target</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">up</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">save_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s1">&#39;rendered_protein.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="constants-and-configuration">
+<h2>Constants and Configuration<a class="headerlink" href="#constants-and-configuration" title="Link to this heading">¶</a></h2>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="analysis.html"><span class="doc">Analysis Tools</span></a> - Analysis tools that generate visualization data</p></li>
+<li><p><a class="reference internal" href="core.html"><span class="doc">Core Simulation Engine</span></a> - Core trajectory and structure classes</p></li>
+<li><p><a class="reference internal" href="../user_guide/tutorials.html"><span class="doc">Tutorials</span></a> - Visualization tutorials</p></li>
+<li><p><a class="reference internal" href="../advanced/performance.html"><span class="doc">Performance Optimization</span></a> - Performance tips for large visualizations</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Humphrey, W., Dalke, A. &amp; Schulten, K. VMD: Visual molecular dynamics. J. Mol. Graph. 14, 33-38 (1996)</p></li>
+<li><p>Schrödinger, LLC. The PyMOL Molecular Graphics System, Version 2.0</p></li>
+<li><p>Rose, A.S. &amp; Hildebrand, P.W. NGL viewer: web-based molecular graphics. Nucleic Acids Res. 43, W576-W579 (2015)</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization Tools API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#d-molecular-rendering">3D Molecular Rendering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#molecularviewer">MolecularViewer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pymolrenderer">PyMOLRenderer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vmdrenderer">VMDRenderer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nglviewer">NGLViewer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#trajectory-visualization">Trajectory Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#trajectoryplayer">TrajectoryPlayer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#animationcreator">AnimationCreator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-plotting">Data Plotting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scientificplotter">ScientificPlotter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#heatmapgenerator">HeatmapGenerator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#interactive-visualization">Interactive Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#jupytervisualizer">JupyterVisualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#webviewer">WebViewer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utilities-and-styling">Utilities and Styling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#colorschemes">ColorSchemes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#renderingengine">RenderingEngine</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#constants-and-configuration">Constants and Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/scientific_background.html">Scientific Background and Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="sampling.html" title="previous chapter">Sampling Methods API Reference</a></li>
+      <li>Next: <a href="utils.html" title="next chapter">Utilities API Reference</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/api/visualization.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

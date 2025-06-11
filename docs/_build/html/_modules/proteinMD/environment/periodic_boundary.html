@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proteinMD.environment.periodic_boundary &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+    <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for proteinMD.environment.periodic_boundary</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Periodic Boundary Conditions (PBC) Module</span>
+
+<span class="sd">This module implements comprehensive periodic boundary conditions for molecular dynamics simulations,</span>
+<span class="sd">including support for cubic, orthogonal, and triclinic boxes, minimum image convention, and </span>
+<span class="sd">pressure coupling functionality.</span>
+
+<span class="sd">Task 5.2: Periodische Randbedingungen 📊</span>
+<span class="sd">- Kubische und orthogonale Boxen unterstützt ✓</span>
+<span class="sd">- Minimum Image Convention korrekt implementiert ✓</span>
+<span class="sd">- Keine Artefakte an Box-Grenzen sichtbar ✓</span>
+<span class="sd">- Pressure Coupling funktioniert mit PBC ✓</span>
+
+<span class="sd">References:</span>
+<span class="sd">- Frenkel, D. &amp; Smit, B. Understanding Molecular Simulation (2002)</span>
+<span class="sd">- Tuckerman, M. Statistical Mechanics: Theory and Molecular Simulation (2010)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BoxType">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.BoxType">[docs]</a>
+<span class="k">class</span> <span class="nc">BoxType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enumeration of supported simulation box types.&quot;&quot;&quot;</span>
+    <span class="n">CUBIC</span> <span class="o">=</span> <span class="s2">&quot;cubic&quot;</span>              <span class="c1"># Single parameter: a = b = c, α = β = γ = 90°</span>
+    <span class="n">ORTHOGONAL</span> <span class="o">=</span> <span class="s2">&quot;orthogonal&quot;</span>    <span class="c1"># Three parameters: a, b, c, α = β = γ = 90°</span>
+    <span class="n">TRICLINIC</span> <span class="o">=</span> <span class="s2">&quot;triclinic&quot;</span>      <span class="c1"># Full 6 parameters: a, b, c, α, β, γ</span></div>
+
+
+<div class="viewcode-block" id="PeriodicBox">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox">[docs]</a>
+<span class="k">class</span> <span class="nc">PeriodicBox</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class representing a periodic simulation box.</span>
+<span class="sd">    </span>
+<span class="sd">    This class handles all box types (cubic, orthogonal, triclinic) and provides</span>
+<span class="sd">    utilities for distance calculations, coordinate wrapping, and volume computations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="PeriodicBox.__init__">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">box_vectors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">box_lengths</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">box_angles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a periodic box.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        box_vectors : np.ndarray, optional</span>
+<span class="sd">            3x3 matrix of box vectors in nm. If provided, takes precedence.</span>
+<span class="sd">        box_lengths : np.ndarray, optional</span>
+<span class="sd">            Box lengths [a, b, c] in nm</span>
+<span class="sd">        box_angles : np.ndarray, optional</span>
+<span class="sd">            Box angles [α, β, γ] in degrees. Default: [90, 90, 90]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">box_vectors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">box_vectors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_validate_box_vectors</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">box_lengths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">box_angles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">box_angles</span> <span class="o">=</span> <span class="p">[</span><span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_box_vectors</span><span class="p">(</span><span class="n">box_lengths</span><span class="p">,</span> <span class="n">box_angles</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either box_vectors or box_lengths must be provided&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Cache derived properties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_box_lengths</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_box_angles</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_box_type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_volume</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal_vectors</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized periodic box: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">box_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">, volume = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm³&quot;</span><span class="p">)</span></div>
+
+    
+    <span class="k">def</span> <span class="nf">_validate_box_vectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate that box vectors form a valid periodic box.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Box vectors must be a 3x3 matrix&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Check for degenerate cases</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Box vectors are degenerate (zero volume)&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_construct_box_vectors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lengths</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">angles</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct box vectors from lengths and angles.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        lengths : np.ndarray</span>
+<span class="sd">            Box lengths [a, b, c] in nm</span>
+<span class="sd">        angles : np.ndarray</span>
+<span class="sd">            Box angles [α, β, γ] in degrees</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            3x3 box vector matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">lengths</span>
+        <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+        
+        <span class="c1"># Standard crystallographic convention</span>
+        <span class="n">cos_alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="n">cos_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+        <span class="n">cos_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="n">sin_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate triclinic box vectors</span>
+        <span class="c1"># Vector A along x-axis</span>
+        <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">,</span> <span class="n">az</span> <span class="o">=</span> <span class="n">a</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+        
+        <span class="c1"># Vector B in xy-plane</span>
+        <span class="n">bx</span> <span class="o">=</span> <span class="n">b</span> <span class="o">*</span> <span class="n">cos_gamma</span>
+        <span class="n">by</span> <span class="o">=</span> <span class="n">b</span> <span class="o">*</span> <span class="n">sin_gamma</span>
+        <span class="n">bz</span> <span class="o">=</span> <span class="mf">0.0</span>
+        
+        <span class="c1"># Vector C general orientation</span>
+        <span class="n">cx</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">cos_beta</span>
+        <span class="n">cy</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="n">cos_alpha</span> <span class="o">-</span> <span class="n">cos_beta</span> <span class="o">*</span> <span class="n">cos_gamma</span><span class="p">)</span> <span class="o">/</span> <span class="n">sin_gamma</span>
+        <span class="n">cz</span> <span class="o">=</span> <span class="n">c</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">cos_beta</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">cos_alpha</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">cos_gamma</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> 
+                         <span class="mf">2.0</span> <span class="o">*</span> <span class="n">cos_alpha</span> <span class="o">*</span> <span class="n">cos_beta</span> <span class="o">*</span> <span class="n">cos_gamma</span><span class="p">)</span> <span class="o">/</span> <span class="n">sin_gamma</span>
+        
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="p">[</span><span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">,</span> <span class="n">az</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">bx</span><span class="p">,</span> <span class="n">by</span><span class="p">,</span> <span class="n">bz</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">]</span>
+        <span class="p">])</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">box_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get box lengths [a, b, c] in nm.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_box_lengths</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_box_lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_box_lengths</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">box_angles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get box angles [α, β, γ] in degrees.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_box_angles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vectors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span>
+            <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">vectors</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">vectors</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">vectors</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            
+            <span class="c1"># Calculate angles between vectors</span>
+            <span class="n">cos_alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+            <span class="n">cos_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+            <span class="n">cos_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+            
+            <span class="c1"># Clamp to avoid numerical errors</span>
+            <span class="n">cos_alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">cos_alpha</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">cos_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">cos_beta</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">cos_gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">cos_gamma</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_box_angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">([</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">cos_alpha</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">cos_beta</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">cos_gamma</span><span class="p">)</span>
+            <span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_box_angles</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">box_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoxType</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the type of simulation box.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_box_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_lengths</span>
+            <span class="n">angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_angles</span>
+            
+            <span class="c1"># Check if all angles are 90 degrees (within tolerance)</span>
+            <span class="n">angles_90</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">angles</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">angles_90</span><span class="p">:</span>
+                <span class="c1"># Check if all lengths are equal (cubic)</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">lengths</span><span class="p">,</span> <span class="n">lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_box_type</span> <span class="o">=</span> <span class="n">BoxType</span><span class="o">.</span><span class="n">CUBIC</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_box_type</span> <span class="o">=</span> <span class="n">BoxType</span><span class="o">.</span><span class="n">ORTHOGONAL</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_box_type</span> <span class="o">=</span> <span class="n">BoxType</span><span class="o">.</span><span class="n">TRICLINIC</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_box_type</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">volume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get box volume in nm³.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volume</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_volume</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volume</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">reciprocal_vectors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get reciprocal lattice vectors (for efficient distance calculations).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal_vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal_vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal_vectors</span>
+    
+<div class="viewcode-block" id="PeriodicBox.apply_minimum_image_convention">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox.apply_minimum_image_convention">[docs]</a>
+    <span class="k">def</span> <span class="nf">apply_minimum_image_convention</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply minimum image convention to distance vectors.</span>
+<span class="sd">        </span>
+<span class="sd">        This is the core PBC function that ensures the shortest distance</span>
+<span class="sd">        between two points is calculated across periodic boundaries.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dr : np.ndarray</span>
+<span class="sd">            Distance vector(s) with shape (..., 3)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Corrected distance vector(s) using minimum image convention</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">original_shape</span> <span class="o">=</span> <span class="n">dr</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">dr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">dr</span> <span class="o">=</span> <span class="n">dr</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        
+        <span class="c1"># Convert to fractional coordinates</span>
+        <span class="n">fractional</span> <span class="o">=</span> <span class="n">dr</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_vectors</span>
+        
+        <span class="c1"># Apply minimum image convention in fractional space</span>
+        <span class="n">fractional</span> <span class="o">=</span> <span class="n">fractional</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">fractional</span><span class="p">)</span>
+        
+        <span class="c1"># Convert back to Cartesian coordinates</span>
+        <span class="n">dr_corrected</span> <span class="o">=</span> <span class="n">fractional</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span>
+        
+        <span class="k">return</span> <span class="n">dr_corrected</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">original_shape</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBox.wrap_positions">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox.wrap_positions">[docs]</a>
+    <span class="k">def</span> <span class="nf">wrap_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrap particle positions into the primary unit cell.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positions : np.ndarray</span>
+<span class="sd">            Particle positions with shape (n_particles, 3)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Wrapped positions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Convert to fractional coordinates</span>
+        <span class="n">fractional</span> <span class="o">=</span> <span class="n">positions</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">reciprocal_vectors</span>
+        
+        <span class="c1"># Wrap to [0, 1) interval</span>
+        <span class="n">fractional</span> <span class="o">=</span> <span class="n">fractional</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">fractional</span><span class="p">)</span>
+        
+        <span class="c1"># Convert back to Cartesian coordinates</span>
+        <span class="k">return</span> <span class="n">fractional</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBox.calculate_distance">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox.calculate_distance">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pos2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate minimum distance between two positions with PBC.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pos1, pos2 : np.ndarray</span>
+<span class="sd">            Position vectors</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Minimum distance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">pos2</span> <span class="o">-</span> <span class="n">pos1</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_minimum_image_convention</span><span class="p">(</span><span class="n">dr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dr</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBox.calculate_distance_matrix">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox.calculate_distance_matrix">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_distance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate pairwise distance matrix with PBC.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positions : np.ndarray</span>
+<span class="sd">            Particle positions with shape (n_particles, 3)</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Distance matrix with shape (n_particles, n_particles)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_particles</span> <span class="o">=</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_particles</span><span class="p">,</span> <span class="n">n_particles</span><span class="p">))</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_particles</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_particles</span><span class="p">):</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_distance</span><span class="p">(</span><span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                <span class="n">distances</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span>
+        
+        <span class="k">return</span> <span class="n">distances</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBox.get_neighbor_images">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox.get_neighbor_images">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_neighbor_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get neighbor list considering periodic images.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positions : np.ndarray</span>
+<span class="sd">            Particle positions</span>
+<span class="sd">        cutoff : float</span>
+<span class="sd">            Interaction cutoff distance</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary containing neighbor information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_particles</span> <span class="o">=</span> <span class="n">positions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Determine how many periodic images to check</span>
+        <span class="n">max_images</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">cutoff</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box_lengths</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_particles</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_particles</span><span class="p">):</span>
+                <span class="n">min_dist</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+                <span class="n">best_image</span> <span class="o">=</span> <span class="kc">None</span>
+                
+                <span class="c1"># Check periodic images</span>
+                <span class="k">for</span> <span class="n">nx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">max_images</span><span class="p">,</span> <span class="n">max_images</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">ny</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">max_images</span><span class="p">,</span> <span class="n">max_images</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">nz</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">max_images</span><span class="p">,</span> <span class="n">max_images</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                            <span class="n">image_vector</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> \
+                                         <span class="n">ny</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> \
+                                         <span class="n">nz</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                            
+                            <span class="n">pos_j_image</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">image_vector</span>
+                            <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">pos_j_image</span><span class="p">)</span>
+                            
+                            <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">min_dist</span><span class="p">:</span>
+                                <span class="n">min_dist</span> <span class="o">=</span> <span class="n">dist</span>
+                                <span class="n">best_image</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">min_dist</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
+                    <span class="n">neighbors</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s1">&#39;i&#39;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s1">&#39;j&#39;</span><span class="p">:</span> <span class="n">j</span><span class="p">,</span>
+                        <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="n">min_dist</span><span class="p">,</span>
+                        <span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">best_image</span>
+                    <span class="p">})</span>
+        
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;neighbors&#39;</span><span class="p">:</span> <span class="n">neighbors</span><span class="p">,</span> <span class="s1">&#39;cutoff&#39;</span><span class="p">:</span> <span class="n">cutoff</span><span class="p">}</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBox.scale_box">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBox.scale_box">[docs]</a>
+    <span class="k">def</span> <span class="nf">scale_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Scale the simulation box (for pressure coupling).</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        scale_factor : float or np.ndarray</span>
+<span class="sd">            Scaling factor(s) for box dimensions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">scale_factor</span><span class="p">):</span>
+            <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scale_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">scale_factor</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_vectors</span> <span class="o">@</span> <span class="n">scale_matrix</span>
+        
+        <span class="c1"># Clear cached properties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_box_lengths</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_box_angles</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_volume</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reciprocal_vectors</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scaled box to volume </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm³&quot;</span><span class="p">)</span></div>
+</div>
+
+
+<div class="viewcode-block" id="PressureCoupling">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PressureCoupling">[docs]</a>
+<span class="k">class</span> <span class="nc">PressureCoupling</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pressure coupling algorithms for use with periodic boundary conditions.</span>
+<span class="sd">    </span>
+<span class="sd">    Implements various barostats (pressure control algorithms) that can be used</span>
+<span class="sd">    with molecular dynamics simulations to maintain constant pressure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="PressureCoupling.__init__">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PressureCoupling.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">target_pressure</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># bar</span>
+                 <span class="n">coupling_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>    <span class="c1"># ps</span>
+                 <span class="n">compressibility</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.5e-5</span><span class="p">,</span>  <span class="c1"># bar^-1 (water)</span>
+                 <span class="n">algorithm</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;berendsen&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize pressure coupling.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target_pressure : float</span>
+<span class="sd">            Target pressure in bar</span>
+<span class="sd">        coupling_time : float</span>
+<span class="sd">            Pressure coupling time constant in ps</span>
+<span class="sd">        compressibility : float</span>
+<span class="sd">            Isothermal compressibility in bar^-1</span>
+<span class="sd">        algorithm : str</span>
+<span class="sd">            Pressure coupling algorithm (&quot;berendsen&quot;, &quot;parrinello_rahman&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_pressure</span> <span class="o">=</span> <span class="n">target_pressure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coupling_time</span> <span class="o">=</span> <span class="n">coupling_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressibility</span> <span class="o">=</span> <span class="n">compressibility</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="n">algorithm</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized </span><span class="si">{</span><span class="n">algorithm</span><span class="si">}</span><span class="s2"> pressure coupling: &quot;</span>
+                   <span class="sa">f</span><span class="s2">&quot;P_target = </span><span class="si">{</span><span class="n">target_pressure</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> bar, τ_p = </span><span class="si">{</span><span class="n">coupling_time</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ps&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="PressureCoupling.calculate_pressure">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PressureCoupling.calculate_pressure">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                          <span class="n">kinetic_energy</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                          <span class="n">virial_tensor</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                          <span class="n">volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                          <span class="n">n_particles</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                          <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate instantaneous pressure from virial theorem.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        kinetic_energy : float</span>
+<span class="sd">            Total kinetic energy in kJ/mol</span>
+<span class="sd">        virial_tensor : np.ndarray</span>
+<span class="sd">            3x3 virial tensor in kJ/mol</span>
+<span class="sd">        volume : float</span>
+<span class="sd">            Box volume in nm³</span>
+<span class="sd">        n_particles : int</span>
+<span class="sd">            Number of particles</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            Temperature in K</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Pressure in bar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Ideal gas contribution</span>
+        <span class="n">kT</span> <span class="o">=</span> <span class="mf">8.314e-3</span> <span class="o">*</span> <span class="n">temperature</span>  <span class="c1"># kJ/mol (R*T)</span>
+        <span class="n">p_ideal</span> <span class="o">=</span> <span class="n">n_particles</span> <span class="o">*</span> <span class="n">kT</span> <span class="o">/</span> <span class="n">volume</span>
+        
+        <span class="c1"># Virial contribution</span>
+        <span class="n">virial_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">virial_tensor</span><span class="p">)</span>
+        <span class="n">p_virial</span> <span class="o">=</span> <span class="n">virial_trace</span> <span class="o">/</span> <span class="p">(</span><span class="mf">3.0</span> <span class="o">*</span> <span class="n">volume</span><span class="p">)</span>
+        
+        <span class="c1"># Total pressure (convert from kJ/(mol·nm³) to bar)</span>
+        <span class="n">pressure</span> <span class="o">=</span> <span class="p">(</span><span class="n">p_ideal</span> <span class="o">+</span> <span class="n">p_virial</span><span class="p">)</span> <span class="o">*</span> <span class="mf">16.6054</span>  <span class="c1"># Conversion factor</span>
+        
+        <span class="k">return</span> <span class="n">pressure</span></div>
+
+    
+<div class="viewcode-block" id="PressureCoupling.berendsen_scaling">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PressureCoupling.berendsen_scaling">[docs]</a>
+    <span class="k">def</span> <span class="nf">berendsen_scaling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                         <span class="n">current_pressure</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                         <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate Berendsen pressure coupling scaling factor.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        current_pressure : float</span>
+<span class="sd">            Current system pressure in bar</span>
+<span class="sd">        dt : float</span>
+<span class="sd">            Time step in ps</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Box scaling factor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Berendsen coupling equation</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">dt</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">coupling_time</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressibility</span> <span class="o">*</span> \
+               <span class="p">(</span><span class="n">current_pressure</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_pressure</span><span class="p">)</span>
+        
+        <span class="c1"># Scale factor is cube root for isotropic scaling</span>
+        <span class="k">return</span> <span class="n">beta</span><span class="o">**</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="mf">3.0</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="PressureCoupling.parrinello_rahman_scaling">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PressureCoupling.parrinello_rahman_scaling">[docs]</a>
+    <span class="k">def</span> <span class="nf">parrinello_rahman_scaling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                                 <span class="n">current_pressure</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                 <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                 <span class="n">box_velocities</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate Parrinello-Rahman pressure coupling scaling.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        current_pressure : float</span>
+<span class="sd">            Current pressure in bar</span>
+<span class="sd">        dt : float</span>
+<span class="sd">            Time step in ps</span>
+<span class="sd">        box_velocities : np.ndarray</span>
+<span class="sd">            Current box velocities</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            (scaling_factor, new_box_velocities)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Simplified implementation - full PR coupling is more complex</span>
+        <span class="n">pressure_error</span> <span class="o">=</span> <span class="n">current_pressure</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_pressure</span>
+        
+        <span class="c1"># Update box velocities</span>
+        <span class="n">damping</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">coupling_time</span>
+        <span class="n">new_box_velocities</span> <span class="o">=</span> <span class="n">box_velocities</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">damping</span><span class="p">)</span> <span class="o">+</span> \
+                           <span class="n">damping</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressibility</span> <span class="o">*</span> <span class="n">pressure_error</span>
+        
+        <span class="c1"># Calculate scaling factor</span>
+        <span class="n">scaling_factor</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">new_box_velocities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Isotropic approximation</span>
+        
+        <span class="k">return</span> <span class="n">scaling_factor</span><span class="p">,</span> <span class="n">new_box_velocities</span></div>
+
+    
+<div class="viewcode-block" id="PressureCoupling.apply_pressure_coupling">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PressureCoupling.apply_pressure_coupling">[docs]</a>
+    <span class="k">def</span> <span class="nf">apply_pressure_coupling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                               <span class="n">box</span><span class="p">:</span> <span class="n">PeriodicBox</span><span class="p">,</span>
+                               <span class="n">current_pressure</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                               <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                               <span class="n">box_velocities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply pressure coupling to simulation box.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        box : PeriodicBox</span>
+<span class="sd">            Simulation box to scale</span>
+<span class="sd">        current_pressure : float</span>
+<span class="sd">            Current pressure in bar</span>
+<span class="sd">        dt : float</span>
+<span class="sd">            Time step in ps</span>
+<span class="sd">        box_velocities : np.ndarray, optional</span>
+<span class="sd">            Box velocities for PR coupling</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Updated box velocities (if applicable)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s2">&quot;berendsen&quot;</span><span class="p">:</span>
+            <span class="n">scaling_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">berendsen_scaling</span><span class="p">(</span><span class="n">current_pressure</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+            <span class="n">box</span><span class="o">.</span><span class="n">scale_box</span><span class="p">(</span><span class="n">scaling_factor</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">==</span> <span class="s2">&quot;parrinello_rahman&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">box_velocities</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">box_velocities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            
+            <span class="n">scaling_factor</span><span class="p">,</span> <span class="n">new_box_velocities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parrinello_rahman_scaling</span><span class="p">(</span>
+                <span class="n">current_pressure</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">box_velocities</span>
+            <span class="p">)</span>
+            <span class="n">box</span><span class="o">.</span><span class="n">scale_box</span><span class="p">(</span><span class="n">scaling_factor</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">new_box_velocities</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown pressure coupling algorithm: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+<div class="viewcode-block" id="PeriodicBoundaryConditions">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBoundaryConditions">[docs]</a>
+<span class="k">class</span> <span class="nc">PeriodicBoundaryConditions</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main class for handling periodic boundary conditions in MD simulations.</span>
+<span class="sd">    </span>
+<span class="sd">    This class integrates all PBC functionality and provides a high-level interface</span>
+<span class="sd">    for molecular dynamics simulations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="PeriodicBoundaryConditions.__init__">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBoundaryConditions.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">box</span><span class="p">:</span> <span class="n">PeriodicBox</span><span class="p">,</span>
+                 <span class="n">pressure_coupling</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PressureCoupling</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize periodic boundary conditions.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        box : PeriodicBox</span>
+<span class="sd">            Simulation box</span>
+<span class="sd">        pressure_coupling : PressureCoupling, optional</span>
+<span class="sd">            Pressure coupling algorithm</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">box</span> <span class="o">=</span> <span class="n">box</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pressure_coupling</span> <span class="o">=</span> <span class="n">pressure_coupling</span>
+        
+        <span class="c1"># Statistics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_wraps</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_mic_calls</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initialized PBC with </span><span class="si">{</span><span class="n">box</span><span class="o">.</span><span class="n">box_type</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> box&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBoundaryConditions.update_positions">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBoundaryConditions.update_positions">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                        <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                        <span class="n">velocities</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                        <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update positions with PBC wrapping.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positions : np.ndarray</span>
+<span class="sd">            Current positions</span>
+<span class="sd">        velocities : np.ndarray</span>
+<span class="sd">            Current velocities</span>
+<span class="sd">        dt : float</span>
+<span class="sd">            Time step</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            (wrapped_positions, velocities)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Update positions</span>
+        <span class="n">new_positions</span> <span class="o">=</span> <span class="n">positions</span> <span class="o">+</span> <span class="n">velocities</span> <span class="o">*</span> <span class="n">dt</span>
+        
+        <span class="c1"># Wrap positions</span>
+        <span class="n">wrapped_positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">wrap_positions</span><span class="p">(</span><span class="n">new_positions</span><span class="p">)</span>
+        
+        <span class="c1"># Count wrapping events</span>
+        <span class="n">wrapped</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">new_positions</span><span class="p">,</span> <span class="n">wrapped_positions</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wrapped</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_wraps</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="k">return</span> <span class="n">wrapped_positions</span><span class="p">,</span> <span class="n">velocities</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBoundaryConditions.calculate_forces_with_pbc">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBoundaryConditions.calculate_forces_with_pbc">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculate_forces_with_pbc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                                 <span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                 <span class="n">force_function</span><span class="p">,</span>
+                                 <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate forces using periodic boundary conditions.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positions : np.ndarray</span>
+<span class="sd">            Particle positions</span>
+<span class="sd">        force_function : callable</span>
+<span class="sd">            Function to calculate forces</span>
+<span class="sd">        cutoff : float</span>
+<span class="sd">            Interaction cutoff</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Additional arguments for force function</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            (forces, potential_energy)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_mic_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># Get neighbor list with PBC</span>
+        <span class="n">neighbor_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">get_neighbor_images</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">)</span>
+        
+        <span class="c1"># Calculate forces using provided function</span>
+        <span class="c1"># This is a general interface - specific implementations</span>
+        <span class="c1"># will handle the actual force calculations</span>
+        <span class="k">return</span> <span class="n">force_function</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">,</span> <span class="n">neighbor_info</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBoundaryConditions.apply_pressure_control">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBoundaryConditions.apply_pressure_control">[docs]</a>
+    <span class="k">def</span> <span class="nf">apply_pressure_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                              <span class="n">current_pressure</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                              <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                              <span class="n">box_velocities</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply pressure coupling if enabled.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        current_pressure : float</span>
+<span class="sd">            Current pressure</span>
+<span class="sd">        dt : float</span>
+<span class="sd">            Time step</span>
+<span class="sd">        box_velocities : np.ndarray, optional</span>
+<span class="sd">            Box velocities</span>
+<span class="sd">            </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray or None</span>
+<span class="sd">            Updated box velocities if applicable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure_coupling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure_coupling</span><span class="o">.</span><span class="n">apply_pressure_coupling</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">,</span> <span class="n">current_pressure</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">box_velocities</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">box_velocities</span></div>
+
+    
+<div class="viewcode-block" id="PeriodicBoundaryConditions.get_statistics">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.PeriodicBoundaryConditions.get_statistics">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get PBC usage statistics.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;box_type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">box_type</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="s1">&#39;box_volume&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">volume</span><span class="p">,</span>
+            <span class="s1">&#39;box_lengths&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">box_lengths</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="s1">&#39;box_angles&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">box_angles</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="s1">&#39;n_wraps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_wraps</span><span class="p">,</span>
+            <span class="s1">&#39;n_mic_calls&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mic_calls</span><span class="p">,</span>
+            <span class="s1">&#39;pressure_coupling&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure_coupling</span><span class="o">.</span><span class="n">algorithm</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure_coupling</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">}</span></div>
+</div>
+
+
+<span class="c1"># Utility functions for common PBC operations</span>
+
+<div class="viewcode-block" id="create_cubic_box">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.create_cubic_box">[docs]</a>
+<span class="k">def</span> <span class="nf">create_cubic_box</span><span class="p">(</span><span class="n">length</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PeriodicBox</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a cubic simulation box.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    length : float</span>
+<span class="sd">        Box side length in nm</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    PeriodicBox</span>
+<span class="sd">        Cubic simulation box</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">PeriodicBox</span><span class="p">(</span><span class="n">box_lengths</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">length</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">length</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="create_orthogonal_box">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.create_orthogonal_box">[docs]</a>
+<span class="k">def</span> <span class="nf">create_orthogonal_box</span><span class="p">(</span><span class="n">lengths</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PeriodicBox</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an orthogonal simulation box.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lengths : np.ndarray</span>
+<span class="sd">        Box lengths [a, b, c] in nm</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    PeriodicBox</span>
+<span class="sd">        Orthogonal simulation box</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">PeriodicBox</span><span class="p">(</span><span class="n">box_lengths</span><span class="o">=</span><span class="n">lengths</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="create_triclinic_box">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.create_triclinic_box">[docs]</a>
+<span class="k">def</span> <span class="nf">create_triclinic_box</span><span class="p">(</span><span class="n">lengths</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">angles</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PeriodicBox</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a triclinic simulation box.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lengths : np.ndarray</span>
+<span class="sd">        Box lengths [a, b, c] in nm</span>
+<span class="sd">    angles : np.ndarray</span>
+<span class="sd">        Box angles [α, β, γ] in degrees</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    PeriodicBox</span>
+<span class="sd">        Triclinic simulation box</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">PeriodicBox</span><span class="p">(</span><span class="n">box_lengths</span><span class="o">=</span><span class="n">lengths</span><span class="p">,</span> <span class="n">box_angles</span><span class="o">=</span><span class="n">angles</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="minimum_image_distance">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.minimum_image_distance">[docs]</a>
+<span class="k">def</span> <span class="nf">minimum_image_distance</span><span class="p">(</span><span class="n">pos1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                          <span class="n">pos2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                          <span class="n">box_vectors</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate minimum image distance between two positions.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pos1, pos2 : np.ndarray</span>
+<span class="sd">        Position vectors</span>
+<span class="sd">    box_vectors : np.ndarray</span>
+<span class="sd">        3x3 box vector matrix</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Minimum distance with PBC</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="n">PeriodicBox</span><span class="p">(</span><span class="n">box_vectors</span><span class="o">=</span><span class="n">box_vectors</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">box</span><span class="o">.</span><span class="n">calculate_distance</span><span class="p">(</span><span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">)</span></div>
+
+
+<span class="c1"># Example usage and validation functions</span>
+
+<div class="viewcode-block" id="validate_minimum_image_convention">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.validate_minimum_image_convention">[docs]</a>
+<span class="k">def</span> <span class="nf">validate_minimum_image_convention</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate that minimum image convention works correctly.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if validation passes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Validating minimum image convention...&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Test with cubic box</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="n">create_cubic_box</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>  <span class="c1"># 5 nm cube</span>
+    
+    <span class="c1"># Test cases: particle at different positions</span>
+    <span class="n">test_cases</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># (pos1, pos2, expected_distance)</span>
+        <span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="mf">1.0</span><span class="p">),</span>      <span class="c1"># Normal distance</span>
+        <span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="mf">0.5</span><span class="p">),</span>      <span class="c1"># Across boundary (4.5 vs 0.5)</span>
+        <span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.6</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="mf">2.4</span><span class="p">),</span>      <span class="c1"># Across boundary (2.6 vs 2.4)</span>
+        <span class="p">([</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="mf">4.330</span><span class="p">),</span>    <span class="c1"># 3D diagonal (center to corner)</span>
+    <span class="p">]</span>
+    
+    <span class="n">all_passed</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">test_cases</span><span class="p">):</span>
+        <span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos2</span><span class="p">)</span>
+        <span class="n">calculated</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">calculate_distance</span><span class="p">(</span><span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">calculated</span> <span class="o">-</span> <span class="n">expected</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-3</span><span class="p">:</span>  <span class="c1"># Increased tolerance for floating point</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test case </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> failed: expected </span><span class="si">{</span><span class="n">expected</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">calculated</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">all_passed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test case </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> passed: distance = </span><span class="si">{</span><span class="n">calculated</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">all_passed</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;✓ Minimum image convention validation passed&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;✗ Minimum image convention validation failed&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">all_passed</span></div>
+
+
+<div class="viewcode-block" id="validate_box_types">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.validate_box_types">[docs]</a>
+<span class="k">def</span> <span class="nf">validate_box_types</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate different box types work correctly.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if validation passes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Validating box types...&quot;</span><span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Test cubic box</span>
+        <span class="n">cubic</span> <span class="o">=</span> <span class="n">create_cubic_box</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">cubic</span><span class="o">.</span><span class="n">box_type</span> <span class="o">==</span> <span class="n">BoxType</span><span class="o">.</span><span class="n">CUBIC</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">cubic</span><span class="o">.</span><span class="n">box_lengths</span><span class="p">,</span> <span class="p">[</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">cubic</span><span class="o">.</span><span class="n">box_angles</span><span class="p">,</span> <span class="p">[</span><span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">])</span>
+        
+        <span class="c1"># Test orthogonal box</span>
+        <span class="n">ortho</span> <span class="o">=</span> <span class="n">create_orthogonal_box</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">ortho</span><span class="o">.</span><span class="n">box_type</span> <span class="o">==</span> <span class="n">BoxType</span><span class="o">.</span><span class="n">ORTHOGONAL</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">ortho</span><span class="o">.</span><span class="n">box_lengths</span><span class="p">,</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">ortho</span><span class="o">.</span><span class="n">box_angles</span><span class="p">,</span> <span class="p">[</span><span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">])</span>
+        
+        <span class="c1"># Test triclinic box</span>
+        <span class="n">triclinic</span> <span class="o">=</span> <span class="n">create_triclinic_box</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">80.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">triclinic</span><span class="o">.</span><span class="n">box_type</span> <span class="o">==</span> <span class="n">BoxType</span><span class="o">.</span><span class="n">TRICLINIC</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">triclinic</span><span class="o">.</span><span class="n">box_lengths</span><span class="p">,</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">triclinic</span><span class="o">.</span><span class="n">box_angles</span><span class="p">,</span> <span class="p">[</span><span class="mf">80.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">],</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;✓ Box type validation passed&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✗ Box type validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="validate_pressure_coupling">
+<a class="viewcode-back" href="../../../api/environment.html#proteinMD.environment.periodic_boundary.validate_pressure_coupling">[docs]</a>
+<span class="k">def</span> <span class="nf">validate_pressure_coupling</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate pressure coupling functionality.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if validation passes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Validating pressure coupling...&quot;</span><span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Create test system</span>
+        <span class="n">box</span> <span class="o">=</span> <span class="n">create_cubic_box</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+        <span class="n">pressure_coupling</span> <span class="o">=</span> <span class="n">PressureCoupling</span><span class="p">(</span><span class="n">target_pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;berendsen&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Test pressure calculation</span>
+        <span class="c1"># Mock values for testing</span>
+        <span class="n">kinetic_energy</span> <span class="o">=</span> <span class="mf">1000.0</span>  <span class="c1"># kJ/mol</span>
+        <span class="n">virial_tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">-</span><span class="mf">500.0</span>  <span class="c1"># kJ/mol</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">volume</span>
+        <span class="n">n_particles</span> <span class="o">=</span> <span class="mi">1000</span>
+        <span class="n">temperature</span> <span class="o">=</span> <span class="mf">300.0</span>
+        
+        <span class="n">pressure</span> <span class="o">=</span> <span class="n">pressure_coupling</span><span class="o">.</span><span class="n">calculate_pressure</span><span class="p">(</span>
+            <span class="n">kinetic_energy</span><span class="p">,</span> <span class="n">virial_tensor</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">n_particles</span><span class="p">,</span> <span class="n">temperature</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Test scaling</span>
+        <span class="n">initial_volume</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">volume</span>
+        <span class="n">scaling_factor</span> <span class="o">=</span> <span class="n">pressure_coupling</span><span class="o">.</span><span class="n">berendsen_scaling</span><span class="p">(</span><span class="n">pressure</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span>  <span class="c1"># 1 fs</span>
+        <span class="n">box</span><span class="o">.</span><span class="n">scale_box</span><span class="p">(</span><span class="n">scaling_factor</span><span class="p">)</span>
+        
+        <span class="k">assert</span> <span class="n">box</span><span class="o">.</span><span class="n">volume</span> <span class="o">!=</span> <span class="n">initial_volume</span>  <span class="c1"># Volume should change</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;✓ Pressure coupling validation passed&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✗ Pressure coupling validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Run validation tests</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    
+    <span class="n">all_tests_passed</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">all_tests_passed</span> <span class="o">&amp;=</span> <span class="n">validate_box_types</span><span class="p">()</span>
+    <span class="n">all_tests_passed</span> <span class="o">&amp;=</span> <span class="n">validate_minimum_image_convention</span><span class="p">()</span>
+    <span class="n">all_tests_passed</span> <span class="o">&amp;=</span> <span class="n">validate_pressure_coupling</span><span class="p">()</span>
+    
+    <span class="k">if</span> <span class="n">all_tests_passed</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🎉 All PBC validation tests passed!&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Task 5.2: Periodic Boundary Conditions - IMPLEMENTATION COMPLETE&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ Some PBC validation tests failed!&quot;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">ProteinMD</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/cli_reference.html">CLI Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/utils.html">Utilities API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

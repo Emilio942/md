@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Review Process &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release Process" href="release_process.html" />
+    <link rel="prev" title="Pull Request Guide" href="pull_request_guide.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="review-process">
+<h1>Review Process<a class="headerlink" href="#review-process" title="Link to this heading">¶</a></h1>
+<p>This document outlines the code review process for ProteinMD, including guidelines for both reviewers and contributors.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p>
+<ul>
+<li><p><a class="reference internal" href="#purpose-of-code-review" id="id2">Purpose of Code Review</a></p></li>
+<li><p><a class="reference internal" href="#review-principles" id="id3">Review Principles</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#review-process-workflow" id="id4">Review Process Workflow</a></p>
+<ul>
+<li><p><a class="reference internal" href="#automated-checks" id="id5">Automated Checks</a></p></li>
+<li><p><a class="reference internal" href="#review-assignment" id="id6">Review Assignment</a></p></li>
+<li><p><a class="reference internal" href="#review-timeline" id="id7">Review Timeline</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#types-of-reviews" id="id8">Types of Reviews</a></p>
+<ul>
+<li><p><a class="reference internal" href="#feature-reviews" id="id9">Feature Reviews</a></p></li>
+<li><p><a class="reference internal" href="#bug-fix-reviews" id="id10">Bug Fix Reviews</a></p></li>
+<li><p><a class="reference internal" href="#documentation-reviews" id="id11">Documentation Reviews</a></p></li>
+<li><p><a class="reference internal" href="#performance-reviews" id="id12">Performance Reviews</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#review-guidelines" id="id13">Review Guidelines</a></p>
+<ul>
+<li><p><a class="reference internal" href="#for-reviewers" id="id14">For Reviewers</a></p></li>
+<li><p><a class="reference internal" href="#for-contributors" id="id15">For Contributors</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#advanced-review-scenarios" id="id16">Advanced Review Scenarios</a></p>
+<ul>
+<li><p><a class="reference internal" href="#large-feature-reviews" id="id17">Large Feature Reviews</a></p></li>
+<li><p><a class="reference internal" href="#cross-repository-reviews" id="id18">Cross-Repository Reviews</a></p></li>
+<li><p><a class="reference internal" href="#security-reviews" id="id19">Security Reviews</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#review-tools-and-automation" id="id20">Review Tools and Automation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#github-integration" id="id21">GitHub Integration</a></p></li>
+<li><p><a class="reference internal" href="#code-review-metrics" id="id22">Code Review Metrics</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices" id="id23">Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#for-effective-reviews" id="id24">For Effective Reviews</a></p></li>
+<li><p><a class="reference internal" href="#review-culture" id="id25">Review Culture</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#summary" id="id26">Summary</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<section id="purpose-of-code-review">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Purpose of Code Review</a><a class="headerlink" href="#purpose-of-code-review" title="Link to this heading">¶</a></h3>
+<p>Code review in ProteinMD serves multiple critical purposes:</p>
+<dl class="simple">
+<dt><strong>Quality Assurance</strong></dt><dd><ul class="simple">
+<li><p>Catch bugs and logic errors before they reach production</p></li>
+<li><p>Ensure code follows project standards and best practices</p></li>
+<li><p>Verify that tests adequately cover new functionality</p></li>
+</ul>
+</dd>
+<dt><strong>Knowledge Sharing</strong></dt><dd><ul class="simple">
+<li><p>Spread knowledge about codebase across team members</p></li>
+<li><p>Share domain expertise and scientific knowledge</p></li>
+<li><p>Educate contributors about project conventions</p></li>
+</ul>
+</dd>
+<dt><strong>Design Validation</strong></dt><dd><ul class="simple">
+<li><p>Ensure architectural consistency across the project</p></li>
+<li><p>Validate API design decisions</p></li>
+<li><p>Identify potential performance or maintainability issues</p></li>
+</ul>
+</dd>
+<dt><strong>Documentation</strong></dt><dd><ul class="simple">
+<li><p>Verify that code is properly documented</p></li>
+<li><p>Ensure API documentation is complete and accurate</p></li>
+<li><p>Check that user-facing changes include appropriate guides</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="review-principles">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Review Principles</a><a class="headerlink" href="#review-principles" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt><strong>Constructive and Respectful</strong></dt><dd><p>Reviews should be helpful and educational, not critical or dismissive.</p>
+</dd>
+<dt><strong>Focus on Code, Not Person</strong></dt><dd><p>Comments should address the code and approach, not the individual.</p>
+</dd>
+<dt><strong>Scientific Accuracy</strong></dt><dd><p>Special attention to correctness of algorithms and physical implementations.</p>
+</dd>
+<dt><strong>Thorough but Timely</strong></dt><dd><p>Reviews should be comprehensive but completed in reasonable time.</p>
+</dd>
+<dt><strong>Collaborative</strong></dt><dd><p>Reviews are a conversation between reviewer and contributor.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="review-process-workflow">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Review Process Workflow</a><a class="headerlink" href="#review-process-workflow" title="Link to this heading">¶</a></h2>
+<section id="automated-checks">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Automated Checks</a><a class="headerlink" href="#automated-checks" title="Link to this heading">¶</a></h3>
+<p>Before human review, all PRs must pass automated checks:</p>
+<p><strong>Continuous Integration Pipeline</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example CI checks</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Code formatting (Black)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Linting (Flake8)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Type checking (MyPy)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Unit tests (pytest)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Integration tests</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Documentation build (Sphinx)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Security scan (Bandit)</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Dependency scan</span>
+</pre></div>
+</div>
+<p><strong>Quality Gates</strong></p>
+<ul class="simple">
+<li><p><strong>Test Coverage</strong>: Minimum 85% coverage for new code</p></li>
+<li><p><strong>Performance</strong>: No significant performance regressions</p></li>
+<li><p><strong>Documentation</strong>: All public APIs documented</p></li>
+<li><p><strong>Security</strong>: No known vulnerabilities introduced</p></li>
+</ul>
+</section>
+<section id="review-assignment">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Review Assignment</a><a class="headerlink" href="#review-assignment" title="Link to this heading">¶</a></h3>
+<p><strong>Automatic Assignment</strong></p>
+<p>GitHub automatically assigns reviewers based on:</p>
+<ul class="simple">
+<li><p><strong>CODEOWNERS file</strong>: Specific maintainers for different modules</p></li>
+<li><p><strong>Round-robin</strong>: Distribution among available reviewers</p></li>
+<li><p><strong>Expertise matching</strong>: Assign experts for specialized areas</p></li>
+</ul>
+<p><strong>Manual Assignment</strong></p>
+<p>Contributors can request specific reviewers for:</p>
+<ul class="simple">
+<li><p><strong>Domain expertise</strong>: Complex algorithms or scientific methods</p></li>
+<li><p><strong>Architectural input</strong>: Significant design changes</p></li>
+<li><p><strong>Learning opportunities</strong>: New contributors learning the codebase</p></li>
+</ul>
+<p><strong>Review Team Structure</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Core Maintainers
+├── Lead Maintainer (required for breaking changes)
+├── Algorithm Experts (MD methods, force fields)
+├── Performance Experts (optimization, CUDA)
+└── Documentation Specialists
+
+Module Maintainers
+├── Core Engine (@core-team)
+├── Force Fields (@forcefield-team)
+├── Analysis Tools (@analysis-team)
+├── I/O Systems (@io-team)
+└── Visualization (@viz-team)
+</pre></div>
+</div>
+</section>
+<section id="review-timeline">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Review Timeline</a><a class="headerlink" href="#review-timeline" title="Link to this heading">¶</a></h3>
+<p><strong>Expected Response Times</strong></p>
+<ul class="simple">
+<li><p><strong>Initial acknowledgment</strong>: Within 24 hours</p></li>
+<li><p><strong>First review</strong>: Within 3 business days for most PRs</p></li>
+<li><p><strong>Complex features</strong>: Up to 1 week for thorough review</p></li>
+<li><p><strong>Hotfixes</strong>: Within 4 hours for critical issues</p></li>
+</ul>
+<p><strong>Escalation Process</strong></p>
+<p>If reviews are delayed:</p>
+<ol class="arabic simple">
+<li><p><strong>Ping reviewers</strong> politely after expected timeframe</p></li>
+<li><p><strong>Ask in team channels</strong> for alternative reviewers</p></li>
+<li><p><strong>Contact maintainers</strong> if blocking critical work</p></li>
+<li><p><strong>Emergency review</strong> for production issues</p></li>
+</ol>
+</section>
+</section>
+<section id="types-of-reviews">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Types of Reviews</a><a class="headerlink" href="#types-of-reviews" title="Link to this heading">¶</a></h2>
+<section id="feature-reviews">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Feature Reviews</a><a class="headerlink" href="#feature-reviews" title="Link to this heading">¶</a></h3>
+<p><strong>New Feature Implementation</strong></p>
+<p>Focus areas for feature reviews:</p>
+<ul class="simple">
+<li><p><strong>Correctness</strong>: Does the implementation match requirements?</p></li>
+<li><p><strong>Design</strong>: Is the approach consistent with project architecture?</p></li>
+<li><p><strong>Testing</strong>: Are all code paths and edge cases tested?</p></li>
+<li><p><strong>Documentation</strong>: Is the feature properly documented?</p></li>
+<li><p><strong>Performance</strong>: Are there any performance implications?</p></li>
+<li><p><strong>API Design</strong>: Is the public interface well-designed?</p></li>
+</ul>
+<p><strong>Example Feature Review Checklist:</strong></p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">## Feature Review: Velocity Verlet Integrator</span>
+
+<span class="gu">### Correctness</span>
+<span class="k">- [ ]</span> Algorithm implementation matches literature
+<span class="k">- [ ]</span> Energy conservation properties verified
+<span class="k">- [ ]</span> Handles edge cases (zero forces, single atoms)
+<span class="k">- [ ]</span> Proper error handling for invalid inputs
+
+<span class="gu">### Design</span>
+<span class="k">- [ ]</span> Follows existing integrator interface
+<span class="k">- [ ]</span> Integrates cleanly with simulation loop
+<span class="k">- [ ]</span> Configuration options are appropriate
+<span class="k">- [ ]</span> Memory usage is reasonable
+
+<span class="gu">### Testing</span>
+<span class="k">- [ ]</span> Unit tests for algorithm correctness
+<span class="k">- [ ]</span> Integration tests with full simulation
+<span class="k">- [ ]</span> Performance benchmarks included
+<span class="k">- [ ]</span> Comparison tests with existing integrators
+
+<span class="gu">### Documentation</span>
+<span class="k">- [ ]</span> API documentation complete
+<span class="k">- [ ]</span> Examples provided
+<span class="k">- [ ]</span> Scientific background explained
+<span class="k">- [ ]</span> Performance characteristics documented
+</pre></div>
+</div>
+</section>
+<section id="bug-fix-reviews">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Bug Fix Reviews</a><a class="headerlink" href="#bug-fix-reviews" title="Link to this heading">¶</a></h3>
+<p><strong>Bug Fix Validation</strong></p>
+<p>Focus areas for bug fix reviews:</p>
+<ul class="simple">
+<li><p><strong>Root Cause</strong>: Does the fix address the actual problem?</p></li>
+<li><p><strong>Scope</strong>: Are there other places with the same issue?</p></li>
+<li><p><strong>Testing</strong>: Does the test reproduce the original bug?</p></li>
+<li><p><strong>Regression</strong>: Could this fix introduce new problems?</p></li>
+</ul>
+<p><strong>Example Bug Fix Review:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Original buggy code</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_bond_energy</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">r0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">r0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># Missing factor of 0.5!</span>
+
+<span class="c1"># Fixed code</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_bond_energy</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">r0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate harmonic bond energy.</span>
+
+<span class="sd">    E = (1/2) * k * (r - r0)^2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">k</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">r0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+<span class="c1"># Review focus:</span>
+<span class="c1"># 1. Is the physics correct now?</span>
+<span class="c1"># 2. Are there other energy functions with same bug?</span>
+<span class="c1"># 3. Does the test verify the correct energy value?</span>
+<span class="c1"># 4. Should we add integration tests for energy conservation?</span>
+</pre></div>
+</div>
+</section>
+<section id="documentation-reviews">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Documentation Reviews</a><a class="headerlink" href="#documentation-reviews" title="Link to this heading">¶</a></h3>
+<p><strong>Documentation Standards</strong></p>
+<ul class="simple">
+<li><p><strong>Completeness</strong>: All public APIs documented</p></li>
+<li><p><strong>Accuracy</strong>: Documentation matches implementation</p></li>
+<li><p><strong>Examples</strong>: Working code examples provided</p></li>
+<li><p><strong>Clarity</strong>: Clear for target audience (scientists)</p></li>
+<li><p><strong>Formatting</strong>: Proper reStructuredText/Sphinx formatting</p></li>
+</ul>
+<p><strong>Scientific Documentation Review</strong></p>
+<p>Special attention for scientific accuracy:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">math</span><span class="p">::</span>
+
+   E_{bond} = \frac{1}{2} k (r - r_0)^2
+
+where <span class="na">:math:</span><span class="nv">`k`</span> is the force constant in kJ/(mol·Å²)
+and <span class="na">:math:</span><span class="nv">`r_0`</span> is the equilibrium bond length in Å.
+</pre></div>
+</div>
+<p>Review checklist:
+- Mathematical notation is correct
+- Units are specified and consistent
+- Physical interpretation is accurate
+- References to literature are appropriate</p>
+</section>
+<section id="performance-reviews">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Performance Reviews</a><a class="headerlink" href="#performance-reviews" title="Link to this heading">¶</a></h3>
+<p><strong>Performance-Critical Changes</strong></p>
+<p>For changes affecting computational performance:</p>
+<ul class="simple">
+<li><p><strong>Benchmarking</strong>: Before/after performance measurements</p></li>
+<li><p><strong>Profiling</strong>: Identification of bottlenecks</p></li>
+<li><p><strong>Scaling</strong>: Performance with different system sizes</p></li>
+<li><p><strong>Memory</strong>: Memory usage and potential leaks</p></li>
+</ul>
+<p><strong>Example Performance Review:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Performance review for optimized distance calculation</span>
+
+<span class="c1"># Before: O(n²) nested loops</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_distances_old</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">distances</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span>
+    <span class="k">return</span> <span class="n">distances</span>
+
+<span class="c1"># After: Vectorized calculation</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_distances_new</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Review requirements:</span>
+<span class="c1"># 1. Benchmark showing performance improvement</span>
+<span class="c1"># 2. Memory usage comparison</span>
+<span class="c1"># 3. Numerical accuracy verification</span>
+<span class="c1"># 4. Test with different system sizes</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="review-guidelines">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Review Guidelines</a><a class="headerlink" href="#review-guidelines" title="Link to this heading">¶</a></h2>
+<section id="for-reviewers">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">For Reviewers</a><a class="headerlink" href="#for-reviewers" title="Link to this heading">¶</a></h3>
+<p><strong>Preparation</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Checkout PR branch for testing</span>
+git<span class="w"> </span>fetch<span class="w"> </span>origin<span class="w"> </span>pull/123/head:pr-123
+git<span class="w"> </span>checkout<span class="w"> </span>pr-123
+
+<span class="c1"># Install and test locally</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pytest<span class="w"> </span>tests/<span class="w"> </span>-v
+
+<span class="c1"># Run specific tests for changed areas</span>
+pytest<span class="w"> </span>tests/test_integrators.py<span class="w"> </span>-v
+</pre></div>
+</div>
+<p><strong>Review Checklist</strong></p>
+<p><strong>Code Quality</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Readability</strong>: Code is clear and well-organized</p></li>
+<li><p>[ ] <strong>Style</strong>: Follows project coding standards</p></li>
+<li><p>[ ] <strong>Complexity</strong>: Functions are not overly complex</p></li>
+<li><p>[ ] <strong>Naming</strong>: Variables and functions have descriptive names</p></li>
+<li><p>[ ] <strong>Comments</strong>: Complex logic is explained</p></li>
+<li><p>[ ] <strong>Error Handling</strong>: Appropriate exception handling</p></li>
+</ul>
+<p><strong>Functionality</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Correctness</strong>: Code does what it claims to do</p></li>
+<li><p>[ ] <strong>Edge Cases</strong>: Handles boundary conditions properly</p></li>
+<li><p>[ ] <strong>Input Validation</strong>: Validates inputs appropriately</p></li>
+<li><p>[ ] <strong>Output Format</strong>: Returns expected types and formats</p></li>
+<li><p>[ ] <strong>Side Effects</strong>: No unintended side effects</p></li>
+</ul>
+<p><strong>Testing</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Coverage</strong>: New code is adequately tested</p></li>
+<li><p>[ ] <strong>Test Quality</strong>: Tests are meaningful and thorough</p></li>
+<li><p>[ ] <strong>Test Organization</strong>: Tests are well-structured</p></li>
+<li><p>[ ] <strong>Performance Tests</strong>: Benchmarks for performance-critical code</p></li>
+<li><p>[ ] <strong>Integration</strong>: Tests work with existing codebase</p></li>
+</ul>
+<p><strong>Documentation</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>API Docs</strong>: Public functions have proper docstrings</p></li>
+<li><p>[ ] <strong>Examples</strong>: Code examples are provided and work</p></li>
+<li><p>[ ] <strong>User Guide</strong>: User-facing changes documented</p></li>
+<li><p>[ ] <strong>Comments</strong>: Complex algorithms explained</p></li>
+<li><p>[ ] <strong>Type Hints</strong>: Proper type annotations</p></li>
+</ul>
+<p><strong>Design</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Architecture</strong>: Fits well with existing design</p></li>
+<li><p>[ ] <strong>API Design</strong>: Public interface is intuitive</p></li>
+<li><p>[ ] <strong>Performance</strong>: No obvious performance issues</p></li>
+<li><p>[ ] <strong>Security</strong>: No security vulnerabilities</p></li>
+<li><p>[ ] <strong>Maintainability</strong>: Code will be easy to maintain</p></li>
+</ul>
+<p><strong>Scientific Accuracy</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Algorithms</strong>: Implementations match literature</p></li>
+<li><p>[ ] <strong>Units</strong>: Physical units are correct and consistent</p></li>
+<li><p>[ ] <strong>Mathematics</strong>: Mathematical formulations are accurate</p></li>
+<li><p>[ ] <strong>References</strong>: Appropriate citations provided</p></li>
+<li><p>[ ] <strong>Validation</strong>: Results validated against known benchmarks</p></li>
+</ul>
+<p><strong>Providing Feedback</strong></p>
+<p><strong>Types of Comments</strong></p>
+<p><strong>Comment Guidelines</strong></p>
+<ul class="simple">
+<li><p><strong>Be Specific</strong>: Point to exact lines and provide concrete suggestions</p></li>
+<li><p><strong>Explain Why</strong>: Don’t just say what’s wrong, explain the impact</p></li>
+<li><p><strong>Provide Solutions</strong>: Suggest improvements when possible</p></li>
+<li><p><strong>Ask Questions</strong>: When unsure, ask for clarification</p></li>
+<li><p><strong>Be Positive</strong>: Acknowledge good code and clever solutions</p></li>
+</ul>
+</section>
+<section id="for-contributors">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">For Contributors</a><a class="headerlink" href="#for-contributors" title="Link to this heading">¶</a></h3>
+<p><strong>Responding to Reviews</strong></p>
+<p><strong>Addressing Feedback</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make requested changes</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;address review feedback: fix bond energy calculation&quot;</span>
+
+<span class="c1"># Push updated branch</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/velocity-verlet-integrator
+</pre></div>
+</div>
+<p><strong>Communication Guidelines</strong></p>
+<ul class="simple">
+<li><p><strong>Acknowledge All Comments</strong>: Respond to each review comment</p></li>
+<li><p><strong>Ask for Clarification</strong>: If feedback is unclear, ask questions</p></li>
+<li><p><strong>Explain Decisions</strong>: If you disagree, explain your reasoning</p></li>
+<li><p><strong>Be Gracious</strong>: Thank reviewers for their time and feedback</p></li>
+<li><p><strong>Mark Resolved</strong>: Mark conversations as resolved when addressed</p></li>
+</ul>
+<p><strong>Example Responses</strong></p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># Accepting feedback</span>
+<span class="k">&gt; </span><span class="ge">The bond energy calculation is missing the 1/2 factor.</span>
+
+Good catch! Fixed in commit abc123. I also added a test to verify
+the energy values match CHARMM reference data.
+
+<span class="gh"># Asking for clarification</span>
+<span class="k">&gt; </span><span class="ge">This algorithm might not be numerically stable.</span>
+
+Could you elaborate on what specific numerical issues you&#39;re concerned
+about? I tested with time steps from 0.1 to 0.001 fs and didn&#39;t see
+stability problems.
+
+<span class="gh"># Disagreeing respectfully</span>
+<span class="k">&gt; </span><span class="ge">Consider using a different data structure here.</span>
+
+I initially considered that approach, but the current implementation
+provides O(1) lookup which is critical for this hot path. The memory
+overhead is acceptable given the performance benefit. What specific
+concerns do you have about the current approach?
+</pre></div>
+</div>
+<p><strong>Managing Multiple Reviewers</strong></p>
+<p>When multiple reviewers provide conflicting feedback:</p>
+<ol class="arabic simple">
+<li><p><strong>Acknowledge the conflict</strong> in PR comments</p></li>
+<li><p><strong>Tag all relevant reviewers</strong> for discussion</p></li>
+<li><p><strong>Escalate to maintainers</strong> if needed</p></li>
+<li><p><strong>Document the final decision</strong> and reasoning</p></li>
+</ol>
+</section>
+</section>
+<section id="advanced-review-scenarios">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Advanced Review Scenarios</a><a class="headerlink" href="#advanced-review-scenarios" title="Link to this heading">¶</a></h2>
+<section id="large-feature-reviews">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Large Feature Reviews</a><a class="headerlink" href="#large-feature-reviews" title="Link to this heading">¶</a></h3>
+<p>For large features that span multiple PRs:</p>
+<p><strong>Design Review First</strong></p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">## Design Review: Enhanced Sampling Module</span>
+
+<span class="gu">### Architecture Overview</span>
+<span class="k">-</span><span class="w"> </span>New <span class="sb">`proteinMD.sampling`</span> module
+<span class="k">-</span><span class="w"> </span>Plugin architecture for sampling methods
+<span class="k">-</span><span class="w"> </span>Integration with existing simulation loop
+
+<span class="gu">### Public API</span>
+<span class="sb">```python</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">UmbrellaSampling</span><span class="p">,</span> <span class="n">REMD</span>
+
+<span class="c1"># Umbrella sampling</span>
+<span class="n">sampler</span> <span class="o">=</span> <span class="n">UmbrellaSampling</span><span class="p">(</span><span class="n">reaction_coordinate</span><span class="p">,</span> <span class="n">windows</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">add_sampler</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
+
+<span class="c1"># Replica exchange</span>
+<span class="n">remd</span> <span class="o">=</span> <span class="n">REMD</span><span class="p">(</span><span class="n">temperatures</span><span class="o">=</span><span class="p">[</span><span class="mi">300</span><span class="p">,</span> <span class="mi">310</span><span class="p">,</span> <span class="mi">320</span><span class="p">])</span>
+<span class="n">remd</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">systems</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="sb">```</span>
+
+<span class="gu">### Questions for Review</span>
+<span class="k">1.</span> Is the plugin architecture appropriate?
+<span class="k">2.</span> Should sampling methods be tightly coupled to simulation?
+<span class="k">3.</span> Are there performance concerns with the proposed approach?
+</pre></div>
+</div>
+<p><strong>Phased Implementation Review</strong></p>
+<p>Break large features into reviewable phases:</p>
+<ol class="arabic simple">
+<li><p><strong>Phase 1</strong>: Core infrastructure and interfaces</p></li>
+<li><p><strong>Phase 2</strong>: Basic sampling method implementations</p></li>
+<li><p><strong>Phase 3</strong>: Advanced features and optimizations</p></li>
+<li><p><strong>Phase 4</strong>: Documentation and examples</p></li>
+</ol>
+</section>
+<section id="cross-repository-reviews">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Cross-Repository Reviews</a><a class="headerlink" href="#cross-repository-reviews" title="Link to this heading">¶</a></h3>
+<p>For changes affecting multiple repositories:</p>
+<p><strong>Coordinated Reviews</strong></p>
+<ul class="simple">
+<li><p><strong>Link related PRs</strong> in descriptions</p></li>
+<li><p><strong>Test integration</strong> across repositories</p></li>
+<li><p><strong>Coordinate merge timing</strong></p></li>
+<li><p><strong>Update documentation</strong> in all affected repos</p></li>
+</ul>
+</section>
+<section id="security-reviews">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Security Reviews</a><a class="headerlink" href="#security-reviews" title="Link to this heading">¶</a></h3>
+<p>For security-sensitive changes:</p>
+<p><strong>Security Review Checklist</strong></p>
+<ul class="simple">
+<li><p>[ ] <strong>Input validation</strong>: All inputs properly validated</p></li>
+<li><p>[ ] <strong>File access</strong>: No arbitrary file access vulnerabilities</p></li>
+<li><p>[ ] <strong>Code injection</strong>: No dynamic code execution vulnerabilities</p></li>
+<li><p>[ ] <strong>Dependency security</strong>: New dependencies are secure</p></li>
+<li><p>[ ] <strong>Data handling</strong>: Sensitive data handled appropriately</p></li>
+</ul>
+<p><strong>Example Security Review</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Security review for file loading function</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">load_trajectory</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Trajectory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load trajectory from file.&quot;&quot;&quot;</span>
+    <span class="c1"># Security concern: Path traversal vulnerability</span>
+
+    <span class="c1"># Bad: Allows access to any file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">parse_trajectory</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+    <span class="c1"># Better: Validate filename</span>
+    <span class="k">if</span> <span class="s1">&#39;..&#39;</span> <span class="ow">in</span> <span class="n">filename</span> <span class="ow">or</span> <span class="n">filename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid filename&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Best: Use safe path handling</span>
+    <span class="n">safe_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">safe_path</span><span class="o">.</span><span class="n">is_relative_to</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;File must be in current directory&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="review-tools-and-automation">
+<h2><a class="toc-backref" href="#id20" role="doc-backlink">Review Tools and Automation</a><a class="headerlink" href="#review-tools-and-automation" title="Link to this heading">¶</a></h2>
+<section id="github-integration">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">GitHub Integration</a><a class="headerlink" href="#github-integration" title="Link to this heading">¶</a></h3>
+<p><strong>Review Request Automation</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># .github/CODEOWNERS</span>
+<span class="c1"># Global owners</span>
+<span class="err">*</span><span class="w"> </span><span class="err">@</span><span class="l l-Scalar l-Scalar-Plain">proteinmd/core-maintainers</span>
+
+<span class="l l-Scalar l-Scalar-Plain"># Module-specific owners</span>
+<span class="l l-Scalar l-Scalar-Plain">proteinMD/core/ @proteinmd/core-team</span>
+<span class="l l-Scalar l-Scalar-Plain">proteinMD/forcefield/ @proteinmd/forcefield-team</span>
+<span class="l l-Scalar l-Scalar-Plain">proteinMD/analysis/ @proteinmd/analysis-team</span>
+<span class="l l-Scalar l-Scalar-Plain">docs/ @proteinmd/docs-team</span>
+</pre></div>
+</div>
+<p><strong>PR Templates</strong></p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">## Pull Request Template</span>
+
+<span class="gu">### Description</span>
+Brief description of changes
+
+<span class="gu">### Type of Change</span>
+<span class="k">- [ ]</span> Bug fix
+<span class="k">- [ ]</span> New feature
+<span class="k">- [ ]</span> Breaking change
+<span class="k">- [ ]</span> Documentation update
+
+<span class="gu">### Testing</span>
+<span class="k">- [ ]</span> Unit tests added/updated
+<span class="k">- [ ]</span> Integration tests pass
+<span class="k">- [ ]</span> Manual testing performed
+
+<span class="gu">### Review Focus Areas</span>
+Please pay special attention to:
+<span class="k">-</span><span class="w"> </span>Algorithm correctness in <span class="sb">`calculate_forces()`</span>
+<span class="k">-</span><span class="w"> </span>Performance impact of vectorization changes
+<span class="k">-</span><span class="w"> </span>API design for new <span class="sb">`Integrator`</span> interface
+</pre></div>
+</div>
+<p><strong>Automated Review Checks</strong></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># .github/workflows/review-checks.yml</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Review Checks</span>
+<span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pull_request</span>
+
+<span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">review_checks</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Check PR size</span>
+<span class="w">        </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github.event.pull_request.additions &gt; 1000</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">echo &quot;::warning::Large PR - consider breaking into smaller pieces&quot;</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Check test coverage</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">          </span><span class="no">coverage run -m pytest</span>
+<span class="w">          </span><span class="no">coverage report --fail-under=85</span>
+</pre></div>
+</div>
+</section>
+<section id="code-review-metrics">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Code Review Metrics</a><a class="headerlink" href="#code-review-metrics" title="Link to this heading">¶</a></h3>
+<p><strong>Tracking Review Quality</strong></p>
+<ul class="simple">
+<li><p><strong>Review thoroughness</strong>: Comments per line of code changed</p></li>
+<li><p><strong>Review turnaround time</strong>: Time from PR submission to merge</p></li>
+<li><p><strong>Bug catch rate</strong>: Issues found in review vs. production</p></li>
+<li><p><strong>Knowledge sharing</strong>: Number of educational comments</p></li>
+</ul>
+<p><strong>Review Dashboard</strong></p>
+<p>Track key metrics:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ProteinMD Review Metrics (Last 30 Days)
+=====================================
+
+Review Turnaround Time:
+- Average: 2.3 days
+- 95th percentile: 5.1 days
+
+Review Quality:
+- Average comments per PR: 4.2
+- PRs requiring multiple rounds: 23%
+
+Bug Detection:
+- Issues found in review: 15
+- Issues found in production: 2
+- Review effectiveness: 88%
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Best Practices</a><a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<section id="for-effective-reviews">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">For Effective Reviews</a><a class="headerlink" href="#for-effective-reviews" title="Link to this heading">¶</a></h3>
+<p><strong>Reviewer Best Practices</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Review promptly</strong>: Respect contributor’s time</p></li>
+<li><p><strong>Be thorough</strong>: Don’t rush through reviews</p></li>
+<li><p><strong>Focus on important issues</strong>: Distinguish between critical and style issues</p></li>
+<li><p><strong>Provide examples</strong>: Show better alternatives when possible</p></li>
+<li><p><strong>Learn from code</strong>: Use reviews as learning opportunities</p></li>
+<li><p><strong>Communicate clearly</strong>: Be specific and actionable in feedback</p></li>
+</ol>
+<p><strong>Contributor Best Practices</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Self-review first</strong>: Review your own code before submitting</p></li>
+<li><p><strong>Keep PRs focused</strong>: One logical change per PR</p></li>
+<li><p><strong>Write clear descriptions</strong>: Explain what and why</p></li>
+<li><p><strong>Respond promptly</strong>: Address feedback quickly</p></li>
+<li><p><strong>Test thoroughly</strong>: Ensure code works before review</p></li>
+<li><p><strong>Be open to feedback</strong>: View reviews as collaborative improvement</p></li>
+</ol>
+</section>
+<section id="review-culture">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Review Culture</a><a class="headerlink" href="#review-culture" title="Link to this heading">¶</a></h3>
+<p><strong>Building Positive Review Culture</strong></p>
+<ul class="simple">
+<li><p><strong>Celebrate good code</strong>: Acknowledge clever solutions and improvements</p></li>
+<li><p><strong>Share knowledge</strong>: Use reviews to teach and learn</p></li>
+<li><p><strong>Be patient</strong>: Everyone is learning and improving</p></li>
+<li><p><strong>Focus on code quality</strong>: Reviews improve the entire codebase</p></li>
+<li><p><strong>Maintain high standards</strong>: Consistent quality benefits everyone</p></li>
+</ul>
+<p><strong>Handling Difficult Situations</strong></p>
+<p><strong>Persistent Disagreements</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Discuss in person/video call</strong> if possible</p></li>
+<li><p><strong>Involve neutral third party</strong> (another maintainer)</p></li>
+<li><p><strong>Document the decision</strong> and reasoning</p></li>
+<li><p><strong>Move forward</strong> - don’t block indefinitely</p></li>
+</ol>
+<p><strong>Review Conflicts</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Stay professional</strong> and focus on technical merits</p></li>
+<li><p><strong>Assume good intentions</strong> from all parties</p></li>
+<li><p><strong>Escalate to maintainers</strong> if needed</p></li>
+<li><p><strong>Learn from conflicts</strong> to improve process</p></li>
+</ol>
+</section>
+</section>
+<section id="summary">
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">Summary</a><a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<p>Effective code review is essential for ProteinMD’s quality and success:</p>
+<p><strong>Key Principles</strong></p>
+<ul class="simple">
+<li><p><strong>Quality Focus</strong>: Reviews ensure high code quality and correctness</p></li>
+<li><p><strong>Scientific Rigor</strong>: Special attention to physical accuracy and algorithms</p></li>
+<li><p><strong>Collaborative Learning</strong>: Reviews are opportunities for knowledge sharing</p></li>
+<li><p><strong>Constructive Feedback</strong>: Reviews should be helpful and educational</p></li>
+<li><p><strong>Timely Process</strong>: Reviews should be thorough but not block progress</p></li>
+</ul>
+<p><strong>Review Checklist</strong></p>
+<ul class="simple">
+<li><p>Functionality and correctness</p></li>
+<li><p>Code quality and style</p></li>
+<li><p>Testing and documentation</p></li>
+<li><p>Performance and security</p></li>
+<li><p>Scientific accuracy</p></li>
+<li><p>API design and usability</p></li>
+</ul>
+<p>By following these review guidelines, we maintain ProteinMD as a high-quality, scientifically accurate, and maintainable molecular dynamics simulation library.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Review Process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#review-process-workflow">Review Process Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#types-of-reviews">Types of Reviews</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#review-guidelines">Review Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-review-scenarios">Advanced Review Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#review-tools-and-automation">Review Tools and Automation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="pull_request_guide.html" title="previous chapter">Pull Request Guide</a></li>
+      <li>Next: <a href="release_process.html" title="next chapter">Release Process</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/review_process.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

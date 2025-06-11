@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Troubleshooting Guide &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="License" href="../about/license.html" />
+    <link rel="prev" title="Common Patterns" href="common_patterns.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="troubleshooting-guide">
+<h1>Troubleshooting Guide<a class="headerlink" href="#troubleshooting-guide" title="Link to this heading">¶</a></h1>
+<p>This comprehensive troubleshooting guide helps developers diagnose and resolve common issues encountered during ProteinMD development, testing, and deployment.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p>
+<ul>
+<li><p><a class="reference internal" href="#general-troubleshooting-approach" id="id2">General Troubleshooting Approach</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#build-and-installation-issues" id="id3">Build and Installation Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#dependency-problems" id="id4">Dependency Problems</a></p></li>
+<li><p><a class="reference internal" href="#compilation-errors" id="id5">Compilation Errors</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#runtime-errors" id="id6">Runtime Errors</a></p>
+<ul>
+<li><p><a class="reference internal" href="#simulation-failures" id="id7">Simulation Failures</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#i-o-and-file-format-issues" id="id8">I/O and File Format Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#file-reading-errors" id="id9">File Reading Errors</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#memory-and-performance-issues" id="id10">Memory and Performance Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#memory-leaks" id="id11">Memory Leaks</a></p></li>
+<li><p><a class="reference internal" href="#performance-bottlenecks" id="id12">Performance Bottlenecks</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#testing-and-debugging-issues" id="id13">Testing and Debugging Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#test-failures" id="id14">Test Failures</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#environment-and-system-issues" id="id15">Environment and System Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#platform-compatibility" id="id16">Platform Compatibility</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#documentation-and-api-issues" id="id17">Documentation and API Issues</a></p>
+<ul>
+<li><p><a class="reference internal" href="#missing-documentation" id="id18">Missing Documentation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#error-reporting-and-logging" id="id19">Error Reporting and Logging</a></p>
+<ul>
+<li><p><a class="reference internal" href="#enhanced-error-reporting" id="id20">Enhanced Error Reporting</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#getting-help" id="id21">Getting Help</a></p>
+<ul>
+<li><p><a class="reference internal" href="#when-to-seek-help" id="id22">When to Seek Help</a></p></li>
+<li><p><a class="reference internal" href="#how-to-report-issues" id="id23">How to Report Issues</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#resources" id="id24">Resources</a></p></li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>This guide provides systematic approaches to identifying and resolving problems in ProteinMD development. Issues are organized by category with step-by-step diagnostic procedures and solutions.</p>
+<section id="general-troubleshooting-approach">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">General Troubleshooting Approach</a><a class="headerlink" href="#general-troubleshooting-approach" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Reproduce the issue:</strong> Create minimal test cases that consistently trigger the problem</p></li>
+<li><p><strong>Gather information:</strong> Collect error messages, logs, system information, and environment details</p></li>
+<li><p><strong>Isolate the problem:</strong> Narrow down the scope to specific modules or functions</p></li>
+<li><p><strong>Check documentation:</strong> Review relevant API documentation and known issues</p></li>
+<li><p><strong>Search for solutions:</strong> Check issue tracker, forums, and similar reported problems</p></li>
+<li><p><strong>Apply systematic fixes:</strong> Try solutions in order of likelihood and impact</p></li>
+</ol>
+</section>
+</section>
+<section id="build-and-installation-issues">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Build and Installation Issues</a><a class="headerlink" href="#build-and-installation-issues" title="Link to this heading">¶</a></h2>
+<section id="dependency-problems">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Dependency Problems</a><a class="headerlink" href="#dependency-problems" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Missing Dependencies</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ModuleNotFoundError: No module named &#39;numpy&#39;
+ImportError: cannot import name &#39;cupy&#39; from &#39;cupy&#39;
+</pre></div>
+</div>
+<p><strong>Diagnosis:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check Python environment</span>
+python<span class="w"> </span>--version
+pip<span class="w"> </span>list
+
+<span class="c1"># Check for specific packages</span>
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import numpy; print(numpy.__version__)&quot;</span>
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import cupy; print(cupy.__version__)&quot;</span>
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install missing dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib
+
+<span class="c1"># For CUDA support</span>
+pip<span class="w"> </span>install<span class="w"> </span>cupy-cuda11x<span class="w">  </span><span class="c1"># Adjust CUDA version as needed</span>
+
+<span class="c1"># Install all ProteinMD dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="c1"># Development dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
+</pre></div>
+</div>
+<p><strong>Issue: Version Conflicts</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ERROR: pip&#39;s dependency resolver does not currently consider all the ways
+that a package can depend on another
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create clean environment</span>
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>proteinmd<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
+conda<span class="w"> </span>activate<span class="w"> </span>proteinmd
+
+<span class="c1"># Install with conda for better dependency resolution</span>
+conda<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+
+<span class="c1"># Check for conflicts</span>
+pip<span class="w"> </span>check
+</pre></div>
+</div>
+</section>
+<section id="compilation-errors">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Compilation Errors</a><a class="headerlink" href="#compilation-errors" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: C++ Compilation Failures</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>error: Microsoft Visual C++ 14.0 is required
+gcc: error: unrecognized command line option &#39;-std=c++17&#39;
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Windows - Install Visual Studio Build Tools</span>
+<span class="c1"># Download from https://visualstudio.microsoft.com/downloads/</span>
+
+<span class="c1"># Linux - Update GCC</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>gcc-9<span class="w"> </span>g++-9
+
+<span class="c1"># macOS - Update Xcode Command Line Tools</span>
+xcode-select<span class="w"> </span>--install
+
+<span class="c1"># Force compiler version</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CC</span><span class="o">=</span>gcc-9
+<span class="nb">export</span><span class="w"> </span><span class="nv">CXX</span><span class="o">=</span>g++-9
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p><strong>Issue: CUDA Compilation Problems</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>nvcc fatal : Unsupported gpu architecture &#39;compute_86&#39;
+error: identifier &quot;atomicAdd&quot; is undefined
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check CUDA version compatibility</span>
+nvcc<span class="w"> </span>--version
+nvidia-smi
+
+<span class="c1"># Update CUDA toolkit</span>
+<span class="c1"># Download from https://developer.nvidia.com/cuda-downloads</span>
+
+<span class="c1"># Set CUDA environment variables</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_HOME</span><span class="o">=</span>/usr/local/cuda
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$CUDA_HOME</span>/bin:<span class="nv">$PATH</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$CUDA_HOME</span>/lib64:<span class="nv">$LD_LIBRARY_PATH</span>
+
+<span class="c1"># Specify compute capability</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">TORCH_CUDA_ARCH_LIST</span><span class="o">=</span><span class="s2">&quot;7.0;7.5;8.0;8.6&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="runtime-errors">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Runtime Errors</a><a class="headerlink" href="#runtime-errors" title="Link to this heading">¶</a></h2>
+<section id="simulation-failures">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Simulation Failures</a><a class="headerlink" href="#simulation-failures" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Numerical Instabilities</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>RuntimeError: NaN or infinite values detected in forces
+ValueError: Simulation exploded - particles moved too far
+</pre></div>
+</div>
+<p><strong>Diagnosis:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">diagnose_instability</span><span class="p">(</span><span class="n">simulation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Diagnose numerical instability causes.&quot;&quot;&quot;</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">state</span>
+
+    <span class="c1"># Check positions</span>
+    <span class="n">pos_stats</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="p">),</span>
+        <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="p">),</span>
+        <span class="s1">&#39;nan_count&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="p">)),</span>
+        <span class="s1">&#39;inf_count&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="p">))</span>
+    <span class="p">}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Position stats: </span><span class="si">{</span><span class="n">pos_stats</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check velocities</span>
+    <span class="n">velocities</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">velocities</span>
+    <span class="n">vel_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">velocities</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">vel_stats</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;max_velocity&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vel_magnitude</span><span class="p">),</span>
+        <span class="s1">&#39;mean_velocity&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">vel_magnitude</span><span class="p">),</span>
+        <span class="s1">&#39;nan_count&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">velocities</span><span class="p">)),</span>
+        <span class="s1">&#39;inf_count&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">velocities</span><span class="p">))</span>
+    <span class="p">}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Velocity stats: </span><span class="si">{</span><span class="n">vel_stats</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check forces</span>
+    <span class="n">forces</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">forces</span>
+    <span class="n">force_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">forces</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">force_stats</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;max_force&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">force_magnitude</span><span class="p">),</span>
+        <span class="s1">&#39;mean_force&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">force_magnitude</span><span class="p">),</span>
+        <span class="s1">&#39;nan_count&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forces</span><span class="p">)),</span>
+        <span class="s1">&#39;inf_count&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">forces</span><span class="p">))</span>
+    <span class="p">}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Force stats: </span><span class="si">{</span><span class="n">force_stats</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check energy</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_total_energy</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total energy: </span><span class="si">{</span><span class="n">energy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Reduce timestep:</strong></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reduce integration timestep</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span> <span class="o">*=</span> <span class="mf">0.5</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reduced timestep to </span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">timestep</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Minimize energy first:</strong></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Perform energy minimization</span>
+<span class="n">converged</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">converged</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Energy minimization did not converge&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>Check initial conditions:</strong></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">validate_initial_conditions</span><span class="p">(</span><span class="n">system</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate system initial conditions.&quot;&quot;&quot;</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_positions</span><span class="p">()</span>
+
+    <span class="c1"># Check for overlapping atoms</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial.distance</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdist</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">pdist</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+    <span class="n">min_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">min_distance</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="c1"># 1 Angstrom</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Atoms too close - minimum distance: </span><span class="si">{</span><span class="n">min_distance</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Check box size</span>
+    <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">periodic</span><span class="p">:</span>
+        <span class="n">box_vectors</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">box_vectors</span>
+        <span class="n">box_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">box_vectors</span><span class="p">)</span>
+        <span class="n">max_coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">max_coord</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">box_size</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Atoms outside periodic box&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p><strong>Issue: Force Calculation Errors</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>RuntimeError: CUDA out of memory
+ValueError: Incompatible array shapes in force calculation
+</pre></div>
+</div>
+<p><strong>Diagnosis:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">diagnose_force_errors</span><span class="p">(</span><span class="n">simulation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Diagnose force calculation problems.&quot;&quot;&quot;</span>
+    <span class="c1"># Check system size</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">n_atoms</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;System size: </span><span class="si">{</span><span class="n">n_atoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check memory usage</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+    <span class="n">memory_gb</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">total</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;System memory: </span><span class="si">{</span><span class="n">memory_gb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check GPU memory if using CUDA</span>
+    <span class="k">if</span> <span class="n">simulation</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;cuda&#39;</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+        <span class="n">free_bytes</span><span class="p">,</span> <span class="n">total_bytes</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">memGetInfo</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU memory: </span><span class="si">{</span><span class="n">free_bytes</span><span class="o">/</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_bytes</span><span class="o">/</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check force parameters</span>
+    <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">simulation</span><span class="o">.</span><span class="n">forces</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Force: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="s1">&#39;cutoff&#39;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Cutoff: </span><span class="si">{</span><span class="n">force</span><span class="o">.</span><span class="n">cutoff</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Parameters: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span><span class="si">}</span><span class="s2"> entries&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Memory optimization:</strong></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reduce cutoff distances</span>
+<span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">simulation</span><span class="o">.</span><span class="n">forces</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="s1">&#39;cutoff&#39;</span><span class="p">):</span>
+        <span class="n">force</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">cutoff</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># 10 Angstrom max</span>
+
+<span class="c1"># Use neighbor lists</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">use_neighbor_list</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">neighbor_list_cutoff</span> <span class="o">=</span> <span class="mf">1.2</span>  <span class="c1"># 12 Angstrom</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>GPU memory management:</strong></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+
+<span class="c1"># Clear GPU memory</span>
+<span class="n">mempool</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_default_memory_pool</span><span class="p">()</span>
+<span class="n">mempool</span><span class="o">.</span><span class="n">free_all_blocks</span><span class="p">()</span>
+
+<span class="c1"># Reduce batch size for large systems</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">force_calculation_batch_size</span> <span class="o">=</span> <span class="mi">1000</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="i-o-and-file-format-issues">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">I/O and File Format Issues</a><a class="headerlink" href="#i-o-and-file-format-issues" title="Link to this heading">¶</a></h2>
+<section id="file-reading-errors">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">File Reading Errors</a><a class="headerlink" href="#file-reading-errors" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Corrupted or Invalid Files</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>ValueError: could not convert string to float: &#39;NaN&#39;
+FileNotFoundError: [Errno 2] No such file or directory: &#39;input.pdb&#39;
+</pre></div>
+</div>
+<p><strong>Diagnosis:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">validate_input_file</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate input file integrity.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+    <span class="c1"># Check file existence</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Check file size</span>
+    <span class="n">file_size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">file_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Empty file: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># Check file format</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File extension: </span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Try to read first few lines</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First 5 lines:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File appears to be binary&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Robust file reading with error handling</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">safe_read_pdb</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Safely read PDB file with error recovery.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDBReader</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">PDBReader</span><span class="p">()</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">system</span>
+
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input file not found: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;could not convert&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Found invalid numeric values, attempting repair...&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">repair_and_read_pdb</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">raise</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected error reading </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">repair_and_read_pdb</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Attempt to repair and read corrupted PDB file.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pdb&#39;</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line_num</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s1">&#39;ATOM&#39;</span><span class="p">,</span> <span class="s1">&#39;HETATM&#39;</span><span class="p">)):</span>
+                    <span class="c1"># Validate and fix coordinate fields</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c1"># Extract coordinate fields</span>
+                        <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                        <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                        <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                        <span class="n">tmp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping invalid line </span><span class="si">{</span><span class="n">line_num</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tmp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="c1"># Read repaired file</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDBReader</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">PDBReader</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">tmp</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="memory-and-performance-issues">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Memory and Performance Issues</a><a class="headerlink" href="#memory-and-performance-issues" title="Link to this heading">¶</a></h2>
+<section id="memory-leaks">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Memory Leaks</a><a class="headerlink" href="#memory-leaks" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Increasing Memory Usage</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>MemoryError: Unable to allocate array
+Warning: Memory usage increasing over time
+</pre></div>
+</div>
+<p><strong>Diagnosis:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">memory_profiler</span><span class="w"> </span><span class="kn">import</span> <span class="n">profile</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">monitor_memory_usage</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Monitor memory usage during simulation.&quot;&quot;&quot;</span>
+    <span class="n">process</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">()</span>
+
+    <span class="n">initial_memory</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial memory: </span><span class="si">{</span><span class="n">initial_memory</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="mi">100</span><span class="p">):</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+        <span class="n">current_memory</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">memory_info</span><span class="p">()</span><span class="o">.</span><span class="n">rss</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">memory_increase</span> <span class="o">=</span> <span class="n">current_memory</span> <span class="o">-</span> <span class="n">initial_memory</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">step</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">100</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">current_memory</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;(+</span><span class="si">{</span><span class="n">memory_increase</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB)&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">memory_increase</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span>  <span class="c1"># 1 GB increase</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Significant memory increase detected&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Explicit memory management</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_simulation_with_cleanup</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">total_steps</span><span class="p">,</span> <span class="n">checkpoint_interval</span><span class="o">=</span><span class="mi">10000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run simulation with periodic memory cleanup.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">chunk_start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">total_steps</span><span class="p">,</span> <span class="n">checkpoint_interval</span><span class="p">):</span>
+        <span class="n">chunk_steps</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">checkpoint_interval</span><span class="p">,</span> <span class="n">total_steps</span> <span class="o">-</span> <span class="n">chunk_start</span><span class="p">)</span>
+
+        <span class="c1"># Run chunk</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">chunk_steps</span><span class="p">)</span>
+
+        <span class="c1"># Periodic cleanup</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+        <span class="c1"># Clear GPU memory if using CUDA</span>
+        <span class="k">if</span> <span class="n">simulation</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;cuda&#39;</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+            <span class="n">mempool</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">get_default_memory_pool</span><span class="p">()</span>
+            <span class="n">mempool</span><span class="o">.</span><span class="n">free_all_blocks</span><span class="p">()</span>
+
+        <span class="c1"># Save checkpoint</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint_</span><span class="si">{</span><span class="n">chunk_start</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">chunk_steps</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Completed </span><span class="si">{</span><span class="n">chunk_start</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">chunk_steps</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_steps</span><span class="si">}</span><span class="s2"> steps&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-bottlenecks">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Performance Bottlenecks</a><a class="headerlink" href="#performance-bottlenecks" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Slow Simulation Performance</strong></p>
+<p><strong>Diagnosis:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">cProfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">profile_simulation_performance</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Profile simulation performance.&quot;&quot;&quot;</span>
+    <span class="c1"># Time individual components</span>
+    <span class="n">timings</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Profile force calculation</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">_update_forces</span><span class="p">()</span>
+    <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;force_calculation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+    <span class="c1"># Profile integration</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">integrator</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;integration&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+    <span class="c1"># Profile neighbor list update</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="s1">&#39;neighbor_list&#39;</span><span class="p">):</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">neighbor_list</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span>
+        <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;neighbor_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+    <span class="c1"># Full step timing</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;full_step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+    <span class="k">for</span> <span class="n">component</span><span class="p">,</span> <span class="n">timing</span> <span class="ow">in</span> <span class="n">timings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">percentage</span> <span class="o">=</span> <span class="n">timing</span> <span class="o">/</span> <span class="n">timings</span><span class="p">[</span><span class="s1">&#39;full_step&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">component</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">timing</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s (</span><span class="si">{</span><span class="n">percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Optimize force calculations:</strong></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use appropriate cutoffs</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimize_force_cutoffs</span><span class="p">(</span><span class="n">simulation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Optimize force calculation cutoffs.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">simulation</span><span class="o">.</span><span class="n">forces</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="s1">&#39;cutoff&#39;</span><span class="p">):</span>
+            <span class="c1"># Reduce cutoff if too large</span>
+            <span class="k">if</span> <span class="n">force</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">&gt;</span> <span class="mf">1.2</span><span class="p">:</span>  <span class="c1"># 12 Angstrom</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reducing </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> cutoff from &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">force</span><span class="o">.</span><span class="n">cutoff</span><span class="si">}</span><span class="s2"> to 1.2 nm&quot;</span><span class="p">)</span>
+                <span class="n">force</span><span class="o">.</span><span class="n">cutoff</span> <span class="o">=</span> <span class="mf">1.2</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Enable neighbor lists:</strong></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use neighbor lists for better scaling</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">use_neighbor_list</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">neighbor_list_skin</span> <span class="o">=</span> <span class="mf">0.2</span>  <span class="c1"># 2 Angstrom skin</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">neighbor_list_update_frequency</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Update every 10 steps</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>Platform optimization:</strong></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Switch to GPU if available</span>
+<span class="k">if</span> <span class="n">simulation</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;cpu&#39;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+        <span class="k">if</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Switching to CUDA platform for better performance&quot;</span><span class="p">)</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">set_platform</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CuPy not available, staying on CPU&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing-and-debugging-issues">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Testing and Debugging Issues</a><a class="headerlink" href="#testing-and-debugging-issues" title="Link to this heading">¶</a></h2>
+<section id="test-failures">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Test Failures</a><a class="headerlink" href="#test-failures" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Intermittent Test Failures</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>AssertionError: Arrays are not almost equal to 6 decimals
+FAILED test_energy_conservation - assert abs(energy_drift) &lt; 0.001
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># More robust numerical comparisons</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.testing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_energy_conservation_robust</span><span class="p">(</span><span class="n">simulation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;More robust energy conservation test.&quot;&quot;&quot;</span>
+    <span class="n">initial_energy</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_total_energy</span><span class="p">()</span>
+
+    <span class="c1"># Run simulation</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">get_total_energy</span><span class="p">())</span>
+
+    <span class="c1"># Calculate energy drift with statistical analysis</span>
+    <span class="n">energy_drift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span> <span class="o">-</span> <span class="n">initial_energy</span>
+    <span class="n">max_drift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">energy_drift</span><span class="p">))</span>
+    <span class="n">mean_drift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">energy_drift</span><span class="p">))</span>
+    <span class="n">std_drift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">energy_drift</span><span class="p">)</span>
+
+    <span class="c1"># More lenient criteria for noisy simulations</span>
+    <span class="k">assert</span> <span class="n">max_drift</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Maximum energy drift: </span><span class="si">{</span><span class="n">max_drift</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="n">mean_drift</span> <span class="o">&lt;</span> <span class="mf">0.005</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Mean energy drift: </span><span class="si">{</span><span class="n">mean_drift</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1"># Platform-specific tolerances</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_tolerance_for_platform</span><span class="p">(</span><span class="n">platform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get appropriate numerical tolerance for platform.&quot;&quot;&quot;</span>
+    <span class="n">tolerances</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;cpu&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
+        <span class="s1">&#39;cuda&#39;</span><span class="p">:</span> <span class="mf">1e-5</span><span class="p">,</span>  <span class="c1"># GPU calculations less precise</span>
+        <span class="s1">&#39;mixed&#39;</span><span class="p">:</span> <span class="mf">1e-5</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">tolerances</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">platform</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="environment-and-system-issues">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Environment and System Issues</a><a class="headerlink" href="#environment-and-system-issues" title="Link to this heading">¶</a></h2>
+<section id="platform-compatibility">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Platform Compatibility</a><a class="headerlink" href="#platform-compatibility" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Platform-Specific Failures</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>RuntimeError: CUDA driver version is insufficient for CUDA runtime version
+ImportError: DLL load failed while importing: The specified module could not be found
+</pre></div>
+</div>
+<p><strong>Diagnosis:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">diagnose_platform_issues</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Diagnose platform-specific issues.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Python: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Platform: </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">platform</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Architecture: </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">architecture</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check CUDA availability</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CuPy version: </span><span class="si">{</span><span class="n">cp</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CUDA devices: </span><span class="si">{</span><span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">getDeviceCount</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">getDeviceCount</span><span class="p">()):</span>
+                <span class="n">device</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Device</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Device </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">device</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CUDA not available&quot;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CuPy not installed&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check OpenMP</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+        <span class="n">omp_threads</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;OMP_NUM_THREADS&#39;</span><span class="p">,</span> <span class="s1">&#39;not set&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OMP_NUM_THREADS: </span><span class="si">{</span><span class="n">omp_threads</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># CUDA driver issues</span>
+<span class="c1"># Update NVIDIA drivers</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>nvidia-driver-470<span class="w">  </span><span class="c1"># or latest version</span>
+
+<span class="c1"># Check CUDA installation</span>
+nvidia-smi
+nvcc<span class="w"> </span>--version
+
+<span class="c1"># Environment variables</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_HOME</span><span class="o">=</span>/usr/local/cuda
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$CUDA_HOME</span>/bin:<span class="nv">$PATH</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$CUDA_HOME</span>/lib64:<span class="nv">$LD_LIBRARY_PATH</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="documentation-and-api-issues">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Documentation and API Issues</a><a class="headerlink" href="#documentation-and-api-issues" title="Link to this heading">¶</a></h2>
+<section id="missing-documentation">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Missing Documentation</a><a class="headerlink" href="#missing-documentation" title="Link to this heading">¶</a></h3>
+<p><strong>Issue: Unclear API Usage</strong></p>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate API documentation</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">document_class_methods</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate documentation for class methods.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Class: </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Docstring: </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Methods:&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="vm">__doc__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Usage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+<span class="n">document_class_methods</span><span class="p">(</span><span class="n">Simulation</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-reporting-and-logging">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Error Reporting and Logging</a><a class="headerlink" href="#error-reporting-and-logging" title="Link to this heading">¶</a></h2>
+<section id="enhanced-error-reporting">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Enhanced Error Reporting</a><a class="headerlink" href="#enhanced-error-reporting" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_enhanced_logging</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up comprehensive logging for debugging.&quot;&quot;&quot;</span>
+    <span class="c1"># Create logger</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;proteinmd&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+    <span class="c1"># Create handlers</span>
+    <span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;proteinmd_debug.log&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Create formatters</span>
+    <span class="n">detailed_formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+        <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(filename)s</span><span class="s1">:</span><span class="si">%(lineno)d</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">console_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">detailed_formatter</span><span class="p">)</span>
+    <span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">detailed_formatter</span><span class="p">)</span>
+
+    <span class="c1"># Add handlers</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">logger</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_bug_report</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create comprehensive bug report.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+
+    <span class="n">report</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="s1">&#39;error_type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+        <span class="s1">&#39;error_message&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">),</span>
+        <span class="s1">&#39;traceback&#39;</span><span class="p">:</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span>
+        <span class="s1">&#39;python_version&#39;</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">(),</span>
+        <span class="s1">&#39;platform&#39;</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">platform</span><span class="p">(),</span>
+        <span class="s1">&#39;context&#39;</span><span class="p">:</span> <span class="n">context</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Add environment information</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+        <span class="n">report</span><span class="p">[</span><span class="s1">&#39;numpy_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">__version__</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+        <span class="n">report</span><span class="p">[</span><span class="s1">&#39;cupy_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">__version__</span>
+        <span class="n">report</span><span class="p">[</span><span class="s1">&#39;cuda_available&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">report</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="getting-help">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Getting Help</a><a class="headerlink" href="#getting-help" title="Link to this heading">¶</a></h2>
+<section id="when-to-seek-help">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">When to Seek Help</a><a class="headerlink" href="#when-to-seek-help" title="Link to this heading">¶</a></h3>
+<p>Seek help when:</p>
+<ol class="arabic simple">
+<li><p><strong>Issue persists after trying documented solutions</strong></p></li>
+<li><p><strong>Error messages are unclear or undocumented</strong></p></li>
+<li><p><strong>Performance problems cannot be resolved with standard optimization</strong></p></li>
+<li><p><strong>System requirements or compatibility questions</strong></p></li>
+<li><p><strong>Contributing new features or major changes</strong></p></li>
+</ol>
+</section>
+<section id="how-to-report-issues">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">How to Report Issues</a><a class="headerlink" href="#how-to-report-issues" title="Link to this heading">¶</a></h3>
+<p>When reporting issues, include:</p>
+<ol class="arabic simple">
+<li><p><strong>Minimal reproducible example</strong></p></li>
+<li><p><strong>Complete error messages and stack traces</strong></p></li>
+<li><p><strong>System information (OS, Python version, dependencies)</strong></p></li>
+<li><p><strong>Steps to reproduce the issue</strong></p></li>
+<li><p><strong>Expected vs. actual behavior</strong></p></li>
+<li><p><strong>Any attempted solutions</strong></p></li>
+</ol>
+<p>Example Issue Report Template:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>**Issue Description:**
+Brief description of the problem
+
+**Environment:**
+- OS: Ubuntu 20.04
+- Python: 3.9.7
+- ProteinMD version: 1.0.0
+- NumPy: 1.21.0
+- CuPy: 9.6.0 (if applicable)
+
+**Minimal Reproducible Example:**
+```python
+# Code that reproduces the issue
+```
+
+**Error Message:**
+```
+Complete error message and stack trace
+```
+
+**Expected Behavior:**
+What you expected to happen
+
+**Actual Behavior:**
+What actually happened
+
+**Attempted Solutions:**
+- Tried solution A: result
+- Tried solution B: result
+</pre></div>
+</div>
+</section>
+</section>
+<section id="resources">
+<h2><a class="toc-backref" href="#id24" role="doc-backlink">Resources</a><a class="headerlink" href="#resources" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Documentation:</strong> <a class="reference external" href="https://proteinmd.readthedocs.io/">https://proteinmd.readthedocs.io/</a></p></li>
+<li><p><strong>Issue Tracker:</strong> <a class="reference external" href="https://github.com/proteinmd/proteinmd/issues">https://github.com/proteinmd/proteinmd/issues</a></p></li>
+<li><p><strong>Discussions:</strong> <a class="reference external" href="https://github.com/proteinmd/proteinmd/discussions">https://github.com/proteinmd/proteinmd/discussions</a></p></li>
+<li><p><strong>Stack Overflow:</strong> Use tag <cite>proteinmd</cite></p></li>
+<li><p><strong>Community Forum:</strong> [Link to community forum]</p></li>
+</ul>
+<p>This troubleshooting guide provides systematic approaches to resolving common development issues in ProteinMD. Keep it updated as new issues are discovered and resolved.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#quick-start-for-developers">Quick Start for Developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#core-documentation">Core Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="developer_guide.html#reference">Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#development-environment">Development Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#contributing-workflow">Contributing Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#key-development-areas">Key Development Areas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#best-practices-summary">Best Practices Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer_guide.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="common_patterns.html" title="previous chapter">Common Patterns</a></li>
+      <li>Next: <a href="../about/license.html" title="next chapter">License</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/troubleshooting.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Examples &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api/index.html" />
+    <link rel="prev" title="CLI Reference" href="cli_reference.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h1>
+<p>This page provides practical examples for common molecular dynamics tasks using ProteinMD.</p>
+<nav class="contents local" id="example-categories">
+<p class="topic-title">Example Categories</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#basic-examples" id="id1">Basic Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#protein-structure-loading-and-validation" id="id2">Protein Structure Loading and Validation</a></p></li>
+<li><p><a class="reference internal" href="#simple-energy-minimization" id="id3">Simple Energy Minimization</a></p></li>
+<li><p><a class="reference internal" href="#quick-md-simulation" id="id4">Quick MD Simulation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#intermediate-examples" id="id5">Intermediate Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#protein-in-explicit-water" id="id6">Protein in Explicit Water</a></p></li>
+<li><p><a class="reference internal" href="#multiple-chain-analysis" id="id7">Multiple Chain Analysis</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#advanced-examples" id="id8">Advanced Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#free-energy-calculations" id="id9">Free Energy Calculations</a></p></li>
+<li><p><a class="reference internal" href="#enhanced-sampling-with-metadynamics" id="id10">Enhanced Sampling with Metadynamics</a></p></li>
+<li><p><a class="reference internal" href="#machine-learning-analysis" id="id11">Machine Learning Analysis</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#specialized-applications" id="id12">Specialized Applications</a></p>
+<ul>
+<li><p><a class="reference internal" href="#membrane-protein-simulation" id="id13">Membrane Protein Simulation</a></p></li>
+<li><p><a class="reference internal" href="#drug-design-workflow" id="id14">Drug Design Workflow</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#see-also" id="id15">See Also</a></p></li>
+</ul>
+</nav>
+<section id="basic-examples">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Basic Examples</a><a class="headerlink" href="#basic-examples" title="Link to this heading">¶</a></h2>
+<section id="protein-structure-loading-and-validation">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Protein Structure Loading and Validation</a><a class="headerlink" href="#protein-structure-loading-and-validation" title="Link to this heading">¶</a></h3>
+<p>Load a protein structure from a PDB file and perform basic validation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProteinStructure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure.validation</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructureValidator</span>
+
+<span class="c1"># Load protein structure</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">ProteinStructure</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;examples/1ubq.pdb&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Protein: </span><span class="si">{</span><span class="n">protein</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chains: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">protein</span><span class="o">.</span><span class="n">chains</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Residues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">protein</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Atoms: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">protein</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Basic structure validation</span>
+<span class="n">validator</span> <span class="o">=</span> <span class="n">StructureValidator</span><span class="p">()</span>
+<span class="n">issues</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">issues</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Structure validation issues:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">issues</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Structure validation passed!&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get basic properties</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Bounding box: </span><span class="si">{</span><span class="n">protein</span><span class="o">.</span><span class="n">get_bounding_box</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Center of mass: </span><span class="si">{</span><span class="n">protein</span><span class="o">.</span><span class="n">get_center_of_mass</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Radius of gyration: </span><span class="si">{</span><span class="n">protein</span><span class="o">.</span><span class="n">get_radius_of_gyration</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="simple-energy-minimization">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Simple Energy Minimization</a><a class="headerlink" href="#simple-energy-minimization" title="Link to this heading">¶</a></h3>
+<p>Perform energy minimization on a protein structure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">MDSimulation</span><span class="p">,</span> <span class="n">VelocityVerletIntegrator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmberFF14SB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImplicitSolvent</span>
+
+<span class="c1"># Set up system</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+<span class="n">solvent</span> <span class="o">=</span> <span class="n">ImplicitSolvent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gb&quot;</span><span class="p">)</span>
+
+<span class="n">system</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+<span class="n">system</span><span class="o">.</span><span class="n">add_solvent_model</span><span class="p">(</span><span class="n">solvent</span><span class="p">)</span>
+
+<span class="c1"># Create simulation</span>
+<span class="n">integrator</span> <span class="o">=</span> <span class="n">VelocityVerletIntegrator</span><span class="p">(</span><span class="n">timestep</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">MDSimulation</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="n">integrator</span><span class="p">)</span>
+
+<span class="c1"># Energy minimization</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initial energy:&quot;</span><span class="p">,</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_potential_energy</span><span class="p">())</span>
+
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span>
+    <span class="n">max_iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="n">convergence_tolerance</span><span class="o">=</span><span class="mf">10.0</span>  <span class="c1"># kJ/mol/nm</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Final energy:&quot;</span><span class="p">,</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_potential_energy</span><span class="p">())</span>
+
+<span class="c1"># Save minimized structure</span>
+<span class="n">minimized_coords</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">()</span>
+<span class="n">protein</span><span class="o">.</span><span class="n">set_coordinates</span><span class="p">(</span><span class="n">minimized_coords</span><span class="p">)</span>
+<span class="n">protein</span><span class="o">.</span><span class="n">to_pdb</span><span class="p">(</span><span class="s2">&quot;minimized_structure.pdb&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="quick-md-simulation">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Quick MD Simulation</a><a class="headerlink" href="#quick-md-simulation" title="Link to this heading">¶</a></h3>
+<p>Run a short molecular dynamics simulation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangevinThermostat</span>
+
+<span class="c1"># Add thermostat for dynamics</span>
+<span class="n">thermostat</span> <span class="o">=</span> <span class="n">LangevinThermostat</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span> <span class="n">friction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">add_thermostat</span><span class="p">(</span><span class="n">thermostat</span><span class="p">)</span>
+
+<span class="c1"># Heat up gradually</span>
+<span class="k">for</span> <span class="n">temp</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">300</span><span class="p">]:</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">set_temperature</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>  <span class="c1"># 1 ps at each temperature</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temperature: </span><span class="si">{</span><span class="n">temp</span><span class="si">}</span><span class="s2"> K, Current T: </span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">get_temperature</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+
+<span class="c1"># Production run</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>  <span class="c1"># 100 ps</span>
+    <span class="n">output_frequency</span><span class="o">=</span><span class="mi">1000</span>  <span class="c1"># Save every 1 ps</span>
+<span class="p">)</span>
+
+<span class="c1"># Save trajectory</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">save_trajectory</span><span class="p">(</span><span class="s2">&quot;short_md.dcd&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation completed!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="intermediate-examples">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Intermediate Examples</a><a class="headerlink" href="#intermediate-examples" title="Link to this heading">¶</a></h2>
+<section id="protein-in-explicit-water">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Protein in Explicit Water</a><a class="headerlink" href="#protein-in-explicit-water" title="Link to this heading">¶</a></h3>
+<p>Set up and run a protein simulation in explicit water:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">WaterModel</span><span class="p">,</span> <span class="n">PeriodicBoundary</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BerendsenBarostat</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Create water box</span>
+<span class="n">water_model</span> <span class="o">=</span> <span class="n">WaterModel</span><span class="p">(</span><span class="s2">&quot;TIP3P&quot;</span><span class="p">)</span>
+
+<span class="c1"># Determine box size (protein + 1.5 nm padding)</span>
+<span class="n">protein_box</span> <span class="o">=</span> <span class="n">protein</span><span class="o">.</span><span class="n">get_bounding_box</span><span class="p">()</span>
+<span class="n">box_size</span> <span class="o">=</span> <span class="n">protein_box</span> <span class="o">+</span> <span class="mf">3.0</span>  <span class="c1"># 3 nm total padding</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Protein bounding box: </span><span class="si">{</span><span class="n">protein_box</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Water box size: </span><span class="si">{</span><span class="n">box_size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Set up periodic boundaries</span>
+<span class="n">boundary</span> <span class="o">=</span> <span class="n">PeriodicBoundary</span><span class="p">(</span><span class="n">box_size</span><span class="p">)</span>
+
+<span class="c1"># Solvate the protein</span>
+<span class="n">solvated_system</span> <span class="o">=</span> <span class="n">water_model</span><span class="o">.</span><span class="n">solvate</span><span class="p">(</span><span class="n">protein</span><span class="p">,</span> <span class="n">boundary</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added </span><span class="si">{</span><span class="n">solvated_system</span><span class="o">.</span><span class="n">n_water_molecules</span><span class="si">}</span><span class="s2"> water molecules&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add counter ions</span>
+<span class="n">solvated_system</span><span class="o">.</span><span class="n">add_ions</span><span class="p">(</span>
+    <span class="n">positive_ion</span><span class="o">=</span><span class="s2">&quot;Na+&quot;</span><span class="p">,</span>
+    <span class="n">negative_ion</span><span class="o">=</span><span class="s2">&quot;Cl-&quot;</span><span class="p">,</span>
+    <span class="n">concentration</span><span class="o">=</span><span class="mf">0.15</span>  <span class="c1"># 150 mM</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added </span><span class="si">{</span><span class="n">solvated_system</span><span class="o">.</span><span class="n">n_positive_ions</span><span class="si">}</span><span class="s2"> Na+ and &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solvated_system</span><span class="o">.</span><span class="n">n_negative_ions</span><span class="si">}</span><span class="s2"> Cl- ions&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create system with force field</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="n">solvated_system</span><span class="p">)</span>
+
+<span class="c1"># Set up non-bonded interactions</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_nonbonded_cutoff</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># 1 nm</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_pme_parameters</span><span class="p">(</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.31</span><span class="p">,</span>
+    <span class="n">grid_spacing</span><span class="o">=</span><span class="mf">0.12</span>
+<span class="p">)</span>
+
+<span class="c1"># Set up simulation</span>
+<span class="n">integrator</span> <span class="o">=</span> <span class="n">VelocityVerletIntegrator</span><span class="p">(</span><span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">)</span>  <span class="c1"># 2 fs</span>
+<span class="n">thermostat</span> <span class="o">=</span> <span class="n">LangevinThermostat</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span> <span class="n">friction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">barostat</span> <span class="o">=</span> <span class="n">BerendsenBarostat</span><span class="p">(</span><span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">MDSimulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="n">integrator</span><span class="o">=</span><span class="n">integrator</span><span class="p">,</span>
+    <span class="n">thermostat</span><span class="o">=</span><span class="n">thermostat</span><span class="p">,</span>
+    <span class="n">barostat</span><span class="o">=</span><span class="n">barostat</span>
+<span class="p">)</span>
+
+<span class="c1"># Equilibration protocol</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting equilibration...&quot;</span><span class="p">)</span>
+
+<span class="c1"># 1. Energy minimization</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Energy minimization completed&quot;</span><span class="p">)</span>
+
+<span class="c1"># 2. NVT equilibration (constant volume)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run_nvt</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>      <span class="c1"># 50 ps</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NVT equilibration completed&quot;</span><span class="p">)</span>
+
+<span class="c1"># 3. NPT equilibration (constant pressure)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run_npt</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span>      <span class="c1"># 100 ps</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NPT equilibration completed&quot;</span><span class="p">)</span>
+
+<span class="c1"># 4. Production run</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting production run...&quot;</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run_npt</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span>    <span class="c1"># 2 ns</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">pressure</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">output_frequency</span><span class="o">=</span><span class="mi">1000</span>
+<span class="p">)</span>
+
+<span class="c1"># Save final state</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">save_trajectory</span><span class="p">(</span><span class="s2">&quot;production.dcd&quot;</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="s2">&quot;final_state.chk&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Production run completed!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="multiple-chain-analysis">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Multiple Chain Analysis</a><a class="headerlink" href="#multiple-chain-analysis" title="Link to this heading">¶</a></h3>
+<p>Analyze a multi-chain protein complex:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProteinComplex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">InterfaceAnalysis</span><span class="p">,</span> <span class="n">ContactMap</span>
+
+<span class="c1"># Load protein complex</span>
+<span class="n">complex_structure</span> <span class="o">=</span> <span class="n">ProteinComplex</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;complex.pdb&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Complex contains </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">complex_structure</span><span class="o">.</span><span class="n">chains</span><span class="p">)</span><span class="si">}</span><span class="s2"> chains:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">complex_structure</span><span class="o">.</span><span class="n">chains</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Chain </span><span class="si">{</span><span class="n">chain</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span><span class="si">}</span><span class="s2"> residues&quot;</span><span class="p">)</span>
+
+<span class="c1"># Analyze interfaces between chains</span>
+<span class="n">interface_analyzer</span> <span class="o">=</span> <span class="n">InterfaceAnalysis</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chain_a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">complex_structure</span><span class="o">.</span><span class="n">chains</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">chain_b</span> <span class="ow">in</span> <span class="n">complex_structure</span><span class="o">.</span><span class="n">chains</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">interface</span> <span class="o">=</span> <span class="n">interface_analyzer</span><span class="o">.</span><span class="n">calculate_interface</span><span class="p">(</span><span class="n">chain_a</span><span class="p">,</span> <span class="n">chain_b</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">interface</span><span class="o">.</span><span class="n">area</span> <span class="o">&gt;</span> <span class="mi">500</span><span class="p">:</span>  <span class="c1"># Significant interface (Ų)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Interface </span><span class="si">{</span><span class="n">chain_a</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">chain_b</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Contact area: </span><span class="si">{</span><span class="n">interface</span><span class="o">.</span><span class="n">area</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> Ų&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Contact residues: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Hydrogen bonds: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">hydrogen_bonds</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Salt bridges: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">interface</span><span class="o">.</span><span class="n">salt_bridges</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create contact map for the complex</span>
+<span class="n">contact_map</span> <span class="o">=</span> <span class="n">ContactMap</span><span class="p">(</span><span class="n">cutoff</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>  <span class="c1"># 8 Å cutoff</span>
+<span class="n">contacts</span> <span class="o">=</span> <span class="n">contact_map</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">complex_structure</span><span class="p">)</span>
+
+<span class="c1"># Visualize contact map</span>
+<span class="n">contact_map</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">contacts</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="s2">&quot;complex_contacts.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-examples">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Advanced Examples</a><a class="headerlink" href="#advanced-examples" title="Link to this heading">¶</a></h2>
+<section id="free-energy-calculations">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Free Energy Calculations</a><a class="headerlink" href="#free-energy-calculations" title="Link to this heading">¶</a></h3>
+<p>Calculate binding free energy using thermodynamic integration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicIntegration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreeEnergyAnalysis</span>
+
+<span class="c1"># Set up protein-ligand system</span>
+<span class="n">complex_system</span> <span class="o">=</span> <span class="n">setup_protein_ligand_complex</span><span class="p">(</span><span class="s2">&quot;protein.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;ligand.mol2&quot;</span><span class="p">)</span>
+
+<span class="c1"># Define λ schedule for TI</span>
+<span class="n">lambda_values</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+
+<span class="c1"># Set up thermodynamic integration</span>
+<span class="n">ti_calc</span> <span class="o">=</span> <span class="n">ThermodynamicIntegration</span><span class="p">(</span>
+    <span class="n">complex_system</span><span class="o">=</span><span class="n">complex_system</span><span class="p">,</span>
+    <span class="n">lambda_schedule</span><span class="o">=</span><span class="n">lambda_values</span><span class="p">,</span>
+    <span class="n">perturbation_type</span><span class="o">=</span><span class="s2">&quot;electrostatic_then_vdw&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Run TI calculations</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running thermodynamic integration...&quot;</span><span class="p">)</span>
+<span class="n">ti_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">lambda_val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lambda_values</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;λ = </span><span class="si">{</span><span class="n">lambda_val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Set up simulation for this λ value</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">ti_calc</span><span class="o">.</span><span class="n">create_lambda_system</span><span class="p">(</span><span class="n">lambda_val</span><span class="p">)</span>
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">MDSimulation</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="n">integrator</span><span class="p">)</span>
+
+    <span class="c1"># Equilibration</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">100000</span><span class="p">)</span>  <span class="c1"># 200 ps</span>
+
+    <span class="c1"># Production with energy collection</span>
+    <span class="n">dhdl_values</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">500000</span><span class="p">):</span>  <span class="c1"># 1 ns</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Collect every 200 fs</span>
+            <span class="n">dhdl</span> <span class="o">=</span> <span class="n">ti_calc</span><span class="o">.</span><span class="n">calculate_dhdl</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">get_state</span><span class="p">())</span>
+            <span class="n">dhdl_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dhdl</span><span class="p">)</span>
+
+    <span class="n">ti_results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+        <span class="s1">&#39;lambda&#39;</span><span class="p">:</span> <span class="n">lambda_val</span><span class="p">,</span>
+        <span class="s1">&#39;dhdl_mean&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dhdl_values</span><span class="p">),</span>
+        <span class="s1">&#39;dhdl_std&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">dhdl_values</span><span class="p">),</span>
+        <span class="s1">&#39;dhdl_values&#39;</span><span class="p">:</span> <span class="n">dhdl_values</span>
+    <span class="p">})</span>
+
+<span class="c1"># Analyze results</span>
+<span class="n">fe_analyzer</span> <span class="o">=</span> <span class="n">FreeEnergyAnalysis</span><span class="p">()</span>
+<span class="n">binding_energy</span> <span class="o">=</span> <span class="n">fe_analyzer</span><span class="o">.</span><span class="n">integrate_ti</span><span class="p">(</span><span class="n">ti_results</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Binding free energy: </span><span class="si">{</span><span class="n">binding_energy</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">fe_analyzer</span><span class="o">.</span><span class="n">error</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+
+<span class="c1"># Plot TI integrand</span>
+<span class="n">fe_analyzer</span><span class="o">.</span><span class="n">plot_ti_integrand</span><span class="p">(</span><span class="n">ti_results</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="s2">&quot;ti_integrand.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="enhanced-sampling-with-metadynamics">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Enhanced Sampling with Metadynamics</a><a class="headerlink" href="#enhanced-sampling-with-metadynamics" title="Link to this heading">¶</a></h3>
+<p>Use metadynamics to enhance sampling of conformational transitions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metadynamics</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReactionCoordinate</span>
+
+<span class="c1"># Define collective variables (CVs)</span>
+<span class="n">cv1</span> <span class="o">=</span> <span class="n">ReactionCoordinate</span><span class="o">.</span><span class="n">dihedral</span><span class="p">(</span>
+    <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;PHE8:CA&quot;</span><span class="p">,</span> <span class="s2">&quot;PHE8:CB&quot;</span><span class="p">,</span> <span class="s2">&quot;PHE8:CG&quot;</span><span class="p">,</span> <span class="s2">&quot;PHE8:CD1&quot;</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;phe8_chi1&quot;</span>
+<span class="p">)</span>
+
+<span class="n">cv2</span> <span class="o">=</span> <span class="n">ReactionCoordinate</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span>
+    <span class="n">atom1</span><span class="o">=</span><span class="s2">&quot;GLU15:CG&quot;</span><span class="p">,</span>
+    <span class="n">atom2</span><span class="o">=</span><span class="s2">&quot;LYS27:NZ&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;salt_bridge&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Set up metadynamics</span>
+<span class="n">metad</span> <span class="o">=</span> <span class="n">Metadynamics</span><span class="p">(</span>
+    <span class="n">collective_variables</span><span class="o">=</span><span class="p">[</span><span class="n">cv1</span><span class="p">,</span> <span class="n">cv2</span><span class="p">],</span>
+    <span class="n">hill_height</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>      <span class="c1"># kJ/mol</span>
+    <span class="n">hill_width</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">],</span>  <span class="c1"># Gaussian widths</span>
+    <span class="n">deposition_frequency</span><span class="o">=</span><span class="mi">500</span>  <span class="c1"># Add hill every 500 steps (1 ps)</span>
+<span class="p">)</span>
+
+<span class="c1"># Add metadynamics bias to simulation</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">add_bias</span><span class="p">(</span><span class="n">metad</span><span class="p">)</span>
+
+<span class="c1"># Run metadynamics simulation</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running metadynamics simulation...&quot;</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">5000000</span><span class="p">,</span>  <span class="c1"># 10 ns</span>
+    <span class="n">output_frequency</span><span class="o">=</span><span class="mi">1000</span>
+<span class="p">)</span>
+
+<span class="c1"># Analyze results</span>
+<span class="n">cv_trajectory</span> <span class="o">=</span> <span class="n">metad</span><span class="o">.</span><span class="n">get_cv_trajectory</span><span class="p">()</span>
+<span class="n">bias_surface</span> <span class="o">=</span> <span class="n">metad</span><span class="o">.</span><span class="n">get_bias_surface</span><span class="p">()</span>
+
+<span class="c1"># Calculate free energy surface</span>
+<span class="n">fes</span> <span class="o">=</span> <span class="n">metad</span><span class="o">.</span><span class="n">calculate_fes</span><span class="p">(</span>
+    <span class="n">cv_range</span><span class="o">=</span><span class="p">[(</span><span class="err">−</span><span class="n">π</span><span class="p">,</span> <span class="n">π</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">)],</span>  <span class="c1"># CV ranges</span>
+    <span class="n">grid_size</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">75</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Plot free energy surface</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+<span class="c1"># CV trajectory</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cv_trajectory</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">cv_trajectory</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;φ (PHE8 χ1)&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Distance (GLU15-LYS27)&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;CV Trajectory&#39;</span><span class="p">)</span>
+
+<span class="c1"># Free energy surface</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">fes</span><span class="o">.</span><span class="n">cv1_grid</span><span class="p">,</span> <span class="n">fes</span><span class="o">.</span><span class="n">cv2_grid</span><span class="p">,</span> <span class="n">fes</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;φ (PHE8 χ1)&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Distance (GLU15-LYS27)&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Free Energy Surface&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Free Energy (kJ/mol)&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;metadynamics_analysis.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="machine-learning-analysis">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Machine Learning Analysis</a><a class="headerlink" href="#machine-learning-analysis" title="Link to this heading">¶</a></h3>
+<p>Use machine learning to analyze conformational states:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConformationalClustering</span><span class="p">,</span> <span class="n">FeatureExtraction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.cluster</span><span class="w"> </span><span class="kn">import</span> <span class="n">KMeans</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.decomposition</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCA</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Load trajectory</span>
+<span class="n">trajectory</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_trajectory</span><span class="p">()</span>
+
+<span class="c1"># Extract features for clustering</span>
+<span class="n">feature_extractor</span> <span class="o">=</span> <span class="n">FeatureExtraction</span><span class="p">()</span>
+
+<span class="c1"># Combine multiple feature types</span>
+<span class="n">features</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># 1. Backbone dihedrals</span>
+<span class="n">phi_psi</span> <span class="o">=</span> <span class="n">feature_extractor</span><span class="o">.</span><span class="n">extract_backbone_dihedrals</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+<span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phi_psi</span><span class="p">)</span>
+
+<span class="c1"># 2. Distance features</span>
+<span class="n">ca_distances</span> <span class="o">=</span> <span class="n">feature_extractor</span><span class="o">.</span><span class="n">extract_ca_distances</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+<span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ca_distances</span><span class="p">)</span>
+
+<span class="c1"># 3. Secondary structure content</span>
+<span class="n">ss_content</span> <span class="o">=</span> <span class="n">feature_extractor</span><span class="o">.</span><span class="n">extract_ss_content</span><span class="p">(</span><span class="n">trajectory</span><span class="p">)</span>
+<span class="n">features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ss_content</span><span class="p">)</span>
+
+<span class="c1"># Combine and normalize features</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+<span class="n">X_normalized</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">-</span> <span class="n">X</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Dimensionality reduction with PCA</span>
+<span class="n">pca</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">X_pca</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_normalized</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Explained variance ratio (first 10 PCs): &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pca</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Clustering analysis</span>
+<span class="n">clustering</span> <span class="o">=</span> <span class="n">ConformationalClustering</span><span class="p">()</span>
+
+<span class="c1"># Determine optimal number of clusters</span>
+<span class="n">n_clusters_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+<span class="n">silhouette_scores</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">n_clusters</span> <span class="ow">in</span> <span class="n">n_clusters_range</span><span class="p">:</span>
+    <span class="n">kmeans</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="n">n_clusters</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+    <span class="n">cluster_labels</span> <span class="o">=</span> <span class="n">kmeans</span><span class="o">.</span><span class="n">fit_predict</span><span class="p">(</span><span class="n">X_pca</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">clustering</span><span class="o">.</span><span class="n">silhouette_score</span><span class="p">(</span><span class="n">X_pca</span><span class="p">,</span> <span class="n">cluster_labels</span><span class="p">)</span>
+    <span class="n">silhouette_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+<span class="n">optimal_clusters</span> <span class="o">=</span> <span class="n">n_clusters_range</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">silhouette_scores</span><span class="p">)]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optimal number of clusters: </span><span class="si">{</span><span class="n">optimal_clusters</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Final clustering</span>
+<span class="n">kmeans</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="n">optimal_clusters</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">cluster_labels</span> <span class="o">=</span> <span class="n">kmeans</span><span class="o">.</span><span class="n">fit_predict</span><span class="p">(</span><span class="n">X_pca</span><span class="p">)</span>
+
+<span class="c1"># Analyze clusters</span>
+<span class="k">for</span> <span class="n">cluster_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">optimal_clusters</span><span class="p">):</span>
+    <span class="n">cluster_frames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cluster_labels</span> <span class="o">==</span> <span class="n">cluster_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cluster_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cluster_frames</span><span class="p">)</span>
+    <span class="n">cluster_percentage</span> <span class="o">=</span> <span class="p">(</span><span class="n">cluster_size</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">trajectory</span><span class="p">))</span> <span class="o">*</span> <span class="mi">100</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cluster </span><span class="si">{</span><span class="n">cluster_id</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">cluster_size</span><span class="si">}</span><span class="s2"> frames (</span><span class="si">{</span><span class="n">cluster_percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Get representative structure (centroid)</span>
+    <span class="n">cluster_data</span> <span class="o">=</span> <span class="n">X_pca</span><span class="p">[</span><span class="n">cluster_frames</span><span class="p">]</span>
+    <span class="n">centroid_idx</span> <span class="o">=</span> <span class="n">cluster_frames</span><span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">cluster_data</span> <span class="o">-</span> <span class="n">kmeans</span><span class="o">.</span><span class="n">cluster_centers_</span><span class="p">[</span><span class="n">cluster_id</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Save representative structure</span>
+    <span class="n">representative_frame</span> <span class="o">=</span> <span class="n">trajectory</span><span class="p">[</span><span class="n">centroid_idx</span><span class="p">]</span>
+    <span class="n">protein</span><span class="o">.</span><span class="n">set_coordinates</span><span class="p">(</span><span class="n">representative_frame</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+    <span class="n">protein</span><span class="o">.</span><span class="n">to_pdb</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cluster_</span><span class="si">{</span><span class="n">cluster_id</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">_representative.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Visualize clustering results</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+<span class="c1"># PCA projection with clusters</span>
+<span class="n">scatter</span> <span class="o">=</span> <span class="n">ax1</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">X_pca</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">X_pca</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">cluster_labels</span><span class="p">,</span>
+                     <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;tab10&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;PC1 (</span><span class="si">{</span><span class="n">pca</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s1">.1%</span><span class="si">}</span><span class="s1"> variance)&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;PC2 (</span><span class="si">{</span><span class="n">pca</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s1">.1%</span><span class="si">}</span><span class="s1"> variance)&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Conformational Clusters&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">scatter</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Cluster&#39;</span><span class="p">)</span>
+
+<span class="c1"># Cluster population over time</span>
+<span class="n">time_axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cluster_labels</span><span class="p">))</span> <span class="o">*</span> <span class="mf">0.002</span>  <span class="c1"># 2 fs timestep</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_axis</span><span class="p">,</span> <span class="n">cluster_labels</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (ns)&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Cluster ID&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Cluster Evolution&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;clustering_analysis.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="specialized-applications">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Specialized Applications</a><a class="headerlink" href="#specialized-applications" title="Link to this heading">¶</a></h2>
+<section id="membrane-protein-simulation">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Membrane Protein Simulation</a><a class="headerlink" href="#membrane-protein-simulation" title="Link to this heading">¶</a></h3>
+<p>Simulate a membrane protein in a lipid bilayer:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">LipidBilayer</span><span class="p">,</span> <span class="n">MembraneSystem</span>
+
+<span class="c1"># Load membrane protein structure</span>
+<span class="n">membrane_protein</span> <span class="o">=</span> <span class="n">ProteinStructure</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;membrane_protein.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Set up lipid bilayer</span>
+<span class="n">bilayer</span> <span class="o">=</span> <span class="n">LipidBilayer</span><span class="p">(</span>
+    <span class="n">lipid_type</span><span class="o">=</span><span class="s2">&quot;POPC&quot;</span><span class="p">,</span>          <span class="c1"># Phospholipid type</span>
+    <span class="n">area_per_lipid</span><span class="o">=</span><span class="mf">0.68</span><span class="p">,</span>        <span class="c1"># nm²</span>
+    <span class="n">protein</span><span class="o">=</span><span class="n">membrane_protein</span><span class="p">,</span>
+    <span class="n">water_thickness</span><span class="o">=</span><span class="mf">1.5</span>         <span class="c1"># nm on each side</span>
+<span class="p">)</span>
+
+<span class="c1"># Create membrane system</span>
+<span class="n">membrane_system</span> <span class="o">=</span> <span class="n">MembraneSystem</span><span class="p">(</span>
+    <span class="n">protein</span><span class="o">=</span><span class="n">membrane_protein</span><span class="p">,</span>
+    <span class="n">bilayer</span><span class="o">=</span><span class="n">bilayer</span>
+<span class="p">)</span>
+
+<span class="c1"># Add ions and water</span>
+<span class="n">membrane_system</span><span class="o">.</span><span class="n">add_water</span><span class="p">(</span><span class="s2">&quot;TIP3P&quot;</span><span class="p">)</span>
+<span class="n">membrane_system</span><span class="o">.</span><span class="n">add_ions</span><span class="p">(</span><span class="n">concentration</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;System composition:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Protein atoms: </span><span class="si">{</span><span class="n">membrane_system</span><span class="o">.</span><span class="n">n_protein_atoms</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Lipid molecules: </span><span class="si">{</span><span class="n">membrane_system</span><span class="o">.</span><span class="n">n_lipids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Water molecules: </span><span class="si">{</span><span class="n">membrane_system</span><span class="o">.</span><span class="n">n_water</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Ions: </span><span class="si">{</span><span class="n">membrane_system</span><span class="o">.</span><span class="n">n_ions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Set up simulation with membrane-specific settings</span>
+<span class="n">forcefield</span> <span class="o">=</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="n">membrane_system</span><span class="p">)</span>
+
+<span class="c1"># Use anisotropic pressure coupling for membranes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnisotropicBarostat</span>
+<span class="n">barostat</span> <span class="o">=</span> <span class="n">AnisotropicBarostat</span><span class="p">(</span>
+    <span class="n">pressure_xy</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>    <span class="c1"># Bar, lateral pressure</span>
+    <span class="n">pressure_z</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>     <span class="c1"># Bar, normal pressure</span>
+    <span class="n">compressibility_xy</span><span class="o">=</span><span class="mf">4.5e-5</span><span class="p">,</span>
+    <span class="n">compressibility_z</span><span class="o">=</span><span class="mf">4.5e-5</span>
+<span class="p">)</span>
+
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">MDSimulation</span><span class="p">(</span>
+    <span class="n">system</span><span class="o">=</span><span class="n">system</span><span class="p">,</span>
+    <span class="n">integrator</span><span class="o">=</span><span class="n">VelocityVerletIntegrator</span><span class="p">(</span><span class="n">timestep</span><span class="o">=</span><span class="mf">0.002</span><span class="p">),</span>
+    <span class="n">thermostat</span><span class="o">=</span><span class="n">LangevinThermostat</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">310.0</span><span class="p">,</span> <span class="n">friction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">barostat</span><span class="o">=</span><span class="n">barostat</span>
+<span class="p">)</span>
+
+<span class="c1"># Run membrane equilibration protocol</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running membrane equilibration...&quot;</span><span class="p">)</span>
+
+<span class="c1"># 1. Minimize with positional restraints on protein</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">add_restraints</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="s2">&quot;protein&quot;</span><span class="p">,</span> <span class="n">force_constant</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+
+<span class="c1"># 2. Equilibrate lipids with protein restrained</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">250000</span><span class="p">)</span>  <span class="c1"># 500 ps</span>
+
+<span class="c1"># 3. Gradually release protein restraints</span>
+<span class="k">for</span> <span class="n">force_constant</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">500.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]:</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">update_restraints</span><span class="p">(</span><span class="n">force_constant</span><span class="o">=</span><span class="n">force_constant</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">50000</span><span class="p">)</span>  <span class="c1"># 100 ps each</span>
+
+<span class="c1"># 4. Production run</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="n">steps</span><span class="o">=</span><span class="mi">10000000</span><span class="p">,</span>  <span class="c1"># 20 ns</span>
+    <span class="n">output_frequency</span><span class="o">=</span><span class="mi">5000</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="drug-design-workflow">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Drug Design Workflow</a><a class="headerlink" href="#drug-design-workflow" title="Link to this heading">¶</a></h3>
+<p>Complete workflow for structure-based drug design:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">BindingSite</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.docking</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoDock</span><span class="p">,</span> <span class="n">DrugLikeFilter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinmd.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">BindingAffinityCalculation</span>
+
+<span class="c1"># Load target protein</span>
+<span class="n">target_protein</span> <span class="o">=</span> <span class="n">ProteinStructure</span><span class="o">.</span><span class="n">from_pdb</span><span class="p">(</span><span class="s2">&quot;target.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># Identify and prepare binding site</span>
+<span class="n">binding_site</span> <span class="o">=</span> <span class="n">BindingSite</span><span class="o">.</span><span class="n">from_coordinates</span><span class="p">(</span>
+    <span class="n">protein</span><span class="o">=</span><span class="n">target_protein</span><span class="p">,</span>
+    <span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="mf">25.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">],</span>  <span class="c1"># Å</span>
+    <span class="n">radius</span><span class="o">=</span><span class="mf">10.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Prepare protein for docking</span>
+<span class="n">binding_site</span><span class="o">.</span><span class="n">add_hydrogens</span><span class="p">()</span>
+<span class="n">binding_site</span><span class="o">.</span><span class="n">optimize_sidechains</span><span class="p">()</span>
+
+<span class="c1"># Load compound library</span>
+<span class="n">compound_library</span> <span class="o">=</span> <span class="s2">&quot;chembl_fragments.sdf&quot;</span>
+
+<span class="c1"># Filter compounds for drug-likeness</span>
+<span class="n">drug_filter</span> <span class="o">=</span> <span class="n">DrugLikeFilter</span><span class="p">()</span>
+<span class="n">filtered_compounds</span> <span class="o">=</span> <span class="n">drug_filter</span><span class="o">.</span><span class="n">filter_library</span><span class="p">(</span>
+    <span class="n">compound_library</span><span class="p">,</span>
+    <span class="n">rules</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lipinski&quot;</span><span class="p">,</span> <span class="s2">&quot;veber&quot;</span><span class="p">,</span> <span class="s2">&quot;pains&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Filtered library: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filtered_compounds</span><span class="p">)</span><span class="si">}</span><span class="s2"> compounds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Virtual screening with docking</span>
+<span class="n">docker</span> <span class="o">=</span> <span class="n">AutoDock</span><span class="p">(</span>
+    <span class="n">receptor</span><span class="o">=</span><span class="n">binding_site</span><span class="p">,</span>
+    <span class="n">search_space</span><span class="o">=</span><span class="n">binding_site</span><span class="o">.</span><span class="n">get_search_space</span><span class="p">(),</span>
+    <span class="n">exhaustiveness</span><span class="o">=</span><span class="mi">16</span>
+<span class="p">)</span>
+
+<span class="n">docking_results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">compound</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">filtered_compounds</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Docking compound </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filtered_compounds</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">dock</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">score</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">6.0</span><span class="p">:</span>  <span class="c1"># Good binding score threshold</span>
+        <span class="n">docking_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+<span class="c1"># Sort by docking score</span>
+<span class="n">docking_results</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
+<span class="n">top_hits</span> <span class="o">=</span> <span class="n">docking_results</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span>  <span class="c1"># Top 50 compounds</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">top_hits</span><span class="p">)</span><span class="si">}</span><span class="s2"> promising compounds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Validate top hits with MD simulations</span>
+<span class="n">binding_calculator</span> <span class="o">=</span> <span class="n">BindingAffinityCalculation</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">hit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">top_hits</span><span class="p">[:</span><span class="mi">10</span><span class="p">]):</span>  <span class="c1"># Validate top 10</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validating compound </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">hit</span><span class="o">.</span><span class="n">compound_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create protein-ligand complex</span>
+    <span class="n">complex_structure</span> <span class="o">=</span> <span class="n">binding_site</span><span class="o">.</span><span class="n">create_complex</span><span class="p">(</span><span class="n">hit</span><span class="o">.</span><span class="n">pose</span><span class="p">)</span>
+
+    <span class="c1"># Set up MD simulation</span>
+    <span class="n">complex_system</span> <span class="o">=</span> <span class="n">forcefield</span><span class="o">.</span><span class="n">create_system</span><span class="p">(</span><span class="n">complex_structure</span><span class="p">)</span>
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">MDSimulation</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">complex_system</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="n">integrator</span><span class="p">)</span>
+
+    <span class="c1"># Short equilibration and production</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">minimize_energy</span><span class="p">(</span><span class="n">max_iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">1000000</span><span class="p">)</span>  <span class="c1"># 2 ns</span>
+
+    <span class="c1"># Calculate binding affinity</span>
+    <span class="n">binding_energy</span> <span class="o">=</span> <span class="n">binding_calculator</span><span class="o">.</span><span class="n">calculate_mm_pbsa</span><span class="p">(</span>
+        <span class="n">trajectory</span><span class="o">=</span><span class="n">simulation</span><span class="o">.</span><span class="n">get_trajectory</span><span class="p">(),</span>
+        <span class="n">complex_structure</span><span class="o">=</span><span class="n">complex_structure</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Binding energy: </span><span class="si">{</span><span class="n">binding_energy</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Update results</span>
+    <span class="n">hit</span><span class="o">.</span><span class="n">md_binding_energy</span> <span class="o">=</span> <span class="n">binding_energy</span>
+    <span class="n">hit</span><span class="o">.</span><span class="n">md_trajectory</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">get_trajectory</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="tutorials.html"><span class="doc">Tutorials</span></a> - Step-by-step tutorials</p></li>
+<li><p><a class="reference internal" href="quick_start.html"><span class="doc">Quick Start</span></a> - Getting started guide</p></li>
+<li><p><a class="reference internal" href="../api/index.html"><span class="doc">API Reference</span></a> - Complete API reference</p></li>
+<li><p><a class="reference internal" href="../advanced/performance.html"><span class="doc">Performance Optimization</span></a> - Performance optimization</p></li>
+<li><p><a class="reference internal" href="../developer/contributing.html"><span class="doc">Contributing to ProteinMD</span></a> - Contributing guidelines</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-examples">Basic Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#intermediate-examples">Intermediate Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-examples">Advanced Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#specialized-applications">Specialized Applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="cli_reference.html" title="previous chapter">CLI Reference</a></li>
+      <li>Next: <a href="../api/index.html" title="next chapter">API Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/user_guide/examples.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

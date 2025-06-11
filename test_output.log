@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/test_task_3_3_verification.py", line 202, in <module>
+    success = test_task_3_3_requirements()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/test_task_3_3_verification.py", line 122, in test_task_3_3_requirements
+    assert stats['mean'] < overall_mean, f"Segment {segment_name} should be more compact"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Segment C_terminal should be more compact
+============================================================
+TASK 3.3 RADIUS OF GYRATION - REQUIREMENT VERIFICATION
+============================================================
+
+1️⃣ Testing: Gyrationsradius wird für jeden Zeitschritt berechnet
+-------------------------------------------------------
+✅ Calculated Rg for all 50 timesteps
+   Time range: 0.00 - 4.90 ns
+
+2️⃣ Testing: Zeitverlauf wird als Graph dargestellt
+------------------------------------------------
+✅ Generated time series plot: test_task_3_3_timeseries.png
+✅ Generated distribution plot: test_task_3_3_distribution.png
+
+3️⃣ Testing: Getrennte Analyse für verschiedene Proteinsegmente möglich
+--------------------------------------------------------------------
+✅ Analyzed 3 protein segments:
+   N_terminal: 3.312 ± 0.227 nm
+   Core: 3.382 ± 0.232 nm
+   C_terminal: 3.487 ± 0.240 nm
+
+❌ Test failed with error: Segment C_terminal should be more compact

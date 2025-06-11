@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Best Practices for Molecular Dynamics Simulations &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Literature References for Molecular Dynamics" href="literature_references.html" />
+    <link rel="prev" title="Thermodynamics and Free Energy" href="thermodynamics.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="best-practices-for-molecular-dynamics-simulations">
+<h1>Best Practices for Molecular Dynamics Simulations<a class="headerlink" href="#best-practices-for-molecular-dynamics-simulations" title="Link to this heading">¶</a></h1>
+<p>This section provides comprehensive best practices for setting up and running molecular dynamics simulations for different types of systems. These guidelines are based on decades of collective experience in the computational molecular science community.</p>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#general-simulation-guidelines" id="id1">General Simulation Guidelines</a></p>
+<ul>
+<li><p><a class="reference internal" href="#system-preparation" id="id2">System Preparation</a></p></li>
+<li><p><a class="reference internal" href="#energy-minimization" id="id3">Energy Minimization</a></p></li>
+<li><p><a class="reference internal" href="#equilibration-protocols" id="id4">Equilibration Protocols</a></p></li>
+<li><p><a class="reference internal" href="#production-run-guidelines" id="id5">Production Run Guidelines</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#system-specific-best-practices" id="id6">System-Specific Best Practices</a></p>
+<ul>
+<li><p><a class="reference internal" href="#protein-simulations" id="id7">Protein Simulations</a></p></li>
+<li><p><a class="reference internal" href="#membrane-simulations" id="id8">Membrane Simulations</a></p></li>
+<li><p><a class="reference internal" href="#dna-rna-simulations" id="id9">DNA/RNA Simulations</a></p></li>
+<li><p><a class="reference internal" href="#small-molecule-simulations" id="id10">Small Molecule Simulations</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#common-pitfalls-and-troubleshooting" id="id11">Common Pitfalls and Troubleshooting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#energy-and-temperature-issues" id="id12">Energy and Temperature Issues</a></p></li>
+<li><p><a class="reference internal" href="#structural-stability-issues" id="id13">Structural Stability Issues</a></p></li>
+<li><p><a class="reference internal" href="#convergence-and-sampling" id="id14">Convergence and Sampling</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#performance-optimization" id="id15">Performance Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#hardware-considerations" id="id16">Hardware Considerations</a></p></li>
+<li><p><a class="reference internal" href="#software-optimization" id="id17">Software Optimization</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#validation-and-quality-control" id="id18">Validation and Quality Control</a></p>
+<ul>
+<li><p><a class="reference internal" href="#experimental-validation" id="id19">Experimental Validation</a></p></li>
+<li><p><a class="reference internal" href="#reproducibility-guidelines" id="id20">Reproducibility Guidelines</a></p></li>
+<li><p><a class="reference internal" href="#error-analysis-and-statistics" id="id21">Error Analysis and Statistics</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#reporting-standards" id="id22">Reporting Standards</a></p>
+<ul>
+<li><p><a class="reference internal" href="#simulation-details" id="id23">Simulation Details</a></p></li>
+<li><p><a class="reference internal" href="#best-practice-checklists" id="id24">Best Practice Checklists</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#future-considerations" id="id25">Future Considerations</a></p>
+<ul>
+<li><p><a class="reference internal" href="#emerging-technologies" id="id26">Emerging Technologies</a></p></li>
+<li><p><a class="reference internal" href="#methodological-developments" id="id27">Methodological Developments</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="general-simulation-guidelines">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">General Simulation Guidelines</a><a class="headerlink" href="#general-simulation-guidelines" title="Link to this heading">¶</a></h2>
+<section id="system-preparation">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">System Preparation</a><a class="headerlink" href="#system-preparation" title="Link to this heading">¶</a></h3>
+<p><strong>Starting Structure Quality</strong></p>
+<ul class="simple">
+<li><p>Use high-resolution experimental structures (&lt; 2.5 Å resolution for X-ray)</p></li>
+<li><p>Check for missing atoms, alternative conformations, and structural artifacts</p></li>
+<li><p>Validate protonation states at physiological pH</p></li>
+<li><p>Remove crystallographic waters unless they are essential for structure/function</p></li>
+<li><p>Consider multiple conformations for flexible regions</p></li>
+</ul>
+<p><strong>Protonation and Ionization</strong></p>
+<ul class="simple">
+<li><p>Use appropriate pKa prediction tools (PropKa, H++, etc.)</p></li>
+<li><p>Consider local electrostatic environment effects</p></li>
+<li><p>Validate histidine protonation states carefully</p></li>
+<li><p>Check terminal residue ionization states</p></li>
+<li><p>Consider metal coordination effects on nearby residues</p></li>
+</ul>
+<p><strong>Solvation Setup</strong></p>
+<ul class="simple">
+<li><p>Use adequate box sizes (minimum 10-12 Å from protein to box edge)</p></li>
+<li><p>Choose appropriate water models for your system and force field</p></li>
+<li><p>Add physiological salt concentration (typically 0.15 M NaCl)</p></li>
+<li><p>Neutralize the system with appropriate counterions</p></li>
+<li><p>Consider specific ion-binding sites</p></li>
+</ul>
+</section>
+<section id="energy-minimization">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Energy Minimization</a><a class="headerlink" href="#energy-minimization" title="Link to this heading">¶</a></h3>
+<p><strong>Multi-stage Minimization Protocol</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example multi-stage minimization</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">multi_stage_minimization</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">simulation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Multi-stage energy minimization protocol</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        system: OpenMM System object</span>
+<span class="sd">        simulation: OpenMM Simulation object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Stage 1: Solvent only (heavy restraints on solute)</span>
+    <span class="n">add_position_restraints</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">force_constant</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>  <span class="c1"># kJ/mol/nm²</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">minimizeEnergy</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>  <span class="c1"># kJ/mol/nm</span>
+
+    <span class="c1"># Stage 2: Reduced restraints</span>
+    <span class="n">modify_restraints</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">force_constant</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">minimizeEnergy</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+
+    <span class="c1"># Stage 3: Light restraints</span>
+    <span class="n">modify_restraints</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">force_constant</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">minimizeEnergy</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+
+    <span class="c1"># Stage 4: No restraints</span>
+    <span class="n">remove_restraints</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">minimizeEnergy</span><span class="p">(</span><span class="n">tolerance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Convergence Criteria</strong></p>
+<ul class="simple">
+<li><p>Use energy tolerance of 1-10 kJ/mol/nm</p></li>
+<li><p>Monitor both potential energy and force magnitudes</p></li>
+<li><p>Check for unrealistic conformational changes</p></li>
+<li><p>Validate that water molecules are properly oriented</p></li>
+</ul>
+</section>
+<section id="equilibration-protocols">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Equilibration Protocols</a><a class="headerlink" href="#equilibration-protocols" title="Link to this heading">¶</a></h3>
+<p><strong>Temperature Equilibration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">temperature_equilibration</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">target_temp</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gradual temperature equilibration protocol</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        simulation: OpenMM Simulation object</span>
+<span class="sd">        target_temp: Target temperature in Kelvin</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Gradual heating in steps</span>
+    <span class="n">temp_steps</span> <span class="o">=</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="n">target_temp</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">temp</span> <span class="ow">in</span> <span class="n">temp_steps</span><span class="p">:</span>
+        <span class="c1"># Set thermostat temperature</span>
+        <span class="n">integrator</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">integrator</span>
+        <span class="n">integrator</span><span class="o">.</span><span class="n">setTemperature</span><span class="p">(</span><span class="n">temp</span> <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">kelvin</span><span class="p">)</span>
+
+        <span class="c1"># Short equilibration at each temperature</span>
+        <span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span>  <span class="c1"># 10 ps with 2 fs timestep</span>
+
+        <span class="c1"># Monitor kinetic energy and temperature</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">(</span><span class="n">getEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ke</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">getKineticEnergy</span><span class="p">()</span>
+        <span class="n">current_temp</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ke</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">N_atoms</span> <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">BOLTZMANN_CONSTANT_kB</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Target: </span><span class="si">{</span><span class="n">temp</span><span class="si">}</span><span class="s2"> K, Current: </span><span class="si">{</span><span class="n">current_temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Pressure Equilibration</strong></p>
+<ul class="simple">
+<li><p>Start NPT equilibration only after temperature is stable</p></li>
+<li><p>Use moderate barostat coupling time (1-2 ps)</p></li>
+<li><p>Monitor box volume changes carefully</p></li>
+<li><p>Allow sufficient time for density equilibration (typically 1-5 ns)</p></li>
+</ul>
+</section>
+<section id="production-run-guidelines">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Production Run Guidelines</a><a class="headerlink" href="#production-run-guidelines" title="Link to this heading">¶</a></h3>
+<p><strong>Simulation Length</strong></p>
+<ul class="simple">
+<li><p>Proteins: minimum 100 ns, preferably 500 ns - 1 μs</p></li>
+<li><p>Nucleic acids: minimum 500 ns, often require μs timescales</p></li>
+<li><p>Membrane systems: minimum 500 ns, preferably μs timescales</p></li>
+<li><p>Small molecules: 10-100 ns depending on conformational flexibility</p></li>
+</ul>
+<p><strong>Output Frequency</strong></p>
+<ul class="simple">
+<li><p>Trajectories: every 10-50 ps for analysis</p></li>
+<li><p>Energies: every 1-10 ps for monitoring</p></li>
+<li><p>Restart files: every 10-100 ns for recovery</p></li>
+<li><p>Consider storage requirements vs. analysis needs</p></li>
+</ul>
+</section>
+</section>
+<section id="system-specific-best-practices">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">System-Specific Best Practices</a><a class="headerlink" href="#system-specific-best-practices" title="Link to this heading">¶</a></h2>
+<section id="protein-simulations">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Protein Simulations</a><a class="headerlink" href="#protein-simulations" title="Link to this heading">¶</a></h3>
+<p><strong>Force Field Selection</strong></p>
+<ul class="simple">
+<li><p><strong>AMBER force fields</strong> (ff14SB, ff19SB): Well-validated for proteins</p></li>
+<li><p><strong>CHARMM force fields</strong> (CHARMM36m): Good for membrane proteins</p></li>
+<li><p><strong>OPLS force fields</strong> (OPLS-AA/M): Good for small molecule interactions</p></li>
+<li><p>Always use the most recent validated version</p></li>
+</ul>
+<p><strong>Common Issues and Solutions</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">protein_simulation_checks</span><span class="p">(</span><span class="n">simulation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Common checks for protein simulations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;rmsd_drift&#39;</span><span class="p">:</span> <span class="s1">&#39;Monitor RMSD vs time - should plateau&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;secondary_structure&#39;</span><span class="p">:</span> <span class="s1">&#39;Track α-helix and β-sheet content&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;radius_of_gyration&#39;</span><span class="p">:</span> <span class="s1">&#39;Should be stable after equilibration&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;internal_energy&#39;</span><span class="p">:</span> <span class="s1">&#39;Should fluctuate around average&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hydrogen_bonds&#39;</span><span class="p">:</span> <span class="s1">&#39;Count intramolecular H-bonds over time&#39;</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Example RMSD monitoring</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">monitor_rmsd</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">reference</span><span class="p">):</span>
+        <span class="n">rmsd_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="p">:</span>
+            <span class="n">rmsd</span> <span class="o">=</span> <span class="n">calculate_rmsd</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">reference</span><span class="p">)</span>
+            <span class="n">rmsd_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rmsd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rmsd_values</span>
+</pre></div>
+</div>
+<p><strong>Special Considerations</strong></p>
+<ul class="simple">
+<li><p><strong>Intrinsically disordered proteins</strong>: Require longer simulations (μs)</p></li>
+<li><p><strong>Allosteric proteins</strong>: Need enhanced sampling or multiple trajectories</p></li>
+<li><p><strong>Membrane proteins</strong>: Require specialized membrane force fields</p></li>
+<li><p><strong>Metalloproteins</strong>: Need careful metal coordination parameters</p></li>
+</ul>
+</section>
+<section id="membrane-simulations">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Membrane Simulations</a><a class="headerlink" href="#membrane-simulations" title="Link to this heading">¶</a></h3>
+<p><strong>Membrane Model Selection</strong></p>
+<ul class="simple">
+<li><p><strong>Pure lipid bilayers</strong>: Use for basic membrane properties</p></li>
+<li><p><strong>Asymmetric bilayers</strong>: For realistic cell membrane mimics</p></li>
+<li><p><strong>Membrane proteins</strong>: Consider protein-lipid interactions</p></li>
+<li><p><strong>Cholesterol content</strong>: Include for mammalian membrane models</p></li>
+</ul>
+<p><strong>Setup Considerations</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">membrane_system_setup</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Guidelines for membrane system setup</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">guidelines</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;lipid_ratio&#39;</span><span class="p">:</span> <span class="s1">&#39;Use physiologically relevant lipid compositions&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;water_layer&#39;</span><span class="p">:</span> <span class="s1">&#39;Minimum 20 Å water on each side&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ion_concentration&#39;</span><span class="p">:</span> <span class="s1">&#39;Include physiological salt concentrations&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="s1">&#39;Use appropriate temperature for lipid phase&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pressure&#39;</span><span class="p">:</span> <span class="s1">&#39;Use NPT ensemble with anisotropic pressure coupling&#39;</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Typical membrane composition (mammalian plasma membrane)</span>
+    <span class="n">lipid_composition</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;POPC&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>  <span class="c1"># Phosphatidylcholine</span>
+        <span class="s1">&#39;POPE&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>  <span class="c1"># Phosphatidylethanolamine</span>
+        <span class="s1">&#39;POPS&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>  <span class="c1"># Phosphatidylserine</span>
+        <span class="s1">&#39;CHOL&#39;</span><span class="p">:</span> <span class="mf">0.3</span>   <span class="c1"># Cholesterol</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Analysis Considerations</strong></p>
+<ul class="simple">
+<li><p>Monitor membrane thickness and area per lipid</p></li>
+<li><p>Calculate lipid order parameters</p></li>
+<li><p>Analyze lipid flip-flop events (rare, require μs simulations)</p></li>
+<li><p>Track membrane protein orientation and tilt angles</p></li>
+</ul>
+</section>
+<section id="dna-rna-simulations">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">DNA/RNA Simulations</a><a class="headerlink" href="#dna-rna-simulations" title="Link to this heading">¶</a></h3>
+<p><strong>Force Field Considerations</strong></p>
+<ul class="simple">
+<li><p>Use nucleic acid-specific parameters (AMBER: OL15, CHARMM36)</p></li>
+<li><p>Consider modified bases and chemical modifications</p></li>
+<li><p>Validate against experimental NMR/X-ray structures</p></li>
+<li><p>Account for Mg²⁺ coordination in RNA</p></li>
+</ul>
+<p><strong>Special Requirements</strong></p>
+<ul class="simple">
+<li><p><strong>Longer simulations</strong>: DNA/RNA dynamics are slower than proteins</p></li>
+<li><p><strong>Ion atmosphere</strong>: Include appropriate Mg²⁺ and monovalent ions</p></li>
+<li><p><strong>Water models</strong>: TIP3P often used, but TIP4P-Ew may be better</p></li>
+<li><p><strong>Enhanced sampling</strong>: Often needed for large conformational changes</p></li>
+</ul>
+<p><strong>Validation Metrics</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">nucleic_acid_analysis</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Key analysis metrics for nucleic acids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;base_pairing&#39;</span><span class="p">:</span> <span class="s1">&#39;Monitor Watson-Crick hydrogen bonds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;helical_parameters&#39;</span><span class="p">:</span> <span class="s1">&#39;Rise, twist, tilt, roll, slide, shift&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;groove_widths&#39;</span><span class="p">:</span> <span class="s1">&#39;Major and minor groove dimensions&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;backbone_angles&#39;</span><span class="p">:</span> <span class="s1">&#39;α, β, γ, δ, ε, ζ, χ dihedral angles&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sugar_pucker&#39;</span><span class="p">:</span> <span class="s1">&#39;C2</span><span class="se">\&#39;</span><span class="s1">-endo vs C3</span><span class="se">\&#39;</span><span class="s1">-endo populations&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="small-molecule-simulations">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Small Molecule Simulations</a><a class="headerlink" href="#small-molecule-simulations" title="Link to this heading">¶</a></h3>
+<p><strong>Force Field Parameterization</strong></p>
+<ul class="simple">
+<li><p>Use quantum mechanical calculations for parameter development</p></li>
+<li><p>Validate against experimental data (e.g., density, heat of vaporization)</p></li>
+<li><p>Consider multiple conformers in parameterization</p></li>
+<li><p>Use appropriate partial charges (RESP, AM1-BCC)</p></li>
+</ul>
+<p><strong>Solvation Studies</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">small_molecule_solvation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Best practices for small molecule solvation simulations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">practices</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;box_size&#39;</span><span class="p">:</span> <span class="s1">&#39;Minimum 12 Å from molecule to box edge&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;concentration&#39;</span><span class="p">:</span> <span class="s1">&#39;Use appropriate concentration for comparison to experiment&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sampling&#39;</span><span class="p">:</span> <span class="s1">&#39;Ensure adequate conformational sampling&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;statistics&#39;</span><span class="p">:</span> <span class="s1">&#39;Run multiple independent simulations&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;validation&#39;</span><span class="p">:</span> <span class="s1">&#39;Compare to experimental solvation free energies&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="common-pitfalls-and-troubleshooting">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Common Pitfalls and Troubleshooting</a><a class="headerlink" href="#common-pitfalls-and-troubleshooting" title="Link to this heading">¶</a></h2>
+<section id="energy-and-temperature-issues">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Energy and Temperature Issues</a><a class="headerlink" href="#energy-and-temperature-issues" title="Link to this heading">¶</a></h3>
+<p><strong>High Energy Components</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">diagnose_energy_problems</span><span class="p">(</span><span class="n">simulation</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Diagnose common energy problems</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">(</span><span class="n">getEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Check individual energy components</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;kinetic&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">getKineticEnergy</span><span class="p">(),</span>
+        <span class="s1">&#39;potential&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">getPotentialEnergy</span><span class="p">(),</span>
+        <span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="n">state</span><span class="o">.</span><span class="n">getKineticEnergy</span><span class="p">()</span> <span class="o">+</span> <span class="n">state</span><span class="o">.</span><span class="n">getPotentialEnergy</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Warning signs</span>
+    <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">energies</span><span class="p">[</span><span class="s1">&#39;potential&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Positive potential energy - check for clashes&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">energies</span><span class="p">[</span><span class="s1">&#39;kinetic&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">energies</span><span class="p">[</span><span class="s1">&#39;potential&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Large kinetic/potential ratio - check equilibration&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">energies</span><span class="p">,</span> <span class="n">warnings</span>
+</pre></div>
+</div>
+<p><strong>Temperature Control Issues</strong></p>
+<ul class="simple">
+<li><p><strong>Temperature drift</strong>: Check thermostat coupling time</p></li>
+<li><p><strong>Hot spots</strong>: Look for atomic clashes or poor parameters</p></li>
+<li><p><strong>Cold spots</strong>: Check for frozen degrees of freedom</p></li>
+</ul>
+</section>
+<section id="structural-stability-issues">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Structural Stability Issues</a><a class="headerlink" href="#structural-stability-issues" title="Link to this heading">¶</a></h3>
+<p><strong>Unfolding Artifacts</strong></p>
+<ul class="simple">
+<li><p><strong>Too high temperature</strong>: Use appropriate temperature for system</p></li>
+<li><p><strong>Poor solvation</strong>: Ensure adequate water box size</p></li>
+<li><p><strong>Force field artifacts</strong>: Validate against experimental structures</p></li>
+<li><p><strong>Inadequate equilibration</strong>: Allow sufficient equilibration time</p></li>
+</ul>
+<p><strong>Unrealistic Conformations</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">structural_validation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate structural integrity during simulation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">validation_checks</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;bond_lengths&#39;</span><span class="p">:</span> <span class="s1">&#39;Check for stretched or compressed bonds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;bond_angles&#39;</span><span class="p">:</span> <span class="s1">&#39;Monitor angle distributions&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dihedral_angles&#39;</span><span class="p">:</span> <span class="s1">&#39;Check for unrealistic rotations&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;contacts&#39;</span><span class="p">:</span> <span class="s1">&#39;Monitor native contact preservation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ramachandran&#39;</span><span class="p">:</span> <span class="s1">&#39;Validate φ,ψ angles for proteins&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="convergence-and-sampling">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Convergence and Sampling</a><a class="headerlink" href="#convergence-and-sampling" title="Link to this heading">¶</a></h3>
+<p><strong>Insufficient Sampling</strong></p>
+<ul class="simple">
+<li><p><strong>Multiple trajectories</strong>: Run several independent simulations</p></li>
+<li><p><strong>Enhanced sampling</strong>: Use replica exchange or metadynamics</p></li>
+<li><p><strong>Extended timescales</strong>: Some processes require μs timescales</p></li>
+<li><p><strong>Analysis windows</strong>: Use appropriate time windows for analysis</p></li>
+</ul>
+<p><strong>Statistical Analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">assess_convergence</span><span class="p">(</span><span class="n">observable_timeseries</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assess convergence of simulation observables</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="c1"># Block averaging for error estimation</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block_average</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+        <span class="n">n_blocks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">//</span> <span class="n">block_size</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">n_blocks</span><span class="o">*</span><span class="n">block_size</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Test different block sizes</span>
+    <span class="n">block_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">block_sizes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">observable_timeseries</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">size</span><span class="p">:</span>
+            <span class="n">block_averages</span> <span class="o">=</span> <span class="n">block_average</span><span class="p">(</span><span class="n">observable_timeseries</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">block_averages</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">block_averages</span><span class="p">))</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">block_sizes</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)],</span> <span class="n">errors</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-optimization">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Performance Optimization</a><a class="headerlink" href="#performance-optimization" title="Link to this heading">¶</a></h2>
+<section id="hardware-considerations">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Hardware Considerations</a><a class="headerlink" href="#hardware-considerations" title="Link to this heading">¶</a></h3>
+<p><strong>GPU vs CPU</strong></p>
+<ul class="simple">
+<li><p><strong>GPU simulations</strong>: 10-100x speedup for typical systems</p></li>
+<li><p><strong>Memory requirements</strong>: Large systems may exceed GPU memory</p></li>
+<li><p><strong>Precision</strong>: Mixed precision acceptable for most applications</p></li>
+<li><p><strong>Multi-GPU</strong>: Limited scalability for single simulations</p></li>
+</ul>
+<p><strong>System Size Scaling</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">estimate_simulation_cost</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate computational cost based on system size</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cost_factors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;n_atoms&#39;</span><span class="p">:</span> <span class="s1">&#39;Linear scaling for bonded interactions&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;n_atoms_squared&#39;</span><span class="p">:</span> <span class="s1">&#39;Quadratic scaling for electrostatics (without PME)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cutoff_distance&#39;</span><span class="p">:</span> <span class="s1">&#39;Larger cutoffs increase neighbor list size&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="s1">&#39;Smaller timesteps require more integration steps&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;output_frequency&#39;</span><span class="p">:</span> <span class="s1">&#39;Frequent I/O can slow simulations&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="software-optimization">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Software Optimization</a><a class="headerlink" href="#software-optimization" title="Link to this heading">¶</a></h3>
+<p><strong>Simulation Parameters</strong></p>
+<ul class="simple">
+<li><p><strong>Timestep</strong>: Use largest stable timestep (typically 2-4 fs with constraints)</p></li>
+<li><p><strong>Cutoffs</strong>: Balance accuracy and performance (typically 10-12 Å)</p></li>
+<li><p><strong>Neighbor lists</strong>: Update frequency affects performance</p></li>
+<li><p><strong>PME grid</strong>: Optimize grid spacing for electrostatics</p></li>
+</ul>
+<p><strong>I/O Optimization</strong></p>
+<ul class="simple">
+<li><p><strong>Trajectory compression</strong>: Use appropriate compression formats</p></li>
+<li><p><strong>Output frequency</strong>: Balance analysis needs with performance</p></li>
+<li><p><strong>Parallel I/O</strong>: Use when available for large systems</p></li>
+<li><p><strong>Storage planning</strong>: Consider long-term data storage requirements</p></li>
+</ul>
+</section>
+</section>
+<section id="validation-and-quality-control">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Validation and Quality Control</a><a class="headerlink" href="#validation-and-quality-control" title="Link to this heading">¶</a></h2>
+<section id="experimental-validation">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Experimental Validation</a><a class="headerlink" href="#experimental-validation" title="Link to this heading">¶</a></h3>
+<p><strong>Structural Validation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">experimental_validation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compare simulation results to experimental data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">validation_metrics</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;xray_structure&#39;</span><span class="p">:</span> <span class="s1">&#39;RMSD from crystal structure&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nmr_noe&#39;</span><span class="p">:</span> <span class="s1">&#39;NOE distance restraints satisfaction&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;saxs_data&#39;</span><span class="p">:</span> <span class="s1">&#39;Small-angle X-ray scattering profiles&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;hydrogen_exchange&#39;</span><span class="p">:</span> <span class="s1">&#39;Deuterium exchange rates&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;chemical_shifts&#39;</span><span class="p">:</span> <span class="s1">&#39;NMR chemical shift predictions&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Thermodynamic Validation</strong></p>
+<ul class="simple">
+<li><p><strong>Heat capacity</strong>: Compare to experimental calorimetry</p></li>
+<li><p><strong>Thermal expansion</strong>: Validate against experimental coefficients</p></li>
+<li><p><strong>Phase transitions</strong>: Check melting points and transition temperatures</p></li>
+<li><p><strong>Binding affinities</strong>: Compare to experimental binding constants</p></li>
+</ul>
+</section>
+<section id="reproducibility-guidelines">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Reproducibility Guidelines</a><a class="headerlink" href="#reproducibility-guidelines" title="Link to this heading">¶</a></h3>
+<p><strong>Documentation Requirements</strong></p>
+<ul class="simple">
+<li><p><strong>Force field version</strong>: Specify exact force field and parameters</p></li>
+<li><p><strong>Software version</strong>: Record MD software version and compilation flags</p></li>
+<li><p><strong>Random seeds</strong>: Document or save random number seeds</p></li>
+<li><p><strong>Initial conditions</strong>: Preserve starting structures and velocities</p></li>
+<li><p><strong>Protocol details</strong>: Document all simulation parameters</p></li>
+</ul>
+<p><strong>Data Management</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">simulation_metadata</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Essential metadata for simulation reproducibility</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;software&#39;</span><span class="p">:</span> <span class="s1">&#39;OpenMM 7.7.0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;force_field&#39;</span><span class="p">:</span> <span class="s1">&#39;AMBER ff19SB&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;water_model&#39;</span><span class="p">:</span> <span class="s1">&#39;TIP3P&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="s1">&#39;300 K&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pressure&#39;</span><span class="p">:</span> <span class="s1">&#39;1 atm&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="s1">&#39;2 fs&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="s1">&#39;H-bonds constrained&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cutoff&#39;</span><span class="p">:</span> <span class="s1">&#39;10 Å&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pme_tolerance&#39;</span><span class="p">:</span> <span class="s1">&#39;1e-5&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;barostat&#39;</span><span class="p">:</span> <span class="s1">&#39;Monte Carlo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;thermostat&#39;</span><span class="p">:</span> <span class="s1">&#39;Langevin&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="error-analysis-and-statistics">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Error Analysis and Statistics</a><a class="headerlink" href="#error-analysis-and-statistics" title="Link to this heading">¶</a></h3>
+<p><strong>Statistical Uncertainty</strong></p>
+<ul class="simple">
+<li><p><strong>Bootstrap analysis</strong>: Estimate confidence intervals</p></li>
+<li><p><strong>Block averaging</strong>: Account for autocorrelation</p></li>
+<li><p><strong>Multiple trajectories</strong>: Assess reproducibility</p></li>
+<li><p><strong>Time series analysis</strong>: Check for trends and artifacts</p></li>
+</ul>
+<p><strong>Systematic Errors</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">systematic_error_checks</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check for common sources of systematic error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error_sources</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;finite_size_effects&#39;</span><span class="p">:</span> <span class="s1">&#39;Test different box sizes&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cutoff_artifacts&#39;</span><span class="p">:</span> <span class="s1">&#39;Validate cutoff independence&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;timestep_dependence&#39;</span><span class="p">:</span> <span class="s1">&#39;Test timestep convergence&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;equilibration_time&#39;</span><span class="p">:</span> <span class="s1">&#39;Ensure adequate equilibration&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;force_field_limitations&#39;</span><span class="p">:</span> <span class="s1">&#39;Compare different force fields&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="reporting-standards">
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Reporting Standards</a><a class="headerlink" href="#reporting-standards" title="Link to this heading">¶</a></h2>
+<section id="simulation-details">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Simulation Details</a><a class="headerlink" href="#simulation-details" title="Link to this heading">¶</a></h3>
+<p><strong>Essential Information</strong></p>
+<ul class="simple">
+<li><p>System composition and preparation method</p></li>
+<li><p>Force field and parameter sources</p></li>
+<li><p>Simulation conditions (T, P, ensemble)</p></li>
+<li><p>Equilibration and production protocols</p></li>
+<li><p>Analysis methods and software used</p></li>
+</ul>
+<p><strong>Performance Metrics</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">performance_reporting</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standard performance metrics to report</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;ns_per_day&#39;</span><span class="p">:</span> <span class="s1">&#39;Simulation speed&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;total_simulation_time&#39;</span><span class="p">:</span> <span class="s1">&#39;Aggregate sampling time&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">:</span> <span class="s1">&#39;Statistical independence&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;computational_cost&#39;</span><span class="p">:</span> <span class="s1">&#39;Total CPU/GPU hours&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;storage_requirements&#39;</span><span class="p">:</span> <span class="s1">&#39;Data volume generated&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="best-practice-checklists">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Best Practice Checklists</a><a class="headerlink" href="#best-practice-checklists" title="Link to this heading">¶</a></h3>
+<p><strong>Pre-simulation Checklist</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>□ Structure quality validated
+□ Protonation states checked
+□ Force field parameters verified
+□ Solvation box adequate
+□ Energy minimization converged
+□ Equilibration protocol defined
+□ Analysis plan established
+□ Computational resources allocated
+</pre></div>
+</div>
+<p><strong>Post-simulation Checklist</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>□ Simulation stability confirmed
+□ Convergence assessed
+□ Statistical analysis completed
+□ Experimental validation performed
+□ Results interpreted scientifically
+□ Data archived appropriately
+□ Results documented thoroughly
+□ Code and protocols shared
+</pre></div>
+</div>
+</section>
+</section>
+<section id="future-considerations">
+<h2><a class="toc-backref" href="#id25" role="doc-backlink">Future Considerations</a><a class="headerlink" href="#future-considerations" title="Link to this heading">¶</a></h2>
+<section id="emerging-technologies">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Emerging Technologies</a><a class="headerlink" href="#emerging-technologies" title="Link to this heading">¶</a></h3>
+<p><strong>Machine Learning Integration</strong></p>
+<ul class="simple">
+<li><p><strong>Enhanced sampling</strong>: ML-guided collective variables</p></li>
+<li><p><strong>Force field development</strong>: ML-enhanced parameter optimization</p></li>
+<li><p><strong>Property prediction</strong>: Direct ML prediction from structures</p></li>
+<li><p><strong>Workflow automation</strong>: ML-driven simulation planning</p></li>
+</ul>
+<p><strong>Hardware Advances</strong></p>
+<ul class="simple">
+<li><p><strong>Specialized processors</strong>: Dedicated MD acceleration hardware</p></li>
+<li><p><strong>Quantum computing</strong>: Potential for quantum MD algorithms</p></li>
+<li><p><strong>Cloud computing</strong>: Scalable simulation workflows</p></li>
+<li><p><strong>Edge computing</strong>: Distributed simulation networks</p></li>
+</ul>
+</section>
+<section id="methodological-developments">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Methodological Developments</a><a class="headerlink" href="#methodological-developments" title="Link to this heading">¶</a></h3>
+<p><strong>Multiscale Modeling</strong></p>
+<ul class="simple">
+<li><p><strong>QM/MM integration</strong>: Seamless quantum/classical boundaries</p></li>
+<li><p><strong>Coarse-graining</strong>: Systematic bottom-up parameterization</p></li>
+<li><p><strong>Time scale bridging</strong>: Methods for rare event sampling</p></li>
+<li><p><strong>Spatial scale bridging</strong>: Continuum-molecular interfaces</p></li>
+</ul>
+<p>These best practices represent current state-of-the-art recommendations for molecular dynamics simulations. They should be adapted based on specific research questions, available computational resources, and emerging methodological developments in the field.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="scientific_background.html">Scientific Background and Theory</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="md_fundamentals.html">Molecular Dynamics Fundamentals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statistical_mechanics.html">Statistical Mechanics Foundation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="force_fields.html">Force Fields and Potential Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration_algorithms.html">Integration Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ensemble_theory.html">Ensemble Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enhanced_sampling.html">Enhanced Sampling Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermodynamics.html">Thermodynamics and Free Energy</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Best Practices for Molecular Dynamics Simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="literature_references.html">Literature References for Molecular Dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#core-topics-covered">Core Topics Covered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#organization">Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scientific_background.html#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="scientific_background.html">Scientific Background and Theory</a><ul>
+      <li>Previous: <a href="thermodynamics.html" title="previous chapter">Thermodynamics and Free Energy</a></li>
+      <li>Next: <a href="literature_references.html" title="next chapter">Literature References for Molecular Dynamics</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/advanced/best_practices.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

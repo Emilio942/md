@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Utilities API Reference &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Command Line Interface" href="cli.html" />
+    <link rel="prev" title="Visualization Tools API Reference" href="visualization.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="utilities-api-reference">
+<h1>Utilities API Reference<a class="headerlink" href="#utilities-api-reference" title="Link to this heading">¶</a></h1>
+<p>The utilities module provides essential helper functions, data structures, and tools
+used throughout the ProteinMD package for common computational tasks.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The utilities module includes:</p>
+<ul class="simple">
+<li><p><strong>Mathematical Utilities</strong> - Linear algebra, statistics, and numerical methods</p></li>
+<li><p><strong>File I/O Operations</strong> - Reading/writing various molecular file formats</p></li>
+<li><p><strong>Data Structures</strong> - Efficient containers for molecular data</p></li>
+<li><p><strong>Performance Tools</strong> - Profiling, timing, and optimization utilities</p></li>
+<li><p><strong>Configuration Management</strong> - Settings and parameter handling</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
+<p>Basic utility usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Timer</span><span class="p">,</span> <span class="n">FileManager</span><span class="p">,</span> <span class="n">VectorMath</span><span class="p">,</span>
+    <span class="n">ConfigManager</span><span class="p">,</span> <span class="n">ProgressBar</span>
+<span class="p">)</span>
+
+<span class="c1"># Time expensive operations</span>
+<span class="k">with</span> <span class="n">Timer</span><span class="p">()</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="c1"># Perform calculation</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">expensive_calculation</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Calculation took </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Manage file operations</span>
+<span class="n">fm</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">load_trajectory</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">backup_file</span><span class="p">(</span><span class="s1">&#39;important_data.txt&#39;</span><span class="p">)</span>
+
+<span class="c1"># Vector operations</span>
+<span class="n">distance</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">atom1_coords</span><span class="p">,</span> <span class="n">atom2_coords</span><span class="p">)</span>
+<span class="n">angle</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="mathematical-utilities">
+<h2>Mathematical Utilities<a class="headerlink" href="#mathematical-utilities" title="Link to this heading">¶</a></h2>
+<section id="vectormath">
+<h3>VectorMath<a class="headerlink" href="#vectormath" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Geometric calculations</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorMath</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Define atomic coordinates</span>
+<span class="n">atom1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">atom2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">atom3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">atom4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+
+<span class="c1"># Calculate distances</span>
+<span class="n">bond_length</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bond length: </span><span class="si">{</span><span class="n">bond_length</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> Å&quot;</span><span class="p">)</span>
+
+<span class="c1"># Calculate angles</span>
+<span class="n">bond_angle</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span><span class="p">,</span> <span class="n">atom3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bond angle: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">bond_angle</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+
+<span class="c1"># Calculate dihedral angles</span>
+<span class="n">dihedral</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">dihedral</span><span class="p">(</span><span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span><span class="p">,</span> <span class="n">atom3</span><span class="p">,</span> <span class="n">atom4</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dihedral angle: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">dihedral</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+
+<span class="c1"># Vector operations</span>
+<span class="n">v1</span> <span class="o">=</span> <span class="n">atom2</span> <span class="o">-</span> <span class="n">atom1</span>
+<span class="n">v2</span> <span class="o">=</span> <span class="n">atom3</span> <span class="o">-</span> <span class="n">atom2</span>
+
+<span class="n">cross_product</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+<span class="n">dot_product</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+
+<span class="c1"># Rotation matrices</span>
+<span class="n">rotation_matrix</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">rotation_matrix</span><span class="p">(</span>
+    <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span>
+<span class="p">)</span>
+
+<span class="n">rotated_coords</span> <span class="o">=</span> <span class="n">VectorMath</span><span class="o">.</span><span class="n">rotate_coordinates</span><span class="p">(</span>
+    <span class="n">coords</span><span class="o">=</span><span class="n">atom1</span><span class="p">,</span>
+    <span class="n">matrix</span><span class="o">=</span><span class="n">rotation_matrix</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="statisticalanalysis">
+<h3>StatisticalAnalysis<a class="headerlink" href="#statisticalanalysis" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Statistical analysis of simulation data</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">StatisticalAnalysis</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Generate sample data (e.g., RMSD time series)</span>
+<span class="n">time_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+
+<span class="c1"># Basic statistics</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">StatisticalAnalysis</span><span class="p">()</span>
+
+<span class="n">mean_val</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">time_series</span><span class="p">)</span>
+<span class="n">std_val</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">time_series</span><span class="p">)</span>
+<span class="n">median_val</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">time_series</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean: </span><span class="si">{</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Std Dev: </span><span class="si">{</span><span class="n">std_val</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Median: </span><span class="si">{</span><span class="n">median_val</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Statistical tests</span>
+<span class="n">is_normal</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">test_normality</span><span class="p">(</span><span class="n">time_series</span><span class="p">)</span>
+<span class="n">autocorr_time</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">autocorrelation_time</span><span class="p">(</span><span class="n">time_series</span><span class="p">)</span>
+
+<span class="c1"># Block averaging for error estimation</span>
+<span class="n">block_averages</span><span class="p">,</span> <span class="n">block_errors</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">block_average</span><span class="p">(</span>
+    <span class="n">time_series</span><span class="p">,</span>
+    <span class="n">max_block_size</span><span class="o">=</span><span class="mi">1000</span>
+<span class="p">)</span>
+
+<span class="c1"># Convergence analysis</span>
+<span class="n">convergence_data</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">analyze_convergence</span><span class="p">(</span>
+    <span class="n">time_series</span><span class="p">,</span>
+    <span class="n">window_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">stride</span><span class="o">=</span><span class="mi">100</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Autocorrelation time: </span><span class="si">{</span><span class="n">autocorr_time</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Is normally distributed: </span><span class="si">{</span><span class="n">is_normal</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="numericalmethods">
+<h3>NumericalMethods<a class="headerlink" href="#numericalmethods" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Numerical integration and differentiation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">NumericalMethods</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Create numerical methods instance</span>
+<span class="n">num</span> <span class="o">=</span> <span class="n">NumericalMethods</span><span class="p">()</span>
+
+<span class="c1"># Example: integrate potential energy curve</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># Sample function</span>
+
+<span class="c1"># Numerical integration</span>
+<span class="n">integral</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;simpson&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Integral value: </span><span class="si">{</span><span class="n">integral</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Numerical differentiation</span>
+<span class="n">derivative</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">differentiate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;central&#39;</span><span class="p">)</span>
+
+<span class="c1"># Find extrema</span>
+<span class="n">minima</span><span class="p">,</span> <span class="n">maxima</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">find_extrema</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">minima</span><span class="p">)</span><span class="si">}</span><span class="s2"> minima and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">maxima</span><span class="p">)</span><span class="si">}</span><span class="s2"> maxima&quot;</span><span class="p">)</span>
+
+<span class="c1"># Curve fitting</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gaussian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">c</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="n">fitted_params</span><span class="p">,</span> <span class="n">covariance</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span>
+    <span class="n">gaussian</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>
+    <span class="n">initial_guess</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Interpolation</span>
+<span class="n">x_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>
+<span class="n">y_interpolated</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_new</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="linearalgebra">
+<h3>LinearAlgebra<a class="headerlink" href="#linearalgebra" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Matrix operations for molecular analysis</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearAlgebra</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Create linear algebra utilities</span>
+<span class="n">linalg</span> <span class="o">=</span> <span class="n">LinearAlgebra</span><span class="p">()</span>
+
+<span class="c1"># Example: Principal Component Analysis</span>
+<span class="c1"># Generate sample coordinate data (N_frames x N_atoms x 3)</span>
+<span class="n">coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># Flatten coordinates for PCA</span>
+<span class="n">coord_matrix</span> <span class="o">=</span> <span class="n">coordinates</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Perform PCA</span>
+<span class="n">eigenvalues</span><span class="p">,</span> <span class="n">eigenvectors</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">pca</span><span class="p">(</span><span class="n">coord_matrix</span><span class="p">)</span>
+
+<span class="c1"># Project onto principal components</span>
+<span class="n">pc_scores</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">project_pca</span><span class="p">(</span><span class="n">coord_matrix</span><span class="p">,</span> <span class="n">eigenvectors</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;First 5 eigenvalues: </span><span class="si">{</span><span class="n">eigenvalues</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Structural alignment using SVD</span>
+<span class="n">coords1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">coords2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="n">rotation_matrix</span><span class="p">,</span> <span class="n">translation</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">kabsch_alignment</span><span class="p">(</span><span class="n">coords1</span><span class="p">,</span> <span class="n">coords2</span><span class="p">)</span>
+
+<span class="c1"># Apply alignment</span>
+<span class="n">aligned_coords2</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">apply_transformation</span><span class="p">(</span>
+    <span class="n">coords2</span><span class="p">,</span> <span class="n">rotation_matrix</span><span class="p">,</span> <span class="n">translation</span>
+<span class="p">)</span>
+
+<span class="c1"># Calculate RMSD after alignment</span>
+<span class="n">rmsd</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">rmsd</span><span class="p">(</span><span class="n">coords1</span><span class="p">,</span> <span class="n">aligned_coords2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RMSD after alignment: </span><span class="si">{</span><span class="n">rmsd</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> Å&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="file-i-o-operations">
+<h2>File I/O Operations<a class="headerlink" href="#file-i-o-operations" title="Link to this heading">¶</a></h2>
+<section id="filemanager">
+<h3>FileManager<a class="headerlink" href="#filemanager" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Advanced file management</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">FileManager</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># Create file manager</span>
+<span class="n">fm</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">(</span><span class="n">base_directory</span><span class="o">=</span><span class="s1">&#39;/path/to/simulation&#39;</span><span class="p">)</span>
+
+<span class="c1"># Setup directory structure</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">create_directory_structure</span><span class="p">({</span>
+    <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;structures&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;analysis&#39;</span><span class="p">,</span> <span class="s1">&#39;logs&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;backup&#39;</span><span class="p">:</span> <span class="p">[]</span>
+<span class="p">})</span>
+
+<span class="c1"># File operations with automatic backup</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">backup_file</span><span class="p">(</span><span class="s1">&#39;important_results.txt&#39;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">copy_file</span><span class="p">(</span><span class="s1">&#39;template.pdb&#39;</span><span class="p">,</span> <span class="s1">&#39;input/structures/protein.pdb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Check file integrity</span>
+<span class="n">checksum</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">calculate_checksum</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">)</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">store_checksum</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span> <span class="n">checksum</span><span class="p">)</span>
+
+<span class="n">is_valid</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">verify_checksum</span><span class="p">(</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File integrity check: </span><span class="si">{</span><span class="s1">&#39;PASSED&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">is_valid</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;FAILED&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Compress large files</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">compress_file</span><span class="p">(</span><span class="s1">&#39;large_trajectory.dcd&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">)</span>
+
+<span class="c1"># Find files by pattern</span>
+<span class="n">pdb_files</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">find_files</span><span class="p">(</span><span class="s1">&#39;*.pdb&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">recent_files</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">find_recent_files</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+
+<span class="c1"># Clean up temporary files</span>
+<span class="n">fm</span><span class="o">.</span><span class="n">cleanup_temp_files</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="formatconverter">
+<h3>FormatConverter<a class="headerlink" href="#formatconverter" title="Link to this heading">¶</a></h3>
+<p><strong>Example: File format conversions</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormatConverter</span>
+
+<span class="c1"># Create format converter</span>
+<span class="n">converter</span> <span class="o">=</span> <span class="n">FormatConverter</span><span class="p">()</span>
+
+<span class="c1"># Convert between structure formats</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">convert_structure</span><span class="p">(</span>
+    <span class="n">input_file</span><span class="o">=</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s1">&#39;protein.mol2&#39;</span><span class="p">,</span>
+    <span class="n">input_format</span><span class="o">=</span><span class="s1">&#39;pdb&#39;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s1">&#39;mol2&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Convert trajectory formats</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">convert_trajectory</span><span class="p">(</span>
+    <span class="n">input_trajectory</span><span class="o">=</span><span class="s1">&#39;trajectory.dcd&#39;</span><span class="p">,</span>
+    <span class="n">input_topology</span><span class="o">=</span><span class="s1">&#39;topology.pdb&#39;</span><span class="p">,</span>
+    <span class="n">output_trajectory</span><span class="o">=</span><span class="s1">&#39;trajectory.xtc&#39;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s1">&#39;xtc&#39;</span><span class="p">,</span>
+    <span class="n">frame_range</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">500</span><span class="p">),</span>
+    <span class="n">stride</span><span class="o">=</span><span class="mi">2</span>
+<span class="p">)</span>
+
+<span class="c1"># Batch conversion</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">batch_convert</span><span class="p">(</span>
+    <span class="n">input_directory</span><span class="o">=</span><span class="s1">&#39;input_pdbs/&#39;</span><span class="p">,</span>
+    <span class="n">output_directory</span><span class="o">=</span><span class="s1">&#39;output_mol2/&#39;</span><span class="p">,</span>
+    <span class="n">input_format</span><span class="o">=</span><span class="s1">&#39;pdb&#39;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s1">&#39;mol2&#39;</span><span class="p">,</span>
+    <span class="n">pattern</span><span class="o">=</span><span class="s1">&#39;*.pdb&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Custom conversion with filtering</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">convert_with_filter</span><span class="p">(</span>
+    <span class="n">input_file</span><span class="o">=</span><span class="s1">&#39;complex.pdb&#39;</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s1">&#39;protein_only.pdb&#39;</span><span class="p">,</span>
+    <span class="n">filter_selection</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span><span class="p">,</span>
+    <span class="n">remove_hydrogens</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">remove_water</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="datareader">
+<h3>DataReader<a class="headerlink" href="#datareader" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Reading various data formats</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataReader</span>
+
+<span class="c1"># Create data reader</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">DataReader</span><span class="p">()</span>
+
+<span class="c1"># Read energy files</span>
+<span class="n">energy_data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_energy_file</span><span class="p">(</span>
+    <span class="s1">&#39;energy.txt&#39;</span><span class="p">,</span>
+    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;potential&#39;</span><span class="p">,</span> <span class="s1">&#39;kinetic&#39;</span><span class="p">,</span> <span class="s1">&#39;total&#39;</span><span class="p">],</span>
+    <span class="n">skip_header</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+
+<span class="c1"># Read XVG files (GROMACS format)</span>
+<span class="n">xvg_data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_xvg</span><span class="p">(</span><span class="s1">&#39;rmsd.xvg&#39;</span><span class="p">)</span>
+
+<span class="c1"># Read CSV data with automatic type detection</span>
+<span class="n">csv_data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+    <span class="s1">&#39;analysis_results.csv&#39;</span><span class="p">,</span>
+    <span class="n">auto_detect_types</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Read binary data</span>
+<span class="n">binary_data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_binary</span><span class="p">(</span>
+    <span class="s1">&#39;coordinates.bin&#39;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;float32&#39;</span><span class="p">,</span>
+    <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Read HDF5 files</span>
+<span class="n">hdf5_data</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_hdf5</span><span class="p">(</span>
+    <span class="s1">&#39;simulation_data.h5&#39;</span><span class="p">,</span>
+    <span class="n">datasets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;coordinates&#39;</span><span class="p">,</span> <span class="s1">&#39;velocities&#39;</span><span class="p">,</span> <span class="s1">&#39;forces&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-structures">
+<h2>Data Structures<a class="headerlink" href="#data-structures" title="Link to this heading">¶</a></h2>
+<section id="atomicdata">
+<h3>AtomicData<a class="headerlink" href="#atomicdata" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Efficient atomic data storage</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicData</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Create atomic data container</span>
+<span class="n">atoms</span> <span class="o">=</span> <span class="n">AtomicData</span><span class="p">()</span>
+
+<span class="c1"># Add atomic information</span>
+<span class="n">atoms</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span>
+    <span class="n">element</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span>
+    <span class="n">coordinates</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="n">charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">mass</span><span class="o">=</span><span class="mf">12.01</span><span class="p">,</span>
+    <span class="n">residue_name</span><span class="o">=</span><span class="s1">&#39;ALA&#39;</span><span class="p">,</span>
+    <span class="n">residue_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">atom_name</span><span class="o">=</span><span class="s1">&#39;CA&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Bulk operations</span>
+<span class="n">coordinates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">elements</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">500</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">300</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">200</span>
+
+<span class="n">atoms</span><span class="o">.</span><span class="n">add_atoms_bulk</span><span class="p">(</span>
+    <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">,</span>
+    <span class="n">elements</span><span class="o">=</span><span class="n">elements</span><span class="p">,</span>
+    <span class="n">masses</span><span class="o">=</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_standard_masses</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Query operations</span>
+<span class="n">carbon_atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">select_by_element</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+<span class="n">backbone_atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">select_by_name</span><span class="p">([</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;CA&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">])</span>
+<span class="n">residue_atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">select_by_residue</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Spatial queries</span>
+<span class="n">nearby_atoms</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">find_within_distance</span><span class="p">(</span>
+    <span class="n">center</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="n">radius</span><span class="o">=</span><span class="mf">5.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Update coordinates</span>
+<span class="n">atoms</span><span class="o">.</span><span class="n">update_coordinates</span><span class="p">(</span><span class="n">new_coordinates</span><span class="p">)</span>
+
+<span class="c1"># Export data</span>
+<span class="n">atoms</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<span class="n">atoms</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="moleculargraph">
+<h3>MolecularGraph<a class="headerlink" href="#moleculargraph" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Graph-based molecular representation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">MolecularGraph</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Protein</span>
+
+<span class="c1"># Create molecular graph</span>
+<span class="n">protein</span> <span class="o">=</span> <span class="n">Protein</span><span class="p">(</span><span class="s1">&#39;protein.pdb&#39;</span><span class="p">)</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">MolecularGraph</span><span class="o">.</span><span class="n">from_structure</span><span class="p">(</span><span class="n">protein</span><span class="p">)</span>
+
+<span class="c1"># Add connectivity</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">add_bonds_from_distance</span><span class="p">(</span><span class="n">cutoff</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">add_bonds_from_topology</span><span class="p">()</span>
+
+<span class="c1"># Graph analysis</span>
+<span class="n">shortest_path</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">shortest_path</span><span class="p">(</span><span class="n">atom1</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">atom2</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<span class="n">connected_components</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">connected_components</span><span class="p">()</span>
+
+<span class="c1"># Topological analysis</span>
+<span class="n">degree_centrality</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">degree_centrality</span><span class="p">()</span>
+<span class="n">betweenness_centrality</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">betweenness_centrality</span><span class="p">()</span>
+
+<span class="c1"># Find structural motifs</span>
+<span class="n">rings</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">find_rings</span><span class="p">()</span>
+<span class="n">bridges</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">find_bridges</span><span class="p">()</span>
+
+<span class="c1"># Subgraph extraction</span>
+<span class="n">active_site_atoms</span> <span class="o">=</span> <span class="p">[</span><span class="mi">45</span><span class="p">,</span> <span class="mi">67</span><span class="p">,</span> <span class="mi">89</span><span class="p">,</span> <span class="mi">123</span><span class="p">,</span> <span class="mi">156</span><span class="p">]</span>
+<span class="n">active_site_graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">active_site_atoms</span><span class="p">)</span>
+
+<span class="c1"># Export to standard formats</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">to_networkx</span><span class="p">()</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">to_adjacency_matrix</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="parameterset">
+<h3>ParameterSet<a class="headerlink" href="#parameterset" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Parameter management</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterSet</span>
+
+<span class="c1"># Create parameter set</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">ParameterSet</span><span class="p">()</span>
+
+<span class="c1"># Add parameters with validation</span>
+<span class="n">params</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+    <span class="s1">&#39;temperature&#39;</span><span class="p">,</span>
+    <span class="n">value</span><span class="o">=</span><span class="mf">300.0</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+    <span class="n">valid_range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Simulation temperature&#39;</span>
+<span class="p">)</span>
+
+<span class="n">params</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+    <span class="s1">&#39;timestep&#39;</span><span class="p">,</span>
+    <span class="n">value</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s1">&#39;fs&#39;</span><span class="p">,</span>
+    <span class="n">valid_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Integration timestep&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Parameter groups</span>
+<span class="n">params</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s1">&#39;simulation&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">,</span> <span class="s1">&#39;timestep&#39;</span><span class="p">])</span>
+<span class="n">params</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;save_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;output_format&#39;</span><span class="p">])</span>
+
+<span class="c1"># Validation</span>
+<span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Parameter errors:&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+
+<span class="c1"># Load/save parameters</span>
+<span class="n">params</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="s1">&#39;parameters.yaml&#39;</span><span class="p">)</span>
+<span class="n">params</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="s1">&#39;parameters.yaml&#39;</span><span class="p">)</span>
+
+<span class="c1"># Parameter sweeps</span>
+<span class="n">sweep_params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">create_sweep</span><span class="p">({</span>
+    <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">300</span><span class="p">,</span> <span class="mi">310</span><span class="p">,</span> <span class="mi">320</span><span class="p">],</span>
+    <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-tools">
+<h2>Performance Tools<a class="headerlink" href="#performance-tools" title="Link to this heading">¶</a></h2>
+<section id="timer">
+<h3>Timer<a class="headerlink" href="#timer" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Performance timing and profiling</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Timer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># Basic timing</span>
+<span class="k">with</span> <span class="n">Timer</span><span class="p">()</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>  <span class="c1"># Simulate work</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Operation took </span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="c1"># Named timers</span>
+<span class="n">timer</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">()</span>
+
+<span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;initialization&#39;</span><span class="p">)</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">timer</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="s1">&#39;initialization&#39;</span><span class="p">)</span>
+
+<span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="s1">&#39;calculation&#39;</span><span class="p">)</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">timer</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="s1">&#39;calculation&#39;</span><span class="p">)</span>
+
+<span class="c1"># Print timing report</span>
+<span class="n">timer</span><span class="o">.</span><span class="n">report</span><span class="p">()</span>
+
+<span class="c1"># Decorator usage</span>
+<span class="nd">@timer</span><span class="o">.</span><span class="n">time_function</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">expensive_function</span><span class="p">():</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;result&quot;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">expensive_function</span><span class="p">()</span>
+<span class="n">timer</span><span class="o">.</span><span class="n">report</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="profiler">
+<h3>Profiler<a class="headerlink" href="#profiler" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Code profiling and optimization</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Profiler</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Create profiler</span>
+<span class="n">profiler</span> <span class="o">=</span> <span class="n">Profiler</span><span class="p">()</span>
+
+<span class="c1"># Profile function execution</span>
+<span class="nd">@profiler</span><span class="o">.</span><span class="n">profile_function</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">matrix_multiplication</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+<span class="c1"># Run profiled function</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">matrix_multiplication</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+
+<span class="c1"># Memory profiling</span>
+<span class="nd">@profiler</span><span class="o">.</span><span class="n">profile_memory</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">memory_intensive_function</span><span class="p">():</span>
+    <span class="n">large_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">large_array</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+<span class="n">memory_intensive_function</span><span class="p">()</span>
+
+<span class="c1"># Generate profiling report</span>
+<span class="n">profiler</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span><span class="s1">&#39;profiling_report.html&#39;</span><span class="p">)</span>
+
+<span class="c1"># Line-by-line profiling</span>
+<span class="n">profiler</span><span class="o">.</span><span class="n">line_profile</span><span class="p">(</span><span class="n">matrix_multiplication</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="memorymanager">
+<h3>MemoryManager<a class="headerlink" href="#memorymanager" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Memory usage optimization</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemoryManager</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Create memory manager</span>
+<span class="n">mem</span> <span class="o">=</span> <span class="n">MemoryManager</span><span class="p">()</span>
+
+<span class="c1"># Monitor memory usage</span>
+<span class="n">mem</span><span class="o">.</span><span class="n">start_monitoring</span><span class="p">()</span>
+
+<span class="c1"># Allocate memory with tracking</span>
+<span class="n">large_array</span> <span class="o">=</span> <span class="n">mem</span><span class="o">.</span><span class="n">allocate_array</span><span class="p">(</span>
+    <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">),</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;trajectory_data&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Memory pool for frequent allocations</span>
+<span class="n">mem</span><span class="o">.</span><span class="n">create_pool</span><span class="p">(</span><span class="s1">&#39;temp_arrays&#39;</span><span class="p">,</span> <span class="n">size_mb</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+
+<span class="n">temp_array</span> <span class="o">=</span> <span class="n">mem</span><span class="o">.</span><span class="n">allocate_from_pool</span><span class="p">(</span>
+    <span class="s1">&#39;temp_arrays&#39;</span><span class="p">,</span>
+    <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+<span class="p">)</span>
+
+<span class="c1"># Memory usage report</span>
+<span class="n">usage_report</span> <span class="o">=</span> <span class="n">mem</span><span class="o">.</span><span class="n">get_usage_report</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total memory used: </span><span class="si">{</span><span class="n">usage_report</span><span class="p">[</span><span class="s1">&#39;total_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+<span class="c1"># Cleanup</span>
+<span class="n">mem</span><span class="o">.</span><span class="n">free_array</span><span class="p">(</span><span class="s1">&#39;trajectory_data&#39;</span><span class="p">)</span>
+<span class="n">mem</span><span class="o">.</span><span class="n">clear_pool</span><span class="p">(</span><span class="s1">&#39;temp_arrays&#39;</span><span class="p">)</span>
+<span class="n">mem</span><span class="o">.</span><span class="n">stop_monitoring</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration-management">
+<h2>Configuration Management<a class="headerlink" href="#configuration-management" title="Link to this heading">¶</a></h2>
+<section id="configmanager">
+<h3>ConfigManager<a class="headerlink" href="#configmanager" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Configuration management</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigManager</span>
+
+<span class="c1"># Create configuration manager</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">ConfigManager</span><span class="p">()</span>
+
+<span class="c1"># Load configuration from file</span>
+<span class="n">config</span><span class="o">.</span><span class="n">load_config</span><span class="p">(</span><span class="s1">&#39;simulation_config.yaml&#39;</span><span class="p">)</span>
+
+<span class="c1"># Access configuration values</span>
+<span class="n">temperature</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;simulation.temperature&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">300.0</span><span class="p">)</span>
+<span class="n">output_dir</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output.directory&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;./output&#39;</span><span class="p">)</span>
+
+<span class="c1"># Set configuration values</span>
+<span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;simulation.steps&#39;</span><span class="p">,</span> <span class="mi">1000000</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;forcefield.type&#39;</span><span class="p">,</span> <span class="s1">&#39;amber14sb&#39;</span><span class="p">)</span>
+
+<span class="c1"># Nested configuration</span>
+<span class="n">config</span><span class="o">.</span><span class="n">set_nested</span><span class="p">(</span><span class="s1">&#39;analysis.rmsd.reference_frame&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">set_nested</span><span class="p">(</span><span class="s1">&#39;analysis.rmsd.selection&#39;</span><span class="p">,</span> <span class="s1">&#39;backbone&#39;</span><span class="p">)</span>
+
+<span class="c1"># Configuration validation</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;simulation&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;float&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">},</span>
+        <span class="s1">&#39;steps&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">config</span><span class="o">.</span><span class="n">set_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<span class="n">is_valid</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+
+<span class="c1"># Save configuration</span>
+<span class="n">config</span><span class="o">.</span><span class="n">save_config</span><span class="p">(</span><span class="s1">&#39;updated_config.yaml&#39;</span><span class="p">)</span>
+
+<span class="c1"># Environment variable support</span>
+<span class="n">config</span><span class="o">.</span><span class="n">load_from_env</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;PROTEINMD_&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="progressbar">
+<h3>ProgressBar<a class="headerlink" href="#progressbar" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Progress tracking</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressBar</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># Simple progress bar</span>
+<span class="k">with</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Processing&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>  <span class="c1"># Simulate work</span>
+        <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Multi-level progress tracking</span>
+<span class="n">main_pbar</span> <span class="o">=</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Main task&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">main_pbar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subtask </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;  Subtask&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">sub_pbar</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+            <span class="n">sub_pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">main_pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Custom progress callback</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">progress_callback</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="n">percent</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">current</span> <span class="o">/</span> <span class="n">total</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\r</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">percent</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% complete&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">pbar</span> <span class="o">=</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="n">callback</span><span class="o">=</span><span class="n">progress_callback</span><span class="p">)</span>
+<span class="n">pbar</span><span class="o">.</span><span class="n">track_range</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Custom tracking&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="constants-and-utilities">
+<h2>Constants and Utilities<a class="headerlink" href="#constants-and-utilities" title="Link to this heading">¶</a></h2>
+</section>
+<section id="logging-utilities">
+<h2>Logging Utilities<a class="headerlink" href="#logging-utilities" title="Link to this heading">¶</a></h2>
+<section id="logger">
+<h3>Logger<a class="headerlink" href="#logger" title="Link to this heading">¶</a></h3>
+<p><strong>Example: Comprehensive logging system</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">proteinMD.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span>
+
+<span class="c1"># Create logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;ProteinMD&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add file handler</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">add_file_handler</span><span class="p">(</span><span class="s1">&#39;simulation.log&#39;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">add_file_handler</span><span class="p">(</span><span class="s1">&#39;errors.log&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;ERROR&#39;</span><span class="p">)</span>
+
+<span class="c1"># Different log levels</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Debug information&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Simulation started&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;High temperature detected&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Force field parameter missing&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Simulation failed&quot;</span><span class="p">)</span>
+
+<span class="c1"># Context logging</span>
+<span class="k">with</span> <span class="n">logger</span><span class="o">.</span><span class="n">context</span><span class="p">(</span><span class="s2">&quot;Energy minimization&quot;</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting minimization&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Convergence reached&quot;</span><span class="p">)</span>
+
+<span class="c1"># Performance logging</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">log_performance</span><span class="p">(</span><span class="s2">&quot;calculation&quot;</span><span class="p">,</span> <span class="n">execution_time</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c1"># Structured logging</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">log_structured</span><span class="p">({</span>
+    <span class="s1">&#39;event&#39;</span><span class="p">:</span> <span class="s1">&#39;simulation_step&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="s1">&#39;energy&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">12345.67</span><span class="p">,</span>
+    <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="mf">298.15</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="core.html"><span class="doc">Core Simulation Engine</span></a> - Core simulation classes that use these utilities</p></li>
+<li><p><a class="reference internal" href="../user_guide/tutorials.html"><span class="doc">Tutorials</span></a> - Tutorials showing utility usage</p></li>
+<li><p><a class="reference internal" href="../developer/testing.html"><span class="doc">Testing Framework</span></a> - Testing utilities and frameworks</p></li>
+<li><p><a class="reference internal" href="../advanced/performance.html"><span class="doc">Performance Optimization</span></a> - Performance optimization guides</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Oliphant, T.E. A guide to NumPy (Trelgol Publishing, 2006)</p></li>
+<li><p>McKinney, W. pandas: a foundational Python library. Python for High Performance Scientific Computing 14, 1-9 (2011)</p></li>
+<li><p>Virtanen, P. et al. SciPy 1.0: fundamental algorithms for scientific computing. Nat. Methods 17, 261-272 (2020)</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mathematical-utilities">Mathematical Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#vectormath">VectorMath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statisticalanalysis">StatisticalAnalysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#numericalmethods">NumericalMethods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linearalgebra">LinearAlgebra</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#file-i-o-operations">File I/O Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#filemanager">FileManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#formatconverter">FormatConverter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#datareader">DataReader</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-structures">Data Structures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#atomicdata">AtomicData</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moleculargraph">MolecularGraph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameterset">ParameterSet</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-tools">Performance Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timer">Timer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#profiler">Profiler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memorymanager">MemoryManager</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-management">Configuration Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configmanager">ConfigManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#progressbar">ProgressBar</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#constants-and-utilities">Constants and Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logging-utilities">Logging Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#logger">Logger</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/scientific_background.html">Scientific Background and Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/git_workflow.html">Git Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="visualization.html" title="previous chapter">Visualization Tools API Reference</a></li>
+      <li>Next: <a href="cli.html" title="next chapter">Command Line Interface</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/api/utils.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>proteinMD.cli &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script src="../../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for proteinMD.cli</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ProteinMD Command Line Interface</span>
+
+<span class="sd">Task 8.3: Command Line Interface 🚀</span>
+<span class="sd">Status: IMPLEMENTING</span>
+
+<span class="sd">Vollständige CLI für automatisierte Workflows</span>
+
+<span class="sd">This module provides a comprehensive command-line interface for ProteinMD,</span>
+<span class="sd">enabling automated workflows for molecular dynamics simulations, analysis,</span>
+<span class="sd">and visualization.</span>
+
+<span class="sd">Features:</span>
+<span class="sd">- Complete simulation workflows</span>
+<span class="sd">- Analysis pipeline automation  </span>
+<span class="sd">- Batch processing capabilities</span>
+<span class="sd">- Template-based configuration</span>
+<span class="sd">- Progress monitoring and reporting</span>
+<span class="sd">- Error handling and logging</span>
+<span class="sd">- Return codes for script integration</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="c1"># Add proteinMD to path</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+
+<span class="c1"># Import proteinMD modules</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Core simulation</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.core.simulation</span> <span class="kn">import</span> <span class="n">MolecularDynamicsSimulation</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.structure.protein</span> <span class="kn">import</span> <span class="n">Protein</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.structure.pdb_parser</span> <span class="kn">import</span> <span class="n">PDBParser</span>
+    
+    <span class="c1"># Force fields</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.forcefield.amber_ff14sb</span> <span class="kn">import</span> <span class="n">AmberFF14SB</span>
+    
+    <span class="c1"># Environment</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.environment.water</span> <span class="kn">import</span> <span class="n">TIP3PWaterModel</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.environment.periodic_boundary</span> <span class="kn">import</span> <span class="n">PeriodicBoundaryConditions</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.environment.implicit_solvent</span> <span class="kn">import</span> <span class="n">ImplicitSolventModel</span>
+    
+    <span class="c1"># Analysis</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.analysis.rmsd</span> <span class="kn">import</span> <span class="n">RMSDAnalysis</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.analysis.ramachandran</span> <span class="kn">import</span> <span class="n">RamachandranAnalysis</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.analysis.radius_of_gyration</span> <span class="kn">import</span> <span class="n">RadiusOfGyrationAnalysis</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.analysis.secondary_structure</span> <span class="kn">import</span> <span class="n">SecondaryStructureAnalysis</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.analysis.hydrogen_bonds</span> <span class="kn">import</span> <span class="n">HydrogenBondAnalysis</span>
+    
+    <span class="c1"># Sampling</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.sampling.umbrella_sampling</span> <span class="kn">import</span> <span class="n">UmbrellaSampling</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.sampling.replica_exchange</span> <span class="kn">import</span> <span class="n">ReplicaExchangeMD</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.sampling.steered_md</span> <span class="kn">import</span> <span class="n">SteeredMD</span><span class="p">,</span> <span class="n">SMDParameters</span>
+    
+    <span class="c1"># Visualization</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.visualization.protein_3d</span> <span class="kn">import</span> <span class="n">Protein3DVisualizer</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.visualization.trajectory_animation</span> <span class="kn">import</span> <span class="n">TrajectoryAnimator</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.visualization.realtime_viewer</span> <span class="kn">import</span> <span class="n">RealTimeViewer</span>
+    <span class="kn">from</span> <span class="nn">proteinMD.visualization.energy_dashboard</span> <span class="kn">import</span> <span class="n">EnergyPlotDashboard</span>
+    
+    <span class="n">IMPORTS_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Some ProteinMD modules not available: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">IMPORTS_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Configure logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(),</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;proteinmd_cli.log&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;proteinmd-cli&#39;</span><span class="p">)</span>
+
+<span class="c1"># CLI Configuration and Templates</span>
+<span class="n">DEFAULT_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;simulation&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>  <span class="c1"># ps</span>
+        <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="mf">300.0</span><span class="p">,</span>  <span class="c1"># K</span>
+        <span class="s1">&#39;n_steps&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="s1">&#39;output_frequency&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="s1">&#39;trajectory_output&#39;</span><span class="p">:</span> <span class="s1">&#39;trajectory.npz&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;log_output&#39;</span><span class="p">:</span> <span class="s1">&#39;simulation.log&#39;</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;forcefield&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;amber_ff14sb&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;water_model&#39;</span><span class="p">:</span> <span class="s1">&#39;tip3p&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cutoff&#39;</span><span class="p">:</span> <span class="mf">1.2</span>  <span class="c1"># nm</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;environment&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;solvent&#39;</span><span class="p">:</span> <span class="s1">&#39;explicit&#39;</span><span class="p">,</span>  <span class="c1"># &#39;explicit&#39;, &#39;implicit&#39;, &#39;vacuum&#39;</span>
+        <span class="s1">&#39;box_padding&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># nm</span>
+        <span class="s1">&#39;periodic_boundary&#39;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;analysis&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;rmsd&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;ramachandran&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;radius_of_gyration&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;secondary_structure&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;hydrogen_bonds&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;output_dir&#39;</span><span class="p">:</span> <span class="s1">&#39;analysis_results&#39;</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;visualization&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;enabled&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;realtime&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;animation_output&#39;</span><span class="p">:</span> <span class="s1">&#39;animation.gif&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;plots_output&#39;</span><span class="p">:</span> <span class="s1">&#39;plots&#39;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">WORKFLOW_TEMPLATES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;protein_folding&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Standard protein folding simulation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;simulation&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;n_steps&#39;</span><span class="p">:</span> <span class="mi">50000</span><span class="p">,</span>
+                <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="mf">300.0</span><span class="p">,</span>
+                <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="mf">0.002</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;environment&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;solvent&#39;</span><span class="p">:</span> <span class="s1">&#39;explicit&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;analysis&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;rmsd&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;radius_of_gyration&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;secondary_structure&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;equilibration&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;System equilibration workflow&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;simulation&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;n_steps&#39;</span><span class="p">:</span> <span class="mi">25000</span><span class="p">,</span>
+                <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="mf">300.0</span><span class="p">,</span>
+                <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="mf">0.001</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;environment&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;solvent&#39;</span><span class="p">:</span> <span class="s1">&#39;explicit&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;analysis&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;rmsd&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;hydrogen_bonds&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;free_energy&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Free energy calculation workflow&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;simulation&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;n_steps&#39;</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+                <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="mf">300.0</span><span class="p">,</span>
+                <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="mf">0.002</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;sampling&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;umbrella_sampling&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;windows&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                <span class="s1">&#39;force_constant&#39;</span><span class="p">:</span> <span class="mf">1000.0</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;analysis&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;pmf_calculation&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;steered_md&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Steered molecular dynamics simulation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;simulation&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;n_steps&#39;</span><span class="p">:</span> <span class="mi">50000</span><span class="p">,</span>
+                <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="mf">300.0</span><span class="p">,</span>
+                <span class="s1">&#39;timestep&#39;</span><span class="p">:</span> <span class="mf">0.002</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;sampling&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;steered_md&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;pulling_velocity&#39;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
+                <span class="s1">&#39;spring_constant&#39;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span>
+                <span class="s1">&#39;coordinate_type&#39;</span><span class="p">:</span> <span class="s1">&#39;distance&#39;</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;analysis&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;force_curves&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;work_calculation&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<div class="viewcode-block" id="ProteinMDCLI">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.ProteinMDCLI">[docs]</a>
+<span class="k">class</span> <span class="nc">ProteinMDCLI</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main CLI class for ProteinMD operations.&quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="ProteinMDCLI.__init__">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.ProteinMDCLI.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the CLI.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">DEFAULT_CONFIG</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workspace</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">workspace</span><span class="p">)</span> <span class="k">if</span> <span class="n">workspace</span> <span class="k">else</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+        
+<div class="viewcode-block" id="ProteinMDCLI.run_simulation">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.ProteinMDCLI.run_simulation">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="n">template</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run a complete molecular dynamics simulation.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            input_file: Input PDB file path</span>
+<span class="sd">            config_file: Configuration file (JSON/YAML)</span>
+<span class="sd">            template: Workflow template name</span>
+<span class="sd">            output_dir: Output directory</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Exit code (0 = success, 1 = error)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting ProteinMD simulation: </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Load configuration</span>
+            <span class="k">if</span> <span class="n">config_file</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_load_config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">template</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_apply_template</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+                
+            <span class="c1"># Setup output directory</span>
+            <span class="k">if</span> <span class="n">output_dir</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workspace</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workspace</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace</span><span class="p">)</span>
+                
+            <span class="c1"># Load protein structure</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading protein structure from </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">IMPORTS_AVAILABLE</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ProteinMD modules not available&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">1</span>
+                
+            <span class="n">parser</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded protein with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span><span class="si">}</span><span class="s2"> atoms&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Setup force field</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting up force field&quot;</span><span class="p">)</span>
+            <span class="n">force_field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_forcefield</span><span class="p">()</span>
+            
+            <span class="c1"># Setup environment</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting up simulation environment&quot;</span><span class="p">)</span>
+            <span class="n">environment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_setup_environment</span><span class="p">()</span>
+            
+            <span class="c1"># Create simulation system</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating simulation system&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="o">=</span> <span class="n">MolecularDynamicsSimulation</span><span class="p">(</span>
+                <span class="n">system</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span>
+                <span class="n">force_field</span><span class="o">=</span><span class="n">force_field</span><span class="p">,</span>
+                <span class="n">timestep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;simulation&#39;</span><span class="p">][</span><span class="s1">&#39;timestep&#39;</span><span class="p">],</span>
+                <span class="n">temperature</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;simulation&#39;</span><span class="p">][</span><span class="s1">&#39;temperature&#39;</span><span class="p">]</span>
+            <span class="p">)</span>
+            
+            <span class="c1"># Configure outputs</span>
+            <span class="n">trajectory_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;simulation&#39;</span><span class="p">][</span><span class="s1">&#39;trajectory_output&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">,</span> <span class="s1">&#39;set_trajectory_output&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">set_trajectory_output</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">trajectory_file</span><span class="p">),</span>
+                    <span class="n">save_interval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;simulation&#39;</span><span class="p">][</span><span class="s1">&#39;output_frequency&#39;</span><span class="p">]</span>
+                <span class="p">)</span>
+                
+            <span class="c1"># Setup visualization if enabled</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;visualization&#39;</span><span class="p">][</span><span class="s1">&#39;enabled&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;visualization&#39;</span><span class="p">][</span><span class="s1">&#39;realtime&#39;</span><span class="p">]:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting up real-time visualization&quot;</span><span class="p">)</span>
+                <span class="n">viewer</span> <span class="o">=</span> <span class="n">RealTimeViewer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">)</span>
+                <span class="n">viewer</span><span class="o">.</span><span class="n">setup_visualization</span><span class="p">()</span>
+                
+            <span class="c1"># Run simulation</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running simulation for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;simulation&#39;</span><span class="p">][</span><span class="s1">&#39;n_steps&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> steps&quot;</span><span class="p">)</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;simulation&#39;</span><span class="p">][</span><span class="s1">&#39;n_steps&#39;</span><span class="p">])</span>
+            
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation completed in </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Run analysis</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running analysis pipeline&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_run_analysis</span><span class="p">()</span>
+                
+            <span class="c1"># Generate visualization</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;visualization&#39;</span><span class="p">][</span><span class="s1">&#39;enabled&#39;</span><span class="p">]:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating visualization&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_generate_visualization</span><span class="p">()</span>
+                
+            <span class="c1"># Generate summary report</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generate_report</span><span class="p">()</span>
+            
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ProteinMD simulation workflow completed successfully&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+            
+<div class="viewcode-block" id="ProteinMDCLI.run_analysis">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.ProteinMDCLI.run_analysis">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">structure_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                    <span class="n">analysis_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run analysis on existing trajectory data.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            trajectory_file: Trajectory file path</span>
+<span class="sd">            structure_file: Reference structure file</span>
+<span class="sd">            analysis_config: Analysis configuration file</span>
+<span class="sd">            output_dir: Output directory</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Exit code (0 = success, 1 = error)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting ProteinMD analysis: </span><span class="si">{</span><span class="n">trajectory_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">IMPORTS_AVAILABLE</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ProteinMD modules not available&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">1</span>
+                
+            <span class="c1"># Load configuration</span>
+            <span class="k">if</span> <span class="n">analysis_config</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_load_config</span><span class="p">(</span><span class="n">analysis_config</span><span class="p">)</span>
+                
+            <span class="c1"># Setup output directory</span>
+            <span class="k">if</span> <span class="n">output_dir</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workspace</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">workspace</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workspace</span><span class="p">)</span>
+                
+            <span class="c1"># Load structure and trajectory</span>
+            <span class="n">parser</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">structure_file</span><span class="p">)</span>
+            
+            <span class="c1"># Load trajectory data</span>
+            <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+            <span class="n">trajectory_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">trajectory_file</span><span class="p">)</span>
+            
+            <span class="c1"># Run analysis pipeline</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_run_analysis</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">)</span>
+            
+            <span class="c1"># Generate visualization</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;visualization&#39;</span><span class="p">][</span><span class="s1">&#39;enabled&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_generate_visualization</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">)</span>
+                
+            <span class="c1"># Generate report</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generate_report</span><span class="p">()</span>
+            
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Analysis workflow completed successfully&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analysis failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+            
+<div class="viewcode-block" id="ProteinMDCLI.create_template">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.ProteinMDCLI.create_template">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new workflow template.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            name: Template name</span>
+<span class="sd">            description: Template description</span>
+<span class="sd">            config_file: Configuration file to use as template</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Exit code (0 = success, 1 = error)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Load configuration</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_config_file</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+            
+            <span class="c1"># Create template</span>
+            <span class="n">template</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span>
+                <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="n">config</span>
+            <span class="p">}</span>
+            
+            <span class="c1"># Save template</span>
+            <span class="n">template_file</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.proteinmd&#39;</span> <span class="o">/</span> <span class="s1">&#39;templates&#39;</span> <span class="o">/</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">.json&#39;</span>
+            <span class="n">template_file</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">template_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; created successfully&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template creation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+            
+<div class="viewcode-block" id="ProteinMDCLI.list_templates">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.ProteinMDCLI.list_templates">[docs]</a>
+    <span class="k">def</span> <span class="nf">list_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List available workflow templates.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📋 Available Workflow Templates:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+            
+            <span class="c1"># Built-in templates</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🔧 Built-in Templates:&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">WORKFLOW_TEMPLATES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  • </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+            <span class="c1"># User templates</span>
+            <span class="n">user_templates_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.proteinmd&#39;</span> <span class="o">/</span> <span class="s1">&#39;templates&#39;</span>
+            <span class="k">if</span> <span class="n">user_templates_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">user_templates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">user_templates_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;*.json&#39;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">user_templates</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">👤 User Templates:&quot;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">template_file</span> <span class="ow">in</span> <span class="n">user_templates</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">template_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                                <span class="n">template</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  • </span><span class="si">{</span><span class="n">template_file</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">template</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;No description&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  • </span><span class="si">{</span><span class="n">template_file</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">: (Error loading: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                            
+            <span class="k">return</span> <span class="mi">0</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template listing failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+            
+<div class="viewcode-block" id="ProteinMDCLI.batch_process">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.ProteinMDCLI.batch_process">[docs]</a>
+    <span class="k">def</span> <span class="nf">batch_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;*.pdb&quot;</span><span class="p">,</span>
+                     <span class="n">config_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">template</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">output_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parallel</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process multiple PDB files in batch mode.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            input_dir: Directory containing input files</span>
+<span class="sd">            pattern: File pattern to match</span>
+<span class="sd">            config_file: Configuration file</span>
+<span class="sd">            template: Workflow template</span>
+<span class="sd">            output_dir: Output directory</span>
+<span class="sd">            parallel: Enable parallel processing</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Exit code (0 = success, 1 = error)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting batch processing: </span><span class="si">{</span><span class="n">input_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="n">input_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">input_dir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">input_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input directory not found: </span><span class="si">{</span><span class="n">input_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">1</span>
+                
+            <span class="c1"># Find input files</span>
+            <span class="n">input_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">input_path</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">input_files</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No files found matching pattern: </span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">1</span>
+                
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to process&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Setup output directory</span>
+            <span class="k">if</span> <span class="n">output_dir</span><span class="p">:</span>
+                <span class="n">output_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+                <span class="n">output_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output_path</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;batch_results&#39;</span>
+                <span class="n">output_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                
+            <span class="c1"># Process files</span>
+            <span class="n">success_count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">failed_files</span> <span class="o">=</span> <span class="p">[]</span>
+            
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">input_file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">input_files</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing file </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_files</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">input_file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+                <span class="c1"># Create individual output directory</span>
+                <span class="n">file_output_dir</span> <span class="o">=</span> <span class="n">output_path</span> <span class="o">/</span> <span class="n">input_file</span><span class="o">.</span><span class="n">stem</span>
+                
+                <span class="c1"># Run simulation</span>
+                <span class="n">exit_code</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">input_file</span><span class="p">),</span>
+                    <span class="n">config_file</span><span class="o">=</span><span class="n">config_file</span><span class="p">,</span>
+                    <span class="n">template</span><span class="o">=</span><span class="n">template</span><span class="p">,</span>
+                    <span class="n">output_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">file_output_dir</span><span class="p">)</span>
+                <span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">exit_code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">success_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed: </span><span class="si">{</span><span class="n">input_file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">failed_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">input_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to process: </span><span class="si">{</span><span class="n">input_file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    
+            <span class="c1"># Generate batch summary</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_generate_batch_summary</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">input_files</span><span class="p">,</span> <span class="n">success_count</span><span class="p">,</span> <span class="n">failed_files</span><span class="p">)</span>
+            
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch processing completed: </span><span class="si">{</span><span class="n">success_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> successful&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch processing failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+            
+<div class="viewcode-block" id="ProteinMDCLI.validate_setup">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.ProteinMDCLI.validate_setup">[docs]</a>
+    <span class="k">def</span> <span class="nf">validate_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate ProteinMD installation and dependencies.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🔍 ProteinMD Setup Validation&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">40</span><span class="p">)</span>
+            
+            <span class="c1"># Check module imports</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📦 Module Availability:&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">IMPORTS_AVAILABLE</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ✅ Core modules: Available&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ✅ Force fields: Available&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ✅ Environment: Available&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ✅ Analysis: Available&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ✅ Sampling: Available&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ✅ Visualization: Available&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ❌ Some modules missing - check installation&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">1</span>
+                
+            <span class="c1"># Check dependencies</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📚 Dependencies:&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">numpy</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ✅ NumPy: </span><span class="si">{</span><span class="n">numpy</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ❌ NumPy: Missing&quot;</span><span class="p">)</span>
+                
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">matplotlib</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ✅ Matplotlib: </span><span class="si">{</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ❌ Matplotlib: Missing&quot;</span><span class="p">)</span>
+                
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">scipy</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ✅ SciPy: </span><span class="si">{</span><span class="n">scipy</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ❌ SciPy: Missing&quot;</span><span class="p">)</span>
+                
+            <span class="c1"># Check file system</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📁 File System:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  📍 Current directory: </span><span class="si">{</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  📍 Home directory: </span><span class="si">{</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Create config directory if needed</span>
+            <span class="n">config_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.proteinmd&#39;</span>
+            <span class="n">config_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  📍 Config directory: </span><span class="si">{</span><span class="n">config_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✅ ProteinMD setup validation completed&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setup validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span></div>
+
+            
+    <span class="k">def</span> <span class="nf">_load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load configuration from file.&quot;&quot;&quot;</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_config_file</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+        
+        <span class="c1"># Merge with default config</span>
+        <span class="k">def</span> <span class="nf">merge_dicts</span><span class="p">(</span><span class="n">default</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">override</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">default</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">override</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">result</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">merge_dicts</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="n">result</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">merge_dicts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_load_config_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load configuration file (JSON or YAML).&quot;&quot;&quot;</span>
+        <span class="n">config_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">config_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration file not found: </span><span class="si">{</span><span class="n">config_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">config_path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.yaml&#39;</span><span class="p">,</span> <span class="s1">&#39;.yml&#39;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                
+    <span class="k">def</span> <span class="nf">_apply_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply workflow template.&quot;&quot;&quot;</span>
+        <span class="c1"># Check built-in templates</span>
+        <span class="k">if</span> <span class="n">template_name</span> <span class="ow">in</span> <span class="n">WORKFLOW_TEMPLATES</span><span class="p">:</span>
+            <span class="n">template_config</span> <span class="o">=</span> <span class="n">WORKFLOW_TEMPLATES</span><span class="p">[</span><span class="n">template_name</span><span class="p">][</span><span class="s1">&#39;config&#39;</span><span class="p">]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Applied template: </span><span class="si">{</span><span class="n">template_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check user templates</span>
+            <span class="n">template_file</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.proteinmd&#39;</span> <span class="o">/</span> <span class="s1">&#39;templates&#39;</span> <span class="o">/</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">template_name</span><span class="si">}</span><span class="s1">.json&#39;</span>
+            <span class="k">if</span> <span class="n">template_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">template_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">template</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="n">template_config</span> <span class="o">=</span> <span class="n">template</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Applied user template: </span><span class="si">{</span><span class="n">template_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template not found: </span><span class="si">{</span><span class="n">template_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                
+        <span class="c1"># Merge template config</span>
+        <span class="k">def</span> <span class="nf">merge_dicts</span><span class="p">(</span><span class="n">default</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">override</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">default</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">override</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">result</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">merge_dicts</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">return</span> <span class="n">result</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">merge_dicts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">template_config</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_setup_forcefield</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup force field based on configuration.&quot;&quot;&quot;</span>
+        <span class="n">ff_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;forcefield&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">ff_type</span> <span class="o">==</span> <span class="s1">&#39;amber_ff14sb&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">AmberFF14SB</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported force field: </span><span class="si">{</span><span class="n">ff_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+    <span class="k">def</span> <span class="nf">_setup_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup simulation environment.&quot;&quot;&quot;</span>
+        <span class="n">env_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;environment&#39;</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">env_config</span><span class="p">[</span><span class="s1">&#39;solvent&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;explicit&#39;</span><span class="p">:</span>
+            <span class="c1"># Setup explicit water</span>
+            <span class="n">water_model</span> <span class="o">=</span> <span class="n">TIP3PWaterModel</span><span class="p">()</span>
+            <span class="c1"># Add water around protein</span>
+            <span class="n">water_model</span><span class="o">.</span><span class="n">solvate_protein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">env_config</span><span class="p">[</span><span class="s1">&#39;box_padding&#39;</span><span class="p">])</span>
+            
+            <span class="k">if</span> <span class="n">env_config</span><span class="p">[</span><span class="s1">&#39;periodic_boundary&#39;</span><span class="p">]:</span>
+                <span class="n">pbc</span> <span class="o">=</span> <span class="n">PeriodicBoundaryConditions</span><span class="p">()</span>
+                <span class="n">pbc</span><span class="o">.</span><span class="n">setup_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">env_config</span><span class="p">[</span><span class="s1">&#39;box_padding&#39;</span><span class="p">])</span>
+                
+        <span class="k">elif</span> <span class="n">env_config</span><span class="p">[</span><span class="s1">&#39;solvent&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;implicit&#39;</span><span class="p">:</span>
+            <span class="c1"># Setup implicit solvent</span>
+            <span class="n">implicit_solvent</span> <span class="o">=</span> <span class="n">ImplicitSolventModel</span><span class="p">()</span>
+            <span class="n">implicit_solvent</span><span class="o">.</span><span class="n">apply_to_protein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+            
+        <span class="c1"># Return environment setup</span>
+        <span class="k">return</span> <span class="n">env_config</span>
+        
+    <span class="k">def</span> <span class="nf">_run_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run analysis pipeline.&quot;&quot;&quot;</span>
+        <span class="n">analysis_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">analysis_config</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">])</span>
+        <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># Get trajectory data</span>
+        <span class="k">if</span> <span class="n">trajectory_data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">,</span> <span class="s1">&#39;trajectory&#39;</span><span class="p">):</span>
+            <span class="n">trajectory_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">trajectory</span>
+        <span class="k">elif</span> <span class="n">trajectory_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No trajectory data available for analysis&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+            
+        <span class="c1"># RMSD Analysis</span>
+        <span class="k">if</span> <span class="n">analysis_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rmsd&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running RMSD analysis&quot;</span><span class="p">)</span>
+            <span class="n">rmsd_analyzer</span> <span class="o">=</span> <span class="n">RMSDAnalysis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+            <span class="n">rmsd_results</span> <span class="o">=</span> <span class="n">rmsd_analyzer</span><span class="o">.</span><span class="n">calculate_rmsd_trajectory</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">)</span>
+            <span class="n">rmsd_analyzer</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;rmsd_analysis.json&#39;</span><span class="p">)</span>
+            
+        <span class="c1"># Ramachandran Analysis</span>
+        <span class="k">if</span> <span class="n">analysis_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ramachandran&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running Ramachandran analysis&quot;</span><span class="p">)</span>
+            <span class="n">rama_analyzer</span> <span class="o">=</span> <span class="n">RamachandranAnalysis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+            <span class="n">rama_results</span> <span class="o">=</span> <span class="n">rama_analyzer</span><span class="o">.</span><span class="n">calculate_trajectory</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">)</span>
+            <span class="n">rama_analyzer</span><span class="o">.</span><span class="n">save_plot</span><span class="p">(</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;ramachandran_plot.png&#39;</span><span class="p">)</span>
+            
+        <span class="c1"># Radius of Gyration</span>
+        <span class="k">if</span> <span class="n">analysis_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;radius_of_gyration&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running radius of gyration analysis&quot;</span><span class="p">)</span>
+            <span class="n">rg_analyzer</span> <span class="o">=</span> <span class="n">RadiusOfGyrationAnalysis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+            <span class="n">rg_results</span> <span class="o">=</span> <span class="n">rg_analyzer</span><span class="o">.</span><span class="n">calculate_trajectory</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">)</span>
+            <span class="n">rg_analyzer</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;radius_of_gyration.json&#39;</span><span class="p">)</span>
+            
+        <span class="c1"># Secondary Structure</span>
+        <span class="k">if</span> <span class="n">analysis_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;secondary_structure&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running secondary structure analysis&quot;</span><span class="p">)</span>
+            <span class="n">ss_analyzer</span> <span class="o">=</span> <span class="n">SecondaryStructureAnalysis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+            <span class="n">ss_results</span> <span class="o">=</span> <span class="n">ss_analyzer</span><span class="o">.</span><span class="n">analyze_trajectory</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">)</span>
+            <span class="n">ss_analyzer</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;secondary_structure.json&#39;</span><span class="p">)</span>
+            
+        <span class="c1"># Hydrogen Bonds</span>
+        <span class="k">if</span> <span class="n">analysis_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hydrogen_bonds&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running hydrogen bond analysis&quot;</span><span class="p">)</span>
+            <span class="n">hb_analyzer</span> <span class="o">=</span> <span class="n">HydrogenBondAnalysis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+            <span class="n">hb_results</span> <span class="o">=</span> <span class="n">hb_analyzer</span><span class="o">.</span><span class="n">analyze_trajectory</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">)</span>
+            <span class="n">hb_analyzer</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;hydrogen_bonds.json&#39;</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;output_dir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_dir</span><span class="p">),</span>
+            <span class="s1">&#39;completed_analyses&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">analysis_config</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;output_dir&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+        
+    <span class="k">def</span> <span class="nf">_generate_visualization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory_data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate visualization outputs.&quot;&quot;&quot;</span>
+        <span class="n">viz_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;visualization&#39;</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">viz_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="k">return</span>
+            
+        <span class="n">plots_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">viz_config</span><span class="p">[</span><span class="s1">&#39;plots_output&#39;</span><span class="p">])</span>
+        <span class="n">plots_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># 3D Structure visualization</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating 3D structure visualization&quot;</span><span class="p">)</span>
+        <span class="n">visualizer</span> <span class="o">=</span> <span class="n">Protein3DVisualizer</span><span class="p">()</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize_protein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">plots_dir</span> <span class="o">/</span> <span class="s1">&#39;protein_structure.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Trajectory animation</span>
+        <span class="k">if</span> <span class="n">trajectory_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating trajectory animation&quot;</span><span class="p">)</span>
+            <span class="n">animator</span> <span class="o">=</span> <span class="n">TrajectoryAnimator</span><span class="p">(</span><span class="n">trajectory_data</span><span class="p">)</span>
+            <span class="n">animation_file</span> <span class="o">=</span> <span class="n">plots_dir</span> <span class="o">/</span> <span class="n">viz_config</span><span class="p">[</span><span class="s1">&#39;animation_output&#39;</span><span class="p">]</span>
+            <span class="n">animator</span><span class="o">.</span><span class="n">save_animation</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">animation_file</span><span class="p">))</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;visualization&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;plots_dir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">plots_dir</span><span class="p">),</span>
+            <span class="s1">&#39;files_generated&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;protein_structure.png&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+        
+    <span class="k">def</span> <span class="nf">_generate_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate summary report.&quot;&quot;&quot;</span>
+        <span class="n">report_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workspace</span> <span class="o">/</span> <span class="s1">&#39;simulation_report.json&#39;</span>
+        
+        <span class="n">report</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s1">&#39;configuration&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
+            <span class="s1">&#39;protein_info&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;n_atoms&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;n_residues&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;simulation_info&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;completed&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;final_step&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">current_step</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;final_time&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">current_time</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="k">else</span> <span class="mf">0.0</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;results&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="p">}</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">report_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Report saved to: </span><span class="si">{</span><span class="n">report_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_generate_batch_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">input_files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Path</span><span class="p">],</span>
+                              <span class="n">success_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">failed_files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate batch processing summary.&quot;&quot;&quot;</span>
+        <span class="n">summary_file</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;batch_summary.json&#39;</span>
+        
+        <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s1">&#39;total_files&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_files</span><span class="p">),</span>
+            <span class="s1">&#39;successful&#39;</span><span class="p">:</span> <span class="n">success_count</span><span class="p">,</span>
+            <span class="s1">&#39;failed&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_files</span><span class="p">),</span>
+            <span class="s1">&#39;success_rate&#39;</span><span class="p">:</span> <span class="n">success_count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_files</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s1">&#39;input_files&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">input_files</span><span class="p">],</span>
+            <span class="s1">&#39;failed_files&#39;</span><span class="p">:</span> <span class="n">failed_files</span><span class="p">,</span>
+            <span class="s1">&#39;output_directory&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">summary_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            
+        <span class="c1"># Also create human-readable summary</span>
+        <span class="n">summary_text</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;batch_summary.txt&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">summary_text</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ProteinMD Batch Processing Summary</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">40</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timestamp: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total files processed: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;total_files&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successful: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;successful&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;failed&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success rate: </span><span class="si">{</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;success_rate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">failed_files</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Failed files:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">failed_file</span> <span class="ow">in</span> <span class="n">failed_files</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">failed_file</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch summary saved to: </span><span class="si">{</span><span class="n">summary_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="create_sample_config">
+<a class="viewcode-back" href="../../api/cli.html#proteinMD.cli.create_sample_config">[docs]</a>
+<span class="k">def</span> <span class="nf">create_sample_config</span><span class="p">(</span><span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;proteinmd_config.json&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a sample configuration file.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">DEFAULT_CONFIG</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sample configuration saved to: </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating config file: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+<span class="k">def</span> <span class="nf">create_completion_script</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create bash completion script.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">completion_script</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;#!/bin/bash</span>
+<span class="s1"># ProteinMD CLI bash completion</span>
+
+<span class="s1">_proteinmd_complete() {</span>
+<span class="s1">    local cur prev opts</span>
+<span class="s1">    COMPREPLY=()</span>
+<span class="s1">    cur=&quot;$</span><span class="si">{COMP_WORDS[COMP_CWORD]}</span><span class="s1">&quot;</span>
+<span class="s1">    prev=&quot;$</span><span class="si">{COMP_WORDS[COMP_CWORD-1]}</span><span class="s1">&quot;</span>
+<span class="s1">    </span>
+<span class="s1">    # Main commands</span>
+<span class="s1">    if [[ $</span><span class="si">{COMP_CWORD}</span><span class="s1"> == 1 ]]; then</span>
+<span class="s1">        opts=&quot;simulate analyze batch-process create-template list-templates validate-setup sample-config&quot;</span>
+<span class="s1">        COMPREPLY=( $(compgen -W &quot;$</span><span class="si">{opts}</span><span class="s1">&quot; -- $</span><span class="si">{cur}</span><span class="s1">) )</span>
+<span class="s1">        return 0</span>
+<span class="s1">    fi</span>
+<span class="s1">    </span>
+<span class="s1">    # Command-specific completions</span>
+<span class="s1">    case &quot;$</span><span class="si">{prev}</span><span class="s1">&quot; in</span>
+<span class="s1">        --template)</span>
+<span class="s1">            opts=&quot;protein_folding equilibration free_energy steered_md&quot;</span>
+<span class="s1">            COMPREPLY=( $(compgen -W &quot;$</span><span class="si">{opts}</span><span class="s1">&quot; -- $</span><span class="si">{cur}</span><span class="s1">) )</span>
+<span class="s1">            return 0</span>
+<span class="s1">            ;;</span>
+<span class="s1">        --config|--analysis-config)</span>
+<span class="s1">            COMPREPLY=( $(compgen -f -X &#39;!*.@(json|yaml|yml)&#39; -- $</span><span class="si">{cur}</span><span class="s1">) )</span>
+<span class="s1">            return 0</span>
+<span class="s1">            ;;</span>
+<span class="s1">        --input|--structure)</span>
+<span class="s1">            COMPREPLY=( $(compgen -f -X &#39;!*.pdb&#39; -- $</span><span class="si">{cur}</span><span class="s1">) )</span>
+<span class="s1">            return 0</span>
+<span class="s1">            ;;</span>
+<span class="s1">        --trajectory)</span>
+<span class="s1">            COMPREPLY=( $(compgen -f -X &#39;!*.npz&#39; -- $</span><span class="si">{cur}</span><span class="s1">) )</span>
+<span class="s1">            return 0</span>
+<span class="s1">            ;;</span>
+<span class="s1">        --input-dir|--output-dir)</span>
+<span class="s1">            COMPREPLY=( $(compgen -d -- $</span><span class="si">{cur}</span><span class="s1">) )</span>
+<span class="s1">            return 0</span>
+<span class="s1">            ;;</span>
+<span class="s1">    esac</span>
+<span class="s1">    </span>
+<span class="s1">    # General file completion</span>
+<span class="s1">    COMPREPLY=( $(compgen -f -- $</span><span class="si">{cur}</span><span class="s1">) )</span>
+<span class="s1">}</span>
+
+<span class="s1">complete -F _proteinmd_complete proteinmd</span>
+<span class="s1">&#39;&#39;&#39;</span>
+        
+        <span class="n">completion_file</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;.proteinmd&#39;</span> <span class="o">/</span> <span class="s1">&#39;proteinmd_completion.bash&#39;</span>
+        <span class="n">completion_file</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">completion_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">completion_script</span><span class="p">)</span>
+            
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bash completion script created: </span><span class="si">{</span><span class="n">completion_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;To enable, add this to your ~/.bashrc:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;source </span><span class="si">{</span><span class="n">completion_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error creating completion script: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main CLI entry point.&quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;ProteinMD - Comprehensive Molecular Dynamics Simulation CLI&quot;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawDescriptionHelpFormatter</span><span class="p">,</span>
+        <span class="n">epilog</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Examples:</span>
+<span class="s2">  # Basic simulation</span>
+<span class="s2">  proteinmd simulate protein.pdb</span>
+<span class="s2">  </span>
+<span class="s2">  # Simulation with template</span>
+<span class="s2">  proteinmd simulate protein.pdb --template protein_folding</span>
+<span class="s2">  </span>
+<span class="s2">  # Simulation with custom config</span>
+<span class="s2">  proteinmd simulate protein.pdb --config my_config.json</span>
+<span class="s2">  </span>
+<span class="s2">  # Analysis only</span>
+<span class="s2">  proteinmd analyze trajectory.npz protein.pdb</span>
+<span class="s2">  </span>
+<span class="s2">  # Batch processing</span>
+<span class="s2">  proteinmd batch-process ./structures/ --template equilibration</span>
+<span class="s2">  </span>
+<span class="s2">  # Create sample config</span>
+<span class="s2">  proteinmd sample-config</span>
+<span class="s2">  </span>
+<span class="s2">  # List templates</span>
+<span class="s2">  proteinmd list-templates</span>
+<span class="s2">&quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s1">&#39;command&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Available commands&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Simulate command</span>
+    <span class="n">sim_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;simulate&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Run molecular dynamics simulation&#39;</span><span class="p">)</span>
+    <span class="n">sim_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input PDB file&#39;</span><span class="p">)</span>
+    <span class="n">sim_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--config&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Configuration file (JSON/YAML)&#39;</span><span class="p">)</span>
+    <span class="n">sim_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--template&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Workflow template name&#39;</span><span class="p">)</span>
+    <span class="n">sim_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--output-dir&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output directory&#39;</span><span class="p">)</span>
+    <span class="n">sim_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--verbose&#39;</span><span class="p">,</span> <span class="s1">&#39;-v&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Verbose output&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Analyze command</span>
+    <span class="n">analyze_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;analyze&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Run analysis on trajectory&#39;</span><span class="p">)</span>
+    <span class="n">analyze_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Trajectory file (.npz)&#39;</span><span class="p">)</span>
+    <span class="n">analyze_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;structure&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Reference structure file (.pdb)&#39;</span><span class="p">)</span>
+    <span class="n">analyze_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--analysis-config&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Analysis configuration file&#39;</span><span class="p">)</span>
+    <span class="n">analyze_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--output-dir&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output directory&#39;</span><span class="p">)</span>
+    <span class="n">analyze_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--verbose&#39;</span><span class="p">,</span> <span class="s1">&#39;-v&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Verbose output&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Batch process command</span>
+    <span class="n">batch_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;batch-process&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Process multiple files&#39;</span><span class="p">)</span>
+    <span class="n">batch_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;input_dir&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input directory&#39;</span><span class="p">)</span>
+    <span class="n">batch_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--pattern&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;*.pdb&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;File pattern (default: *.pdb)&#39;</span><span class="p">)</span>
+    <span class="n">batch_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--config&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Configuration file&#39;</span><span class="p">)</span>
+    <span class="n">batch_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--template&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Workflow template&#39;</span><span class="p">)</span>
+    <span class="n">batch_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--output-dir&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output directory&#39;</span><span class="p">)</span>
+    <span class="n">batch_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--parallel&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Enable parallel processing&#39;</span><span class="p">)</span>
+    <span class="n">batch_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--verbose&#39;</span><span class="p">,</span> <span class="s1">&#39;-v&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Verbose output&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Template commands</span>
+    <span class="n">template_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;create-template&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Create workflow template&#39;</span><span class="p">)</span>
+    <span class="n">template_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Template name&#39;</span><span class="p">)</span>
+    <span class="n">template_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Template description&#39;</span><span class="p">)</span>
+    <span class="n">template_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;config_file&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Configuration file to use as template&#39;</span><span class="p">)</span>
+    
+    <span class="n">list_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;list-templates&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List available templates&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Utility commands</span>
+    <span class="n">validate_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;validate-setup&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Validate installation&#39;</span><span class="p">)</span>
+    <span class="n">sample_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;sample-config&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Create sample configuration&#39;</span><span class="p">)</span>
+    <span class="n">sample_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--output&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;proteinmd_config.json&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output file&#39;</span><span class="p">)</span>
+    
+    <span class="n">completion_parser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;bash-completion&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Create bash completion script&#39;</span><span class="p">)</span>
+    
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    
+    <span class="c1"># Handle commands that don&#39;t need CLI instance</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;sample-config&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">create_sample_config</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;bash-completion&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">create_completion_script</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+        <span class="k">return</span> <span class="mi">1</span>
+        
+    <span class="c1"># Set up logging level</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+        
+    <span class="c1"># Create CLI instance and dispatch commands</span>
+    <span class="n">cli</span> <span class="o">=</span> <span class="n">ProteinMDCLI</span><span class="p">()</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;simulate&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cli</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">,</span>
+                <span class="n">config_file</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
+                <span class="n">template</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">template</span><span class="p">,</span>
+                <span class="n">output_dir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;analyze&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cli</span><span class="o">.</span><span class="n">run_analysis</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">trajectory</span><span class="p">,</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span>
+                <span class="n">analysis_config</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">analysis_config</span><span class="p">,</span>
+                <span class="n">output_dir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;batch-process&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cli</span><span class="o">.</span><span class="n">batch_process</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">input_dir</span><span class="p">,</span>
+                <span class="n">pattern</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
+                <span class="n">config_file</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
+                <span class="n">template</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">template</span><span class="p">,</span>
+                <span class="n">output_dir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span>
+                <span class="n">parallel</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">parallel</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;create-template&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cli</span><span class="o">.</span><span class="n">create_template</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">config_file</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;list-templates&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cli</span><span class="o">.</span><span class="n">list_templates</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;validate-setup&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cli</span><span class="o">.</span><span class="n">validate_setup</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown command: </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">command</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span>
+            
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Operation cancelled by user&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">130</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">ProteinMD</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/cli_reference.html">CLI Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/utils.html">Utilities API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

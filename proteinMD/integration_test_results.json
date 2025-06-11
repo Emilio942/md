@@ -1,0 +1,11 @@
+{
+  "platform": "linux",
+  "platform_version": "6.8.0-60-generic",
+  "python_version": "3.12.3",
+  "return_code": 4,
+  "stdout": "",
+  "stderr": "ERROR: usage: __main__.py [options] [file_or_dir] [file_or_dir] [...]\n__main__.py: error: unrecognized arguments: -n 16 --json-report=--file=test_results_linux_20250610_161319.json --html=test_report_linux_20250610_161319.html --self-contained-html\n  inifile: /home/emilio/Documents/ai/md/pytest.ini\n  rootdir: /home/emilio/Documents/ai/md\n\n",
+  "execution_time": 0.36096835136413574,
+  "json_output": "test_results_linux_20250610_161319.json",
+  "html_output": "test_report_linux_20250610_161319.html"
+}

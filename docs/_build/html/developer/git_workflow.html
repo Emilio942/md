@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Git Workflow &#8212; ProteinMD 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pull Request Guide" href="pull_request_guide.html" />
+    <link rel="prev" title="Debugging Guide" href="debugging_guide.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="git-workflow">
+<h1>Git Workflow<a class="headerlink" href="#git-workflow" title="Link to this heading">¶</a></h1>
+<p>This document describes the Git workflow and branching strategy used in ProteinMD development.</p>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#branching-strategy" id="id1">Branching Strategy</a></p>
+<ul>
+<li><p><a class="reference internal" href="#overview" id="id2">Overview</a></p></li>
+<li><p><a class="reference internal" href="#branch-types" id="id3">Branch Types</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#workflow-for-contributors" id="id4">Workflow for Contributors</a></p>
+<ul>
+<li><p><a class="reference internal" href="#initial-setup" id="id5">Initial Setup</a></p></li>
+<li><p><a class="reference internal" href="#standard-development-workflow" id="id6">Standard Development Workflow</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#commit-guidelines" id="id7">Commit Guidelines</a></p>
+<ul>
+<li><p><a class="reference internal" href="#commit-message-format" id="id8">Commit Message Format</a></p></li>
+<li><p><a class="reference internal" href="#commit-best-practices" id="id9">Commit Best Practices</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#branch-management" id="id10">Branch Management</a></p>
+<ul>
+<li><p><a class="reference internal" href="#keeping-branches-updated" id="id11">Keeping Branches Updated</a></p></li>
+<li><p><a class="reference internal" href="#handling-conflicts" id="id12">Handling Conflicts</a></p></li>
+<li><p><a class="reference internal" href="#branch-cleanup" id="id13">Branch Cleanup</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#advanced-git-workflows" id="id14">Advanced Git Workflows</a></p>
+<ul>
+<li><p><a class="reference internal" href="#interactive-rebase" id="id15">Interactive Rebase</a></p></li>
+<li><p><a class="reference internal" href="#cherry-picking" id="id16">Cherry-picking</a></p></li>
+<li><p><a class="reference internal" href="#stashing" id="id17">Stashing</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#release-workflow" id="id18">Release Workflow</a></p>
+<ul>
+<li><p><a class="reference internal" href="#version-tagging" id="id19">Version Tagging</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#collaboration-patterns" id="id20">Collaboration Patterns</a></p>
+<ul>
+<li><p><a class="reference internal" href="#code-reviews" id="id21">Code Reviews</a></p></li>
+<li><p><a class="reference internal" href="#pair-programming" id="id22">Pair Programming</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#emergency-procedures" id="id23">Emergency Procedures</a></p>
+<ul>
+<li><p><a class="reference internal" href="#hotfixes" id="id24">Hotfixes</a></p></li>
+<li><p><a class="reference internal" href="#reverting-changes" id="id25">Reverting Changes</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#tools-and-aliases" id="id26">Tools and Aliases</a></p>
+<ul>
+<li><p><a class="reference internal" href="#useful-git-aliases" id="id27">Useful Git Aliases</a></p></li>
+<li><p><a class="reference internal" href="#git-hooks" id="id28">Git Hooks</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#troubleshooting" id="id29">Troubleshooting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#common-issues" id="id30">Common Issues</a></p></li>
+<li><p><a class="reference internal" href="#recovery-procedures" id="id31">Recovery Procedures</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#best-practices-summary" id="id32">Best Practices Summary</a></p></li>
+</ul>
+</nav>
+<section id="branching-strategy">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Branching Strategy</a><a class="headerlink" href="#branching-strategy" title="Link to this heading">¶</a></h2>
+<section id="overview">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h3>
+<p>ProteinMD uses a <strong>GitHub Flow</strong> based branching strategy with some modifications for scientific software development:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>main ─────●─────●─────●─────●─────●─────●─────→
+          │     │     │     │     │     │
+          │     │   feature/  │     │     │
+          │     │   analysis  │     │     │
+          │     │      ↓      │     │     │
+          │     └─────●───────┘     │     │
+          │                         │     │
+        hotfix/                  release/  │
+        critical-bug             v1.2.0    │
+             ↓                      ↓      │
+            ●──────────────────────●───────┘
+            │                      │
+            └──────────────────────┘
+</pre></div>
+</div>
+<p><strong>Key Principles:</strong></p>
+<ul class="simple">
+<li><p><strong>main branch</strong> is always deployable and stable</p></li>
+<li><p><strong>Feature branches</strong> for all development work</p></li>
+<li><p><strong>Release branches</strong> for preparing releases</p></li>
+<li><p><strong>Hotfix branches</strong> for critical production fixes</p></li>
+<li><p><strong>No direct commits</strong> to main (except hotfixes)</p></li>
+</ul>
+</section>
+<section id="branch-types">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Branch Types</a><a class="headerlink" href="#branch-types" title="Link to this heading">¶</a></h3>
+<p><strong>Main Branch</strong></p>
+<ul class="simple">
+<li><p><strong>Purpose</strong>: Stable, deployable code</p></li>
+<li><p><strong>Protection</strong>: Protected branch with required reviews</p></li>
+<li><p><strong>Merging</strong>: Only via pull requests with passing CI</p></li>
+<li><p><strong>Naming</strong>: <code class="docutils literal notranslate"><span class="pre">main</span></code></p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Keep main up to date</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+</pre></div>
+</div>
+<p><strong>Feature Branches</strong></p>
+<ul class="simple">
+<li><p><strong>Purpose</strong>: Development of new features or improvements</p></li>
+<li><p><strong>Source</strong>: Branched from main</p></li>
+<li><p><strong>Naming</strong>: <code class="docutils literal notranslate"><span class="pre">feature/&lt;description&gt;</span></code></p></li>
+<li><p><strong>Lifecycle</strong>: Created → Developed → PR → Merged → Deleted</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/velocity-verlet-integrator
+
+<span class="c1"># Work on feature</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(core): implement velocity verlet integrator&quot;</span>
+
+<span class="c1"># Push to your fork</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/velocity-verlet-integrator
+</pre></div>
+</div>
+<p><strong>Bug Fix Branches</strong></p>
+<ul class="simple">
+<li><p><strong>Purpose</strong>: Fix specific bugs or issues</p></li>
+<li><p><strong>Source</strong>: Branched from main</p></li>
+<li><p><strong>Naming</strong>: <code class="docutils literal notranslate"><span class="pre">bugfix/&lt;description&gt;</span></code></p></li>
+<li><p><strong>Priority</strong>: Higher priority than features</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create bugfix branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>bugfix/memory-leak-in-trajectory-writer
+
+<span class="c1"># Fix the bug</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;fix(io): resolve memory leak in trajectory writer&quot;</span>
+</pre></div>
+</div>
+<p><strong>Documentation Branches</strong></p>
+<ul class="simple">
+<li><p><strong>Purpose</strong>: Documentation improvements</p></li>
+<li><p><strong>Source</strong>: Branched from main</p></li>
+<li><p><strong>Naming</strong>: <code class="docutils literal notranslate"><span class="pre">docs/&lt;description&gt;</span></code></p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create docs branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>docs/improve-api-documentation
+</pre></div>
+</div>
+<p><strong>Refactoring Branches</strong></p>
+<ul class="simple">
+<li><p><strong>Purpose</strong>: Code restructuring without functional changes</p></li>
+<li><p><strong>Source</strong>: Branched from main</p></li>
+<li><p><strong>Naming</strong>: <code class="docutils literal notranslate"><span class="pre">refactor/&lt;description&gt;</span></code></p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create refactor branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>refactor/reorganize-forcefield-modules
+</pre></div>
+</div>
+<p><strong>Release Branches</strong></p>
+<ul class="simple">
+<li><p><strong>Purpose</strong>: Prepare releases, fix release-specific issues</p></li>
+<li><p><strong>Source</strong>: Branched from main</p></li>
+<li><p><strong>Naming</strong>: <code class="docutils literal notranslate"><span class="pre">release/v&lt;version&gt;</span></code></p></li>
+<li><p><strong>Merging</strong>: Into main and develop (if used)</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create release branch (maintainers only)</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>release/v1.2.0
+
+<span class="c1"># Update version numbers, documentation</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: prepare v1.2.0 release&quot;</span>
+</pre></div>
+</div>
+<p><strong>Hotfix Branches</strong></p>
+<ul class="simple">
+<li><p><strong>Purpose</strong>: Critical fixes for production issues</p></li>
+<li><p><strong>Source</strong>: Branched from main</p></li>
+<li><p><strong>Naming</strong>: <code class="docutils literal notranslate"><span class="pre">hotfix/&lt;description&gt;</span></code></p></li>
+<li><p><strong>Priority</strong>: Highest priority, fast-tracked review</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create hotfix branch (for critical issues)</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>hotfix/critical-simulation-crash
+</pre></div>
+</div>
+</section>
+</section>
+<section id="workflow-for-contributors">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Workflow for Contributors</a><a class="headerlink" href="#workflow-for-contributors" title="Link to this heading">¶</a></h2>
+<section id="initial-setup">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Initial Setup</a><a class="headerlink" href="#initial-setup" title="Link to this heading">¶</a></h3>
+<p><strong>1. Fork Repository</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fork on GitHub, then clone your fork</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/yourusername/proteinmd.git
+<span class="nb">cd</span><span class="w"> </span>proteinmd
+
+<span class="c1"># Add upstream remote</span>
+git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>https://github.com/proteinmd/proteinmd.git
+
+<span class="c1"># Verify remotes</span>
+git<span class="w"> </span>remote<span class="w"> </span>-v
+</pre></div>
+</div>
+<p><strong>2. Configure Git</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set up your identity</span>
+git<span class="w"> </span>config<span class="w"> </span>user.name<span class="w"> </span><span class="s2">&quot;Your Name&quot;</span>
+git<span class="w"> </span>config<span class="w"> </span>user.email<span class="w"> </span><span class="s2">&quot;your.email@example.com&quot;</span>
+
+<span class="c1"># Optional: Set up GPG signing</span>
+git<span class="w"> </span>config<span class="w"> </span>user.signingkey<span class="w"> </span>YOUR_GPG_KEY
+git<span class="w"> </span>config<span class="w"> </span>commit.gpgsign<span class="w"> </span><span class="nb">true</span>
+</pre></div>
+</div>
+<p><strong>3. Set Up Development Environment</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create development environment</span>
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>proteinmd-dev<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
+conda<span class="w"> </span>activate<span class="w"> </span>proteinmd-dev
+
+<span class="c1"># Install dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
+
+<span class="c1"># Set up pre-commit hooks</span>
+pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+<section id="standard-development-workflow">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Standard Development Workflow</a><a class="headerlink" href="#standard-development-workflow" title="Link to this heading">¶</a></h3>
+<p><strong>1. Start New Work</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sync with upstream</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
+
+<span class="c1"># Create feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/your-feature-name
+</pre></div>
+</div>
+<p><strong>2. Development Cycle</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make changes</span>
+<span class="c1"># Edit files, write tests, update docs</span>
+
+<span class="c1"># Stage changes</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+
+<span class="c1"># Commit with descriptive message</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(module): add new functionality</span>
+
+<span class="s2">Detailed description of what was added and why.</span>
+
+<span class="s2">Closes #123&quot;</span>
+
+<span class="c1"># Push to your fork</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/your-feature-name
+</pre></div>
+</div>
+<p><strong>3. Keep Branch Updated</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Regularly sync with upstream main</span>
+git<span class="w"> </span>fetch<span class="w"> </span>upstream
+git<span class="w"> </span>rebase<span class="w"> </span>upstream/main
+
+<span class="c1"># Force push if rebase changed history</span>
+git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>feature/your-feature-name
+</pre></div>
+</div>
+<p><strong>4. Submit Pull Request</strong></p>
+<ul class="simple">
+<li><p>Create PR on GitHub</p></li>
+<li><p>Fill out PR template</p></li>
+<li><p>Respond to review feedback</p></li>
+<li><p>Update branch as needed</p></li>
+</ul>
+<p><strong>5. After Merge</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clean up after merge</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
+
+<span class="c1"># Delete feature branch</span>
+git<span class="w"> </span>branch<span class="w"> </span>-d<span class="w"> </span>feature/your-feature-name
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>--delete<span class="w"> </span>feature/your-feature-name
+</pre></div>
+</div>
+</section>
+</section>
+<section id="commit-guidelines">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Commit Guidelines</a><a class="headerlink" href="#commit-guidelines" title="Link to this heading">¶</a></h2>
+<section id="commit-message-format">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Commit Message Format</a><a class="headerlink" href="#commit-message-format" title="Link to this heading">¶</a></h3>
+<p>Use <strong>Conventional Commits</strong> specification:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&lt;type&gt;[optional scope]: &lt;description&gt;
+
+[optional body]
+
+[optional footer(s)]
+</pre></div>
+</div>
+<p><strong>Types:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">feat</span></code>: New features</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fix</span></code>: Bug fixes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs</span></code>: Documentation only changes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">style</span></code>: Changes that don’t affect meaning (formatting, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">refactor</span></code>: Code changes that neither fix bugs nor add features</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">perf</span></code>: Performance improvements</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test</span></code>: Adding missing tests or correcting existing tests</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chore</span></code>: Changes to build process or auxiliary tools</p></li>
+</ul>
+<p><strong>Scopes (optional):</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">core</span></code>: Core simulation engine</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">forcefield</span></code>: Force field implementations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">analysis</span></code>: Analysis tools</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">io</span></code>: Input/output functionality</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vis</span></code>: Visualization</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cli</span></code>: Command line interface</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs</span></code>: Documentation</p></li>
+</ul>
+<p><strong>Examples:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>feat(core): implement velocity Verlet integrator
+
+Add velocity Verlet integration algorithm with improved energy
+conservation for molecular dynamics simulations.
+
+- Configurable time step
+- Energy conservation tests included
+- Documentation updated
+
+Closes #123
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>fix(io): resolve memory leak in trajectory writer
+
+Fixed memory leak caused by unclosed file handles in
+TrajectoryWriter class when exceptions occurred.
+
+Fixes #456
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>docs(api): update MDSystem class documentation
+
+- Add examples for all public methods
+- Clarify parameter types and units
+- Fix formatting issues
+</pre></div>
+</div>
+</section>
+<section id="commit-best-practices">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Commit Best Practices</a><a class="headerlink" href="#commit-best-practices" title="Link to this heading">¶</a></h3>
+<p><strong>1. Atomic Commits</strong></p>
+<p>Each commit should represent one logical change:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Good: Separate commits for separate concerns</span>
+git<span class="w"> </span>add<span class="w"> </span>tests/test_integrator.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test(core): add tests for velocity Verlet integrator&quot;</span>
+
+git<span class="w"> </span>add<span class="w"> </span>proteinMD/core/integrators.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(core): implement velocity Verlet integrator&quot;</span>
+
+git<span class="w"> </span>add<span class="w"> </span>docs/api/integrators.rst
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs(api): document velocity Verlet integrator&quot;</span>
+</pre></div>
+</div>
+<p><strong>2. Commit Often</strong></p>
+<p>Make frequent, small commits during development:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Work incrementally</span>
+git<span class="w"> </span>add<span class="w"> </span>-p<span class="w">  </span><span class="c1"># Stage partial changes</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(core): add basic integrator interface&quot;</span>
+
+<span class="c1"># Continue development</span>
+git<span class="w"> </span>add<span class="w"> </span>tests/test_verlet.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test(core): add unit tests for Verlet integrator&quot;</span>
+</pre></div>
+</div>
+<p><strong>3. Good Commit Messages</strong></p>
+<p>Write clear, descriptive commit messages:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Good: Clear and descriptive
+fix(forcefield): correct bond angle calculation in CHARMM36
+
+The angle calculation was using radians instead of degrees,
+causing incorrect force calculations for angle terms.
+
+# Bad: Vague and unhelpful
+fix stuff
+more changes
+working on bug
+</pre></div>
+</div>
+</section>
+</section>
+<section id="branch-management">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Branch Management</a><a class="headerlink" href="#branch-management" title="Link to this heading">¶</a></h2>
+<section id="keeping-branches-updated">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Keeping Branches Updated</a><a class="headerlink" href="#keeping-branches-updated" title="Link to this heading">¶</a></h3>
+<p><strong>Rebase vs Merge</strong></p>
+<p>Prefer <strong>rebase</strong> for feature branches to maintain clean history:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Rebase feature branch onto latest main</span>
+git<span class="w"> </span>fetch<span class="w"> </span>upstream
+git<span class="w"> </span>rebase<span class="w"> </span>upstream/main
+
+<span class="c1"># If conflicts occur, resolve them</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>rebase<span class="w"> </span>--continue
+
+<span class="c1"># Force push (use --force-with-lease for safety)</span>
+git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>feature/your-branch
+</pre></div>
+</div>
+<p><strong>When to Use Merge</strong></p>
+<p>Use merge for:
+- Bringing release branches back to main
+- Preserving parallel development history
+- When rebase would be too complex</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Merge release branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>merge<span class="w"> </span>--no-ff<span class="w"> </span>release/v1.2.0
+</pre></div>
+</div>
+</section>
+<section id="handling-conflicts">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Handling Conflicts</a><a class="headerlink" href="#handling-conflicts" title="Link to this heading">¶</a></h3>
+<p><strong>During Rebase</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start rebase</span>
+git<span class="w"> </span>rebase<span class="w"> </span>upstream/main
+
+<span class="c1"># If conflicts occur</span>
+<span class="c1"># 1. Edit conflicted files</span>
+<span class="c1"># 2. Stage resolved files</span>
+git<span class="w"> </span>add<span class="w"> </span>resolved_file.py
+
+<span class="c1"># 3. Continue rebase</span>
+git<span class="w"> </span>rebase<span class="w"> </span>--continue
+
+<span class="c1"># If you need to abort</span>
+git<span class="w"> </span>rebase<span class="w"> </span>--abort
+</pre></div>
+</div>
+<p><strong>During Merge</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># If merge has conflicts</span>
+git<span class="w"> </span>merge<span class="w"> </span>upstream/main
+
+<span class="c1"># Edit conflicted files, then</span>
+git<span class="w"> </span>add<span class="w"> </span>resolved_file.py
+git<span class="w"> </span>commit<span class="w">  </span><span class="c1"># Complete the merge</span>
+</pre></div>
+</div>
+</section>
+<section id="branch-cleanup">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Branch Cleanup</a><a class="headerlink" href="#branch-cleanup" title="Link to this heading">¶</a></h3>
+<p><strong>Local Cleanup</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># List all branches</span>
+git<span class="w"> </span>branch<span class="w"> </span>-a
+
+<span class="c1"># Delete merged local branches</span>
+git<span class="w"> </span>branch<span class="w"> </span>-d<span class="w"> </span>feature/completed-feature
+
+<span class="c1"># Force delete unmerged branches (be careful!)</span>
+git<span class="w"> </span>branch<span class="w"> </span>-D<span class="w"> </span>feature/abandoned-feature
+
+<span class="c1"># Clean up remote tracking branches</span>
+git<span class="w"> </span>remote<span class="w"> </span>prune<span class="w"> </span>origin
+</pre></div>
+</div>
+<p><strong>Remote Cleanup</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Delete remote branch</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>--delete<span class="w"> </span>feature/completed-feature
+
+<span class="c1"># Clean up your fork</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>--prune
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-git-workflows">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Advanced Git Workflows</a><a class="headerlink" href="#advanced-git-workflows" title="Link to this heading">¶</a></h2>
+<section id="interactive-rebase">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Interactive Rebase</a><a class="headerlink" href="#interactive-rebase" title="Link to this heading">¶</a></h3>
+<p>Use interactive rebase to clean up commit history:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Rebase last 3 commits interactively</span>
+git<span class="w"> </span>rebase<span class="w"> </span>-i<span class="w"> </span>HEAD~3
+
+<span class="c1"># In the editor, you can:</span>
+<span class="c1"># - pick: use commit as-is</span>
+<span class="c1"># - reword: change commit message</span>
+<span class="c1"># - edit: modify commit</span>
+<span class="c1"># - squash: combine with previous commit</span>
+<span class="c1"># - drop: remove commit</span>
+</pre></div>
+</div>
+<p><strong>Example interactive rebase:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>pick f7f3f6d feat(core): add integrator base class
+squash 310154e fix(core): fix typo in integrator
+reword a5f4a0d feat(core): implement velocity Verlet
+
+# This will:
+# 1. Keep first commit
+# 2. Squash second commit into first
+# 3. Allow editing third commit message
+</pre></div>
+</div>
+</section>
+<section id="cherry-picking">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Cherry-picking</a><a class="headerlink" href="#cherry-picking" title="Link to this heading">¶</a></h3>
+<p>Apply specific commits to another branch:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Apply specific commit to current branch</span>
+git<span class="w"> </span>cherry-pick<span class="w"> </span>&lt;commit-hash&gt;
+
+<span class="c1"># Cherry-pick a range of commits</span>
+git<span class="w"> </span>cherry-pick<span class="w"> </span>A^..B
+
+<span class="c1"># Cherry-pick without committing (for modifications)</span>
+git<span class="w"> </span>cherry-pick<span class="w"> </span>--no-commit<span class="w"> </span>&lt;commit-hash&gt;
+</pre></div>
+</div>
+</section>
+<section id="stashing">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Stashing</a><a class="headerlink" href="#stashing" title="Link to this heading">¶</a></h3>
+<p>Temporarily save uncommitted changes:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stash current changes</span>
+git<span class="w"> </span>stash
+
+<span class="c1"># Stash with message</span>
+git<span class="w"> </span>stash<span class="w"> </span>save<span class="w"> </span><span class="s2">&quot;work in progress on feature X&quot;</span>
+
+<span class="c1"># List stashes</span>
+git<span class="w"> </span>stash<span class="w"> </span>list
+
+<span class="c1"># Apply latest stash</span>
+git<span class="w"> </span>stash<span class="w"> </span>pop
+
+<span class="c1"># Apply specific stash</span>
+git<span class="w"> </span>stash<span class="w"> </span>apply<span class="w"> </span>stash@<span class="o">{</span><span class="m">0</span><span class="o">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="release-workflow">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Release Workflow</a><a class="headerlink" href="#release-workflow" title="Link to this heading">¶</a></h2>
+<section id="version-tagging">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Version Tagging</a><a class="headerlink" href="#version-tagging" title="Link to this heading">¶</a></h3>
+<p><strong>Semantic Versioning</strong></p>
+<p>ProteinMD follows semantic versioning (MAJOR.MINOR.PATCH):</p>
+<ul class="simple">
+<li><p><strong>MAJOR</strong>: Incompatible API changes</p></li>
+<li><p><strong>MINOR</strong>: Backwards-compatible functionality additions</p></li>
+<li><p><strong>PATCH</strong>: Backwards-compatible bug fixes</p></li>
+</ul>
+<p><strong>Creating Releases</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create annotated tag for release</span>
+git<span class="w"> </span>tag<span class="w"> </span>-a<span class="w"> </span>v1.2.0<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Release version 1.2.0</span>
+
+<span class="s2">Features:</span>
+<span class="s2">- New velocity Verlet integrator</span>
+<span class="s2">- Improved energy conservation</span>
+<span class="s2">- Enhanced trajectory analysis</span>
+
+<span class="s2">Bug fixes:</span>
+<span class="s2">- Fixed memory leak in trajectory writer</span>
+<span class="s2">- Corrected force field parameter loading&quot;</span>
+
+<span class="c1"># Push tag</span>
+git<span class="w"> </span>push<span class="w"> </span>upstream<span class="w"> </span>v1.2.0
+</pre></div>
+</div>
+<p><strong>Release Branch Workflow</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create release branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>release/v1.2.0
+
+<span class="c1"># Update version numbers</span>
+<span class="c1"># - setup.py</span>
+<span class="c1"># - proteinMD/__init__.py</span>
+<span class="c1"># - docs/conf.py</span>
+
+<span class="c1"># Update CHANGELOG</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: prepare v1.2.0 release&quot;</span>
+
+<span class="c1"># Create PR for release branch</span>
+<span class="c1"># After review and merge, tag the release</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="collaboration-patterns">
+<h2><a class="toc-backref" href="#id20" role="doc-backlink">Collaboration Patterns</a><a class="headerlink" href="#collaboration-patterns" title="Link to this heading">¶</a></h2>
+<section id="code-reviews">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Code Reviews</a><a class="headerlink" href="#code-reviews" title="Link to this heading">¶</a></h3>
+<p><strong>Preparing for Review</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clean up commit history</span>
+git<span class="w"> </span>rebase<span class="w"> </span>-i<span class="w"> </span>upstream/main
+
+<span class="c1"># Ensure tests pass</span>
+pytest<span class="w"> </span>tests/
+
+<span class="c1"># Check code quality</span>
+black<span class="w"> </span>proteinMD/
+flake8<span class="w"> </span>proteinMD/
+
+<span class="c1"># Update documentation</span>
+<span class="c1"># Write clear PR description</span>
+</pre></div>
+</div>
+<p><strong>Responding to Reviews</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make requested changes</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;address review feedback: improve error handling&quot;</span>
+
+<span class="c1"># If major changes needed, consider squashing</span>
+git<span class="w"> </span>rebase<span class="w"> </span>-i<span class="w"> </span>HEAD~2<span class="w">  </span><span class="c1"># Squash the fix commit</span>
+</pre></div>
+</div>
+</section>
+<section id="pair-programming">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Pair Programming</a><a class="headerlink" href="#pair-programming" title="Link to this heading">¶</a></h3>
+<p><strong>Shared Branch Development</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create shared feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/shared-development
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/shared-development
+
+<span class="c1"># Both developers work on same branch</span>
+<span class="c1"># Coordinate pushes and pulls</span>
+git<span class="w"> </span>pull<span class="w"> </span>origin<span class="w"> </span>feature/shared-development
+<span class="c1"># ... make changes ...</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/shared-development
+</pre></div>
+</div>
+<p><strong>Co-authored Commits</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(core): implement new algorithm</span>
+
+<span class="s2">Co-authored-by: Jane Developer &lt;jane@example.com&gt;&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="emergency-procedures">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Emergency Procedures</a><a class="headerlink" href="#emergency-procedures" title="Link to this heading">¶</a></h2>
+<section id="hotfixes">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Hotfixes</a><a class="headerlink" href="#hotfixes" title="Link to this heading">¶</a></h3>
+<p>For critical production issues:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create hotfix branch from main</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>main
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>hotfix/critical-crash-fix
+
+<span class="c1"># Make minimal fix</span>
+git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;fix: resolve critical simulation crash</span>
+
+<span class="s2">Emergency fix for crash when loading large PDB files.</span>
+<span class="s2">Properly handles memory allocation for systems &gt; 100k atoms.&quot;</span>
+
+<span class="c1"># Fast-track review and merge</span>
+<span class="c1"># Tag emergency release if needed</span>
+</pre></div>
+</div>
+</section>
+<section id="reverting-changes">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Reverting Changes</a><a class="headerlink" href="#reverting-changes" title="Link to this heading">¶</a></h3>
+<p><strong>Revert Commits</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Revert specific commit</span>
+git<span class="w"> </span>revert<span class="w"> </span>&lt;commit-hash&gt;
+
+<span class="c1"># Revert merge commit</span>
+git<span class="w"> </span>revert<span class="w"> </span>-m<span class="w"> </span><span class="m">1</span><span class="w"> </span>&lt;merge-commit-hash&gt;
+
+<span class="c1"># Revert range of commits</span>
+git<span class="w"> </span>revert<span class="w"> </span>&lt;start-commit&gt;^..&lt;end-commit&gt;
+</pre></div>
+</div>
+<p><strong>Reset Branch</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset to previous commit (dangerous!)</span>
+git<span class="w"> </span>reset<span class="w"> </span>--hard<span class="w"> </span>&lt;commit-hash&gt;
+
+<span class="c1"># Reset and keep changes in working directory</span>
+git<span class="w"> </span>reset<span class="w"> </span>--soft<span class="w"> </span>&lt;commit-hash&gt;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="tools-and-aliases">
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">Tools and Aliases</a><a class="headerlink" href="#tools-and-aliases" title="Link to this heading">¶</a></h2>
+<section id="useful-git-aliases">
+<h3><a class="toc-backref" href="#id27" role="doc-backlink">Useful Git Aliases</a><a class="headerlink" href="#useful-git-aliases" title="Link to this heading">¶</a></h3>
+<p>Add these to your <code class="docutils literal notranslate"><span class="pre">~/.gitconfig</span></code>:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[alias]</span>
+<span class="w">    </span><span class="c1"># Short status</span>
+<span class="w">    </span><span class="na">st</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">status -s</span>
+
+<span class="w">    </span><span class="c1"># Pretty log</span>
+<span class="w">    </span><span class="na">lg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">log --oneline --graph --decorate --all</span>
+
+<span class="w">    </span><span class="c1"># Commit with message</span>
+<span class="w">    </span><span class="na">cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">commit -m</span>
+
+<span class="w">    </span><span class="c1"># Checkout branch</span>
+<span class="w">    </span><span class="na">co</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">checkout</span>
+
+<span class="w">    </span><span class="c1"># Create and checkout branch</span>
+<span class="w">    </span><span class="na">cob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">checkout -b</span>
+
+<span class="w">    </span><span class="c1"># Pull with rebase</span>
+<span class="w">    </span><span class="na">pr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">pull --rebase</span>
+
+<span class="w">    </span><span class="c1"># Push current branch</span>
+<span class="w">    </span><span class="na">pc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">push origin HEAD</span>
+
+<span class="w">    </span><span class="c1"># Undo last commit but keep changes</span>
+<span class="w">    </span><span class="na">undo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">reset HEAD~1 --mixed</span>
+
+<span class="w">    </span><span class="c1"># Show files in last commit</span>
+<span class="w">    </span><span class="na">dl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">show --name-only</span>
+
+<span class="w">    </span><span class="c1"># Clean up merged branches</span>
+<span class="w">    </span><span class="na">cleanup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;!git branch --merged | grep -v &#39;</span><span class="na">\\*\\|main\\|develop&#39; | xargs -n 1 git branch -d&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="git-hooks">
+<h3><a class="toc-backref" href="#id28" role="doc-backlink">Git Hooks</a><a class="headerlink" href="#git-hooks" title="Link to this heading">¶</a></h3>
+<p>Set up useful git hooks:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pre-commit hook to run tests</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>.git/hooks/pre-commit<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">#!/bin/bash</span>
+<span class="s">black --check proteinMD/ tests/</span>
+<span class="s">flake8 proteinMD/ tests/</span>
+<span class="s">pytest tests/ --tb=short</span>
+<span class="s">EOF</span>
+
+chmod<span class="w"> </span>+x<span class="w"> </span>.git/hooks/pre-commit
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting">
+<h2><a class="toc-backref" href="#id29" role="doc-backlink">Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
+<section id="common-issues">
+<h3><a class="toc-backref" href="#id30" role="doc-backlink">Common Issues</a><a class="headerlink" href="#common-issues" title="Link to this heading">¶</a></h3>
+<p><strong>“Your branch is ahead of origin/main”</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># You committed to main instead of feature branch</span>
+<span class="c1"># Create feature branch from current state</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/accidental-commits
+
+<span class="c1"># Reset main to upstream</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>reset<span class="w"> </span>--hard<span class="w"> </span>upstream/main
+</pre></div>
+</div>
+<p><strong>“Cannot rebase: You have unstaged changes”</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stash changes before rebase</span>
+git<span class="w"> </span>stash
+git<span class="w"> </span>rebase<span class="w"> </span>upstream/main
+git<span class="w"> </span>stash<span class="w"> </span>pop
+</pre></div>
+</div>
+<p><strong>“Merge conflict in file.py”</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Edit file.py to resolve conflicts</span>
+<span class="c1"># Remove conflict markers: &lt;&lt;&lt;&lt;&lt;&lt;&lt;, =======, &gt;&gt;&gt;&gt;&gt;&gt;&gt;</span>
+git<span class="w"> </span>add<span class="w"> </span>file.py
+git<span class="w"> </span>rebase<span class="w"> </span>--continue<span class="w">  </span><span class="c1"># or git commit for merge</span>
+</pre></div>
+</div>
+<p><strong>“Remote rejected (non-fast-forward)”</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Someone else pushed to the same branch</span>
+git<span class="w"> </span>pull<span class="w"> </span>--rebase<span class="w"> </span>origin<span class="w"> </span>feature-branch
+<span class="c1"># Resolve any conflicts</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature-branch
+</pre></div>
+</div>
+</section>
+<section id="recovery-procedures">
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">Recovery Procedures</a><a class="headerlink" href="#recovery-procedures" title="Link to this heading">¶</a></h3>
+<p><strong>Lost Commits</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find lost commits in reflog</span>
+git<span class="w"> </span>reflog
+
+<span class="c1"># Recover specific commit</span>
+git<span class="w"> </span>checkout<span class="w"> </span>&lt;commit-hash&gt;
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>recovery-branch
+</pre></div>
+</div>
+<p><strong>Accidentally Deleted Branch</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Find branch in reflog</span>
+git<span class="w"> </span>reflog<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>branch-name
+
+<span class="c1"># Recover branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>branch-name<span class="w"> </span>&lt;commit-hash&gt;
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices-summary">
+<h2><a class="toc-backref" href="#id32" role="doc-backlink">Best Practices Summary</a><a class="headerlink" href="#best-practices-summary" title="Link to this heading">¶</a></h2>
+<p><strong>Daily Workflow</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Start with updated main</strong></p></li>
+<li><p><strong>Create focused feature branches</strong></p></li>
+<li><p><strong>Commit frequently with good messages</strong></p></li>
+<li><p><strong>Keep branches updated with rebase</strong></p></li>
+<li><p><strong>Clean up history before PR</strong></p></li>
+</ol>
+<p><strong>Code Quality</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Run tests before committing</strong></p></li>
+<li><p><strong>Use pre-commit hooks</strong></p></li>
+<li><p><strong>Follow conventional commit format</strong></p></li>
+<li><p><strong>Write descriptive commit messages</strong></p></li>
+<li><p><strong>Keep commits atomic and logical</strong></p></li>
+</ol>
+<p><strong>Collaboration</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Communicate in PRs and issues</strong></p></li>
+<li><p><strong>Respond to reviews promptly</strong></p></li>
+<li><p><strong>Keep PRs focused and small</strong></p></li>
+<li><p><strong>Document breaking changes</strong></p></li>
+<li><p><strong>Help others with reviews</strong></p></li>
+</ol>
+<p>This Git workflow ensures clean history, easy collaboration, and maintainable code for the ProteinMD project.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo" />
+    
+    <h1 class="logo logo-name">ProteinMD</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">Molecular Dynamics Simulation Library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=your-username&repo=proteinmd&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/user_manual.html">User Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/cli_reference.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/examples.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/core.html">Core Simulation Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/structure.html">Structure Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/forcefield.html">Force Fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/environment.html">Environment Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/sampling.html">Sampling Methods API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/visualization.html">Visualization Tools API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">Utilities API Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Topics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/validation.html">Validation and Quality Assurance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/extending.html">Extending ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/troubleshooting.html">Troubleshooting Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">ProteinMD Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Software Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to ProteinMD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_standards.html">Coding Standards and Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_design.html">API Design Principles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Guidelines</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Git Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#branching-strategy">Branching Strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-for-contributors">Workflow for Contributors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#commit-guidelines">Commit Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#branch-management">Branch Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-git-workflows">Advanced Git Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#release-workflow">Release Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#collaboration-patterns">Collaboration Patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#emergency-procedures">Emergency Procedures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tools-and-aliases">Tools and Aliases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pull_request_guide.html">Pull Request Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="review_process.html">Review Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_process.html">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance_guide.html">Performance Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#development-milestones">Development Milestones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-notes-details">Release Notes Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#upcoming-releases">Upcoming Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/changelog.html#release-process">Release Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html">Citation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#primary-citation">Primary Citation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#component-specific-citations">Component-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#backend-dependencies">Backend Dependencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#version-specific-citations">Version-Specific Citations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contributing-authors">Contributing Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#citation-tools">Citation Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about/citation.html#contact-for-citations">Contact for Citations</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/your-username/proteinmd">GitHub</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="developer_guide.html">ProteinMD Developer Guide</a><ul>
+      <li>Previous: <a href="debugging_guide.html" title="previous chapter">Debugging Guide</a></li>
+      <li>Next: <a href="pull_request_guide.html" title="next chapter">Pull Request Guide</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, ProteinMD Development Team.
+      
+      |
+      <a href="../_sources/developer/git_workflow.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/your-username/proteinmd" class="github">
+        <img src="../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>

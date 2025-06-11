@@ -1,0 +1,41 @@
+# Flake8 Configuration
+[flake8]
+max-line-length = 88
+max-complexity = 10
+select = E,W,F,C
+ignore = 
+    E203,  # whitespace before ':'
+    E501,  # line too long (handled by black)
+    W503,  # line break before binary operator
+    E402,  # module level import not at top of file
+    C901,  # too complex (handled by complexity tools)
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    env,
+    venv,
+    ENV,
+    env.bak,
+    venv.bak,
+    build,
+    dist,
+    *.egg-info,
+    .tox,
+    .pytest_cache,
+    .mypy_cache,
+    proteinMD/tests,
+
+# Per-file ignores
+per-file-ignores = 
+    __init__.py:F401,F403
+    proteinMD/examples/*:E402,F841
+    proteinMD/benchmarks/*:E402,F841
+    setup.py:E402
+
+# Enable specific error codes
+enable-extensions = 
+    G,  # flake8-logging-format
+
+# Docstring conventions
+docstring-convention = google

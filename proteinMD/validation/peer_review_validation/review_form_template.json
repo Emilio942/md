@@ -1,0 +1,138 @@
+{
+  "reviewer_information": {
+    "reviewer_id": "",
+    "review_date": "",
+    "time_spent_hours": 0.0,
+    "confidence_level": 0.0
+  },
+  "scientific_accuracy": {
+    "experimental_agreement": {
+      "score": 0,
+      "comments": "",
+      "specific_issues": []
+    },
+    "literature_reproduction": {
+      "score": 0,
+      "comments": "",
+      "specific_issues": []
+    },
+    "theoretical_consistency": {
+      "score": 0,
+      "comments": "",
+      "specific_issues": []
+    },
+    "statistical_significance": {
+      "score": 0,
+      "comments": "",
+      "specific_issues": []
+    },
+    "error_analysis": {
+      "score": 0,
+      "comments": "",
+      "specific_issues": []
+    }
+  },
+  "reproducibility": {
+    "cross_platform_consistency": {
+      "score": 0,
+      "comments": "",
+      "platforms_tested": []
+    },
+    "random_seed_independence": {
+      "score": 0,
+      "comments": "",
+      "tests_performed": []
+    },
+    "parameter_sensitivity": {
+      "score": 0,
+      "comments": "",
+      "parameters_tested": []
+    },
+    "numerical_precision": {
+      "score": 0,
+      "comments": "",
+      "precision_tests": []
+    }
+  },
+  "performance": {
+    "computational_efficiency": {
+      "score": 0,
+      "comments": "",
+      "benchmarks_run": []
+    },
+    "scalability": {
+      "score": 0,
+      "comments": "",
+      "scaling_tests": []
+    },
+    "memory_usage": {
+      "score": 0,
+      "comments": "",
+      "memory_tests": []
+    },
+    "parallel_performance": {
+      "score": 0,
+      "comments": "",
+      "parallel_tests": []
+    }
+  },
+  "documentation_quality": {
+    "completeness": {
+      "score": 0,
+      "comments": "",
+      "missing_sections": []
+    },
+    "clarity": {
+      "score": 0,
+      "comments": "",
+      "unclear_sections": []
+    },
+    "examples": {
+      "score": 0,
+      "comments": "",
+      "example_quality": []
+    },
+    "scientific_rigor": {
+      "score": 0,
+      "comments": "",
+      "rigor_issues": []
+    }
+  },
+  "code_quality": {
+    "architecture": {
+      "score": 0,
+      "comments": "",
+      "design_issues": []
+    },
+    "maintainability": {
+      "score": 0,
+      "comments": "",
+      "maintenance_concerns": []
+    },
+    "testing_coverage": {
+      "score": 0,
+      "comments": "",
+      "testing_gaps": []
+    },
+    "performance_optimization": {
+      "score": 0,
+      "comments": "",
+      "optimization_suggestions": []
+    }
+  },
+  "overall_assessment": {
+    "strengths": [],
+    "weaknesses": [],
+    "major_concerns": [],
+    "minor_issues": [],
+    "recommendations": [],
+    "decision": "",
+    "overall_score": 0,
+    "publication_readiness": ""
+  },
+  "expertise_specific_comments": {
+    "area_of_expertise": "",
+    "specialized_evaluation": "",
+    "technical_recommendations": []
+  }
+}
