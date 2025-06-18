@@ -24,7 +24,7 @@ def test_remd_basic():
         print("✓ Successfully imported REMD module")
     except ImportError as e:
         print(f"✗ Import failed: {e}")
-        return False
+        assert False
     
     # Create test system
     n_atoms = 10
@@ -46,7 +46,7 @@ def test_remd_basic():
         print(f"✓ Created REMD with {remd.n_replicas} replicas")
     except Exception as e:
         print(f"✗ REMD creation failed: {e}")
-        return False
+        assert False
     
     # Validate requirements
     validation = validate_remd_requirements(remd)
@@ -94,10 +94,10 @@ def test_remd_basic():
         
     except Exception as e:
         print(f"✗ Simulation failed: {e}")
-        return False
+        assert False
     
     print(f"\n✅ Task 6.2 basic functionality validated!")
-    return True
+    assert True
 
 
 def main():

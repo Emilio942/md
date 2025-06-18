@@ -327,7 +327,9 @@ class TestTrajectoryAnalysis:
         """Test trajectory analysis with missing trajectory attribute."""
         analyzer = RamachandranAnalyzer()
         simulation = Mock()
-        # No trajectory attribute
+        # Explicitly set trajectory to None to simulate missing attribute
+        simulation.trajectory = None
+        simulation.frames = None
         
         with pytest.raises(ValueError, match="No trajectory data available"):
             analyzer.analyze_trajectory(simulation)

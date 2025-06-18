@@ -34,11 +34,11 @@ def test_improved_parallel_forces():
             print("✓ Numba installed successfully!")
         except Exception as e:
             print(f"❌ Failed to install Numba: {e}")
-            return False
+            assert False
     
     if not NUMBA_AVAILABLE:
         print("❌ Cannot proceed without Numba for OpenMP parallelization")
-        return False
+        assert False
     
     # Define thread-safe parallel force calculation kernel
     @jit(nopython=True, parallel=True)
@@ -284,7 +284,7 @@ def test_improved_parallel_forces():
         print("✓ Thread-safe force calculations verified")
         print(f"✓ >2x speedup achieved: {best_speedup:.2f}x on {best_threads} cores")
     
-    return all_requirements_met
+    assert all_requirements_met
 
 if __name__ == "__main__":
     success = test_improved_parallel_forces()

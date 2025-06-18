@@ -60,6 +60,51 @@ except ImportError:
     HAS_RG = False
     logger.warning("Radius of Gyration analysis not available")
 
+# Import PCA analysis
+try:
+    from .pca import (
+        PCAAnalyzer, PCAResults, ClusteringResults, 
+        TrajectoryAligner, create_test_trajectory
+    )
+    HAS_PCA = True
+except ImportError:
+    HAS_PCA = False
+    logger.warning("PCA analysis not available")
+
+# Import Cross-Correlation analysis
+try:
+    from .cross_correlation import (
+        DynamicCrossCorrelationAnalyzer, CrossCorrelationResults,
+        NetworkAnalysisResults, StatisticalSignificanceResults,
+        create_test_trajectory as create_correlation_test_trajectory
+    )
+    HAS_CROSS_CORRELATION = True
+except ImportError:
+    HAS_CROSS_CORRELATION = False
+    logger.warning("Cross-Correlation analysis not available")
+
+# Import Free Energy analysis
+try:
+    from .free_energy import (
+        FreeEnergyAnalysis, FreeEnergyProfile1D, FreeEnergyLandscape2D,
+        Minimum, TransitionPath, create_test_data_1d, create_test_data_2d
+    )
+    HAS_FREE_ENERGY = True
+except ImportError:
+    HAS_FREE_ENERGY = False
+    logger.warning("Free Energy analysis not available")
+
+# Import SASA analysis
+try:
+    from .sasa import (
+        SASAAnalyzer, SASACalculator, SASAResult, SASATimeSeriesResult,
+        analyze_sasa, create_test_protein_structure, create_test_trajectory
+    )
+    HAS_SASA = True
+except ImportError:
+    HAS_SASA = False
+    logger.warning("SASA analysis not available")
+
 class Analysis:
     """
     Base class for analysis methods.

@@ -261,8 +261,15 @@ class WaterSolvationBox:
         self.water_positions = []
         
         # Calculate available volume for water
-        protein_bbox_min = np.min(protein_positions, axis=0) - padding
-        protein_bbox_max = np.max(protein_positions, axis=0) + padding
+        if len(protein_positions) == 0:
+            # Pure water box case - no protein
+            protein_bbox_min = np.array([0.0, 0.0, 0.0])
+            protein_bbox_max = np.array([0.0, 0.0, 0.0])
+            protein_volume = 0.0
+        else:
+            protein_bbox_min = np.min(protein_positions, axis=0) - padding
+            protein_bbox_max = np.max(protein_positions, axis=0) + padding
+            protein_volume = self._estimate_protein_volume(protein_positions)
         
         # Ensure protein fits in box
         if np.any(protein_bbox_min < 0) or np.any(protein_bbox_max > box_dimensions):
@@ -270,7 +277,6 @@ class WaterSolvationBox:
             
         # Estimate number of water molecules needed
         total_volume = np.prod(box_dimensions)  # nm³
-        protein_volume = self._estimate_protein_volume(protein_positions)
         available_volume = total_volume - protein_volume
         
         target_n_waters = int(available_volume * self.tip3p.expected_number_density * 0.9)  # 90% of max density
@@ -345,6 +351,10 @@ class WaterSolvationBox:
         bool
             True if position is acceptable
         """
+        if len(protein_positions) == 0:
+            # No protein atoms - all positions are acceptable
+            return True
+            
         min_dist = np.min(np.linalg.norm(protein_positions - position, axis=1))
         return min_dist >= self.min_distance_to_solute
     

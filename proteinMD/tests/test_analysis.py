@@ -19,25 +19,25 @@ import tempfile
 
 # Try to import analysis modules
 try:
-    from analysis.rmsd import RMSDCalculator, calculate_rmsd, align_structures
+    from analysis.rmsd import RMSDAnalyzer, kabsch_algorithm, calculate_rmsd, align_structures
     RMSD_AVAILABLE = True
 except ImportError:
     RMSD_AVAILABLE = False
 
 try:
-    from analysis.ramachandran import RamachandranAnalyzer, calculate_dihedral
+    from analysis.ramachandran import RamachandranAnalyzer, calculate_dihedral_angle
     RAMACHANDRAN_AVAILABLE = True
 except ImportError:
     RAMACHANDRAN_AVAILABLE = False
 
 try:
-    from analysis.hydrogen_bonds import HydrogenBondAnalyzer, find_hydrogen_bonds
+    from analysis.hydrogen_bonds import HydrogenBondAnalyzer, HydrogenBondDetector
     HYDROGEN_BONDS_AVAILABLE = True
 except ImportError:
     HYDROGEN_BONDS_AVAILABLE = False
 
 try:
-    from analysis.radius_of_gyration import RadiusOfGyrationAnalyzer, calculate_radius_of_gyration
+    from analysis.radius_of_gyration import RadiusOfGyrationAnalyzer, calculate_radius_of_gyration, calculate_segmental_rg
     RG_AVAILABLE = True
 except ImportError:
     RG_AVAILABLE = False
@@ -55,19 +55,19 @@ class TestRMSDAnalysis:
     
     def test_rmsd_calculator_initialization(self, mock_protein):
         """Test RMSD calculator initialization."""
-        calc = RMSDCalculator(reference_structure=mock_protein)
+        calc = RMSDAnalyzer(reference_structure=mock_protein)
         assert calc is not None
         assert hasattr(calc, 'reference_structure')
     
     def test_rmsd_calculation_identical_structures(self, mock_protein):
         """Test RMSD calculation for identical structures."""
-        calc = RMSDCalculator(reference_structure=mock_protein)
+        calc = RMSDAnalyzer(reference_structure=mock_protein)
         rmsd = calc.calculate_rmsd(mock_protein)
         assert rmsd == pytest.approx(0.0, abs=1e-6)
     
     def test_rmsd_calculation_different_structures(self, mock_protein):
         """Test RMSD calculation for different structures."""
-        calc = RMSDCalculator(reference_structure=mock_protein)
+        calc = RMSDAnalyzer(reference_structure=mock_protein)
         
         # Create a modified structure
         modified_protein = Mock()
@@ -80,13 +80,13 @@ class TestRMSDAnalysis:
     
     def test_structural_alignment(self, mock_protein):
         """Test structural alignment functionality."""
-        calc = RMSDCalculator(reference_structure=mock_protein)
+        calc = RMSDAnalyzer(reference_structure=mock_protein)
         aligned = calc.align_structure(mock_protein)
         assert aligned is not None
     
     def test_rmsd_trajectory_analysis(self, mock_trajectory):
         """Test RMSD analysis over trajectory."""
-        calc = RMSDCalculator(reference_structure=mock_trajectory.frames[0])
+        calc = RMSDAnalyzer(reference_structure=mock_trajectory.frames[0])
         rmsd_values = calc.analyze_trajectory(mock_trajectory)
         
         assert len(rmsd_values) == len(mock_trajectory.frames)
@@ -260,7 +260,7 @@ class TestAnalysisIntegration:
         
         # RMSD analysis
         if RMSD_AVAILABLE:
-            rmsd_calc = RMSDCalculator(reference_structure=mock_trajectory.frames[0])
+            rmsd_calc = RMSDAnalyzer(reference_structure=mock_trajectory.frames[0])
             results['rmsd'] = rmsd_calc.analyze_trajectory(mock_trajectory)
         
         # Radius of gyration analysis
@@ -303,7 +303,7 @@ class TestAnalysisIntegration:
         
         tracemalloc.start()
         
-        rmsd_calc = RMSDCalculator(reference_structure=mock_large_trajectory.frames[0])
+        rmsd_calc = RMSDAnalyzer(reference_structure=mock_large_trajectory.frames[0])
         rmsd_values = rmsd_calc.analyze_trajectory(mock_large_trajectory)
         
         current, peak = tracemalloc.get_traced_memory()
@@ -324,7 +324,7 @@ class TestAnalysisPerformanceRegression:
         if not RMSD_AVAILABLE:
             pytest.skip("RMSD module not available")
         
-        calc = RMSDCalculator(reference_structure=mock_trajectory.frames[0])
+        calc = RMSDAnalyzer(reference_structure=mock_trajectory.frames[0])
         
         def run_rmsd_analysis():
             return calc.analyze_trajectory(mock_trajectory)

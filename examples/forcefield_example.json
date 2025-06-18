@@ -1,0 +1,121 @@
+{
+  "metadata": {
+    "name": "Example Custom Force Field",
+    "version": "1.0.0",
+    "description": "Example custom force field demonstrating the JSON format",
+    "author": "ProteinMD Development Team",
+    "date": "2025-06-11",
+    "references": [
+      "Custom Force Field Development Guide",
+      "ProteinMD Documentation"
+    ],
+    "units": {
+      "length": "nm",
+      "energy": "kJ/mol",
+      "mass": "amu",
+      "angle": "degrees"
+    }
+  },
+  "atom_types": [
+    {
+      "atom_type": "CT",
+      "mass": 12.01,
+      "sigma": 0.339967,
+      "epsilon": 0.457730,
+      "charge": -0.1,
+      "description": "Aliphatic carbon",
+      "source": "Custom parameters based on AMBER"
+    },
+    {
+      "atom_type": "HC",
+      "mass": 1.008,
+      "sigma": 0.264953,
+      "epsilon": 0.065689,
+      "charge": 0.05,
+      "description": "Hydrogen bonded to aliphatic carbon",
+      "source": "Custom parameters based on AMBER"
+    },
+    {
+      "atom_type": "OH",
+      "mass": 15.999,
+      "sigma": 0.306647,
+      "epsilon": 0.880314,
+      "charge": -0.6,
+      "description": "Hydroxyl oxygen",
+      "source": "Custom parameters"
+    },
+    {
+      "atom_type": "HO",
+      "mass": 1.008,
+      "sigma": 0.0,
+      "epsilon": 0.0,
+      "charge": 0.4,
+      "description": "Hydroxyl hydrogen",
+      "source": "Custom parameters"
+    }
+  ],
+  "bond_types": [
+    {
+      "atom_types": ["CT", "HC"],
+      "k": 284512.0,
+      "r0": 0.1090,
+      "description": "Carbon-hydrogen bond",
+      "source": "AMBER ff14SB adapted"
+    },
+    {
+      "atom_types": ["CT", "OH"],
+      "k": 267776.0,
+      "r0": 0.1410,
+      "description": "Carbon-oxygen bond",
+      "source": "Custom parameterization"
+    },
+    {
+      "atom_types": ["OH", "HO"],
+      "k": 462750.4,
+      "r0": 0.0960,
+      "description": "Oxygen-hydrogen bond",
+      "source": "Custom parameterization"
+    }
+  ],
+  "angle_types": [
+    {
+      "atom_types": ["HC", "CT", "HC"],
+      "k": 276.144,
+      "theta0": 109.5,
+      "description": "H-C-H angle",
+      "source": "Standard tetrahedral"
+    },
+    {
+      "atom_types": ["HC", "CT", "OH"],
+      "k": 292.880,
+      "theta0": 109.5,
+      "description": "H-C-O angle",
+      "source": "Custom parameterization"
+    },
+    {
+      "atom_types": ["CT", "OH", "HO"],
+      "k": 460.240,
+      "theta0": 108.5,
+      "description": "C-O-H angle",
+      "source": "Custom parameterization"
+    }
+  ],
+  "dihedral_types": [
+    {
+      "atom_types": ["HC", "CT", "OH", "HO"],
+      "k": 0.6508,
+      "n": 3,
+      "phase": 0.0,
+      "description": "H-C-O-H dihedral",
+      "source": "Custom parameterization"
+    },
+    {
+      "atom_types": ["HC", "CT", "CT", "HC"],
+      "k": 0.6508,
+      "n": 3,
+      "phase": 0.0,
+      "description": "H-C-C-H dihedral",
+      "source": "AMBER ff14SB"
+    }
+  ]
+}

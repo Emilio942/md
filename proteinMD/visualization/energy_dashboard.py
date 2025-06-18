@@ -72,6 +72,11 @@ class EnergyPlotDashboard:
         
         logger.info(f"Initialized EnergyPlotDashboard with max_points={max_points}, update_interval={update_interval}ms")
     
+    @property
+    def energy_history(self):
+        """Provide energy history for test compatibility."""
+        return list(zip(self.time_data, self.kinetic_energy, self.potential_energy, self.total_energy))
+    
     def setup_plots(self, figsize: Tuple[float, float] = (15, 10)) -> None:
         """
         Set up the matplotlib figure and subplots.
@@ -536,6 +541,88 @@ class EnergyPlotDashboard:
             'total_energy': calc_stats(self.total_energy),
             'temperature': calc_stats(self.temperature),
             'pressure': calc_stats(self.pressure) if len(self.pressure) > 0 else {}
+        }
+    
+    def create_energy_plot(self, energy_data: Dict, output_file: str = None):
+        """Create an energy plot from energy data."""
+        if self.fig is None:
+            self.setup_plots()
+        
+        # Extract data from energy_data dict
+        times = energy_data.get('time', [])
+        kinetic = energy_data.get('kinetic', [])
+        potential = energy_data.get('potential', [])
+        temperature = energy_data.get('temperature', [300.0] * len(times))  # Default temperature if not provided
+        
+        # Add data points
+        for t, k, p, temp in zip(times, kinetic, potential, temperature):
+            self.add_data_point(t, k, p, temp)
+        
+        # Update plots
+        self.update_plots()
+        
+        # Export if filename provided
+        if output_file:
+            self.export_plot(output_file)
+    
+    def update_energy_data(self, step: int, energies: Dict):
+        """Update energy data from simulation step."""
+        time_ps = step * 0.001  # Assume 1 fs timestep
+        kinetic = energies.get('kinetic', 0.0)
+        potential = energies.get('potential', 0.0)
+        temperature = energies.get('temperature', 300.0)
+        self.add_data_point(time_ps, kinetic, potential, temperature)
+    
+    def calculate_statistics(self, energy_data: Dict) -> Dict:
+        """Calculate energy statistics."""
+        # If no data in dashboard, calculate from provided energy_data
+        if len(self.time_data) == 0 and energy_data:
+            # Calculate statistics from provided data
+            total_energy = energy_data.get('total', [])
+            if len(total_energy) == 0:
+                # Calculate total from kinetic and potential if total not provided
+                kinetic = energy_data.get('kinetic', [])
+                potential = energy_data.get('potential', [])
+                if len(kinetic) > 0 and len(potential) > 0:
+                    total_energy = np.array(kinetic) + np.array(potential)
+            
+            if len(total_energy) > 0:
+                arr = np.array(total_energy)
+                return {
+                    'mean': float(np.mean(arr)),
+                    'std': float(np.std(arr)),
+                    'min': float(np.min(arr)),
+                    'max': float(np.max(arr))
+                }
+        
+        # Use current dashboard data
+        current_stats = self.get_current_statistics()
+        if 'total_energy' in current_stats:
+            return current_stats['total_energy']
+        
+        return {}
+    
+    def analyze_conservation(self, energy_data: Dict) -> Dict:
+        """Analyze energy conservation."""
+        total_energy = energy_data.get('total', [])
+        if len(total_energy) == 0:
+            # Calculate total from kinetic and potential if total not provided
+            kinetic = energy_data.get('kinetic', [])
+            potential = energy_data.get('potential', [])
+            if len(kinetic) > 0 and len(potential) > 0:
+                total_energy = np.array(kinetic) + np.array(potential)
+        
+        if len(total_energy) > 1:
+            arr = np.array(total_energy)
+            drift = float((total_energy[-1] - total_energy[0]) / total_energy[0] * 100)
+            fluctuation = float(np.std(arr) / np.mean(arr) * 100)  # Coefficient of variation
+            return {
+                'drift': drift,
+                'fluctuation': fluctuation
+            }
+        return {
+            'drift': 0.0,
+            'fluctuation': 0.0
         }
 
 

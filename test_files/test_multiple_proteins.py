@@ -13,6 +13,7 @@ must be simulatable without parameter errors."
 import sys
 import numpy as np
 from pathlib import Path
+import pytest
 
 # Add project root to path
 project_root = Path(__file__).parent
@@ -153,6 +154,21 @@ def create_mixed_structure_protein():
     protein.atoms.append(TestAtom(atom_id, 'OXT'))
     
     return protein
+
+@pytest.fixture(params=[
+    ("alpha_helix", create_alpha_helix_protein),
+    ("beta_sheet", create_beta_sheet_protein),
+    ("mixed_secondary", create_mixed_structure_protein)
+])
+def protein(request):
+    """Fixture that provides different protein structures for testing."""
+    protein_name, creator_func = request.param
+    return creator_func()
+
+@pytest.fixture(params=["alpha_helix", "beta_sheet", "mixed_secondary"])
+def protein_name(request):
+    """Fixture that provides protein names for testing."""
+    return request.param
 
 def test_protein_validation(protein, protein_name):
     """Test validation for a specific protein."""

@@ -1,0 +1,271 @@
+{
+  "proteinmd_version": "1.0.0",
+  "validation_date": "2025-06-12T18:01:37.993860",
+  "validation_studies": [
+    {
+      "study_id": "exp_ubiquitin_folding_0",
+      "study_type": "experimental",
+      "system_description": "Experimental validation of ubiquitin_folding",
+      "validation_metrics": {
+        "folding_time_relative_error": 0.07058823529411756,
+        "folding_time_absolute_error": 5.999999999999993e-07,
+        "folding_time_agreement": 0.9294117647058824,
+        "radius_of_gyration_relative_error": 0.025000000000000022,
+        "radius_of_gyration_absolute_error": 0.030000000000000027,
+        "radius_of_gyration_agreement": 0.975,
+        "rmsd_crystal_relative_error": 0.05555555555555561,
+        "rmsd_crystal_absolute_error": 0.010000000000000009,
+        "rmsd_crystal_agreement": 0.9444444444444444,
+        "native_contacts_relative_error": 0.03529411764705886,
+        "native_contacts_absolute_error": 0.030000000000000027,
+        "native_contacts_agreement": 0.9647058823529412,
+        "folding_temperature_relative_error": 0.009523809523809525,
+        "folding_temperature_absolute_error": 3.0,
+        "folding_temperature_agreement": 0.9904761904761905
+      },
+      "statistical_analysis": {
+        "correlation_coefficient": 0.9999999886295473,
+        "correlation_p_value": 1.4554607013806666e-12,
+        "correlation_significant": "True",
+        "paired_t_statistic": 1.0040394484707016,
+        "paired_t_p_value": 0.3721702306614506,
+        "means_significantly_different": "False",
+        "cohens_d": 0.00476346262915623,
+        "effect_size": "negligible"
+      },
+      "quality_score": 0.9608076563958917,
+      "passed": "True",
+      "notes": "\u2705 PASSED: Experimental validation criteria met\nAverage relative error: 3.9%\nSignificant correlation with experimental data (r=1.000)\nEffect size: negligible",
+      "timestamp": "2025-06-12T18:01:37.991034"
+    },
+    {
+      "study_id": "exp_alanine_dipeptide_1",
+      "study_type": "experimental",
+      "system_description": "Experimental validation of alanine_dipeptide",
+      "validation_metrics": {
+        "c7ax_population_relative_error": 0.023529411764705903,
+        "c7ax_population_absolute_error": 0.020000000000000018,
+        "c7ax_population_agreement": 0.9764705882352941,
+        "phi_angle_avg_relative_error": 0.031746031746031744,
+        "phi_angle_avg_absolute_error": 2.0,
+        "phi_angle_avg_agreement": 0.9682539682539683,
+        "psi_angle_avg_relative_error": 0.022222222222222223,
+        "psi_angle_avg_absolute_error": 3.0,
+        "psi_angle_avg_agreement": 0.9777777777777777,
+        "transition_rate_relative_error": 0.046511627906976744,
+        "transition_rate_absolute_error": 20000000.0,
+        "transition_rate_agreement": 0.9534883720930233
+      },
+      "statistical_analysis": {
+        "correlation_coefficient": 0.9999999999999996,
+        "correlation_p_value": 4.440892098500626e-16,
+        "correlation_significant": "True",
+        "paired_t_statistic": -0.9999999346666464,
+        "paired_t_p_value": 0.3910022459708959,
+        "means_significantly_different": "False",
+        "cohens_d": -0.027485080761376027,
+        "effect_size": "negligible"
+      },
+      "quality_score": 0.9689976765900159,
+      "passed": "True",
+      "notes": "\u2705 PASSED: Experimental validation criteria met\nAverage relative error: 3.1%\nSignificant correlation with experimental data (r=1.000)\nEffect size: negligible",
+      "timestamp": "2025-06-12T18:01:37.991436"
+    },
+    {
+      "study_id": "lit_shaw_2010_villin_2",
+      "study_type": "literature",
+      "system_description": "Literature reproduction of shaw_2010_villin",
+      "validation_metrics": {
+        "folding_time_reproduction_error": 0.0666666666666666,
+        "folding_time_reproduction_quality": 0.9333333333333333,
+        "native_contacts_folded_reproduction_error": 0.03529411764705886,
+        "native_contacts_folded_reproduction_quality": 0.9647058823529412,
+        "radius_of_gyration_folded_reproduction_error": 0.023529411764705903,
+        "radius_of_gyration_folded_reproduction_quality": 0.9764705882352941,
+        "rmsd_from_nmr_reproduction_error": 0.06666666666666674,
+        "rmsd_from_nmr_reproduction_quality": 0.9333333333333332
+      },
+      "statistical_analysis": {
+        "correlation_coefficient": 0.9988981252845058,
+        "correlation_p_value": 0.0011018747154940556,
+        "regression_slope": 0.9885594502633676,
+        "regression_intercept": 0.005291342123810994,
+        "regression_r_squared": 0.9977974646969003,
+        "regression_p_value": 0.0011018747154941666,
+        "slope_deviation_from_ideal": 0.011440549736632444,
+        "reproduction_fidelity": 0.9885594502633676
+      },
+      "quality_score": 0.9519607843137254,
+      "passed": "True",
+      "notes": "\u2705 PASSED: Literature reproduction criteria met\nAverage reproduction error: 4.8%\nRegression R\u00b2: 0.998\nReproduction fidelity: 98.9%",
+      "timestamp": "2025-06-12T18:01:37.991680"
+    },
+    {
+      "study_id": "bench_protein_folding_20k_3",
+      "study_type": "benchmark",
+      "system_description": "Benchmark validation of protein_folding_20k",
+      "validation_metrics": {
+        "performance_ratio": 0.7657142857142857,
+        "performance_ranking": 0.0,
+        "energy_accuracy": 0.9991197183098592,
+        "energy_relative_error": 0.0008802816901407723,
+        "temperature_stability": 0.9799999999999954,
+        "pressure_stability": 1.0
+      },
+      "statistical_analysis": {},
+      "quality_score": 0.9362085010060351,
+      "passed": "True",
+      "notes": "\u2705 PASSED: Benchmark validation criteria met\nPerformance ratio vs references: 0.77x\nPerformance ranking: 0.0% percentile\nEnergy accuracy: 99.9%",
+      "timestamp": "2025-06-12T18:01:37.991720"
+    },
+    {
+      "study_id": "cv_membrane_simulation_4",
+      "study_type": "cross_validation",
+      "system_description": "Cross-validation reproducibility of membrane_simulation",
+      "validation_metrics": {
+        "area_per_lipid_coefficient_of_variation": 0.004081390145344011,
+        "area_per_lipid_reproducibility": 0.9591860985465599,
+        "area_per_lipid_mean": 67.1,
+        "area_per_lipid_std": 0.2738612787525831,
+        "membrane_thickness_coefficient_of_variation": 0.018608073189119646,
+        "membrane_thickness_reproducibility": 0.8139192681088036,
+        "membrane_thickness_mean": 3.8,
+        "membrane_thickness_std": 0.07071067811865465,
+        "order_parameter_coefficient_of_variation": 0.033671751485073675,
+        "order_parameter_reproducibility": 0.6632824851492632,
+        "order_parameter_mean": 0.21,
+        "order_parameter_std": 0.007071067811865472,
+        "diffusion_coefficient_coefficient_of_variation": 0.021709397839803794,
+        "diffusion_coefficient_reproducibility": 0.7829060216019621,
+        "diffusion_coefficient_mean": 5.15e-08,
+        "diffusion_coefficient_std": 1.1180339887498953e-09,
+        "overall_reproducibility": 0.8048234683516472,
+        "average_cv": 0.01951765316483528
+      },
+      "statistical_analysis": {
+        "area_per_lipid_normality_p_value": 0.6532303300172126,
+        "area_per_lipid_is_normal": "True",
+        "area_per_lipid_95_confidence_interval": [
+          66.5968110572057,
+          67.60318894279429
+        ],
+        "area_per_lipid_outlier_count": 0,
+        "area_per_lipid_outlier_fraction": 0.0,
+        "membrane_thickness_normality_p_value": 0.6829615282579,
+        "membrane_thickness_is_normal": "True",
+        "membrane_thickness_95_confidence_interval": [
+          3.670077173637466,
+          3.9299228263625334
+        ],
+        "membrane_thickness_outlier_count": 1,
+        "membrane_thickness_outlier_fraction": 0.25,
+        "order_parameter_normality_p_value": 0.6829615282579,
+        "order_parameter_is_normal": "True",
+        "order_parameter_95_confidence_interval": [
+          0.19700771736374662,
+          0.22299228263625337
+        ],
+        "order_parameter_outlier_count": 0,
+        "order_parameter_outlier_fraction": 0.0,
+        "diffusion_coefficient_normality_p_value": 0.9718770585603881,
+        "diffusion_coefficient_is_normal": "True",
+        "diffusion_coefficient_95_confidence_interval": [
+          4.9445739743239116e-08,
+          5.355426025676088e-08
+        ],
+        "diffusion_coefficient_outlier_count": 0,
+        "diffusion_coefficient_outlier_fraction": 0.0
+      },
+      "quality_score": 0.8048234683516472,
+      "passed": "True",
+      "notes": "\u2705 PASSED: Cross-validation reproducibility criteria met\nOverall reproducibility: 80.5%\nAverage coefficient of variation: 2.0%\nTotal outliers detected: 1",
+      "timestamp": "2025-06-12T18:01:37.993628"
+    }
+  ],
+  "overall_statistics": {
+    "total_validation_studies": 5,
+    "pass_rate": 1.0,
+    "study_types": [
+      "cross_validation",
+      "literature",
+      "experimental",
+      "benchmark"
+    ],
+    "validation_period": {
+      "start": "2025-06-12T18:01:37.991034",
+      "end": "2025-06-12T18:01:37.993628"
+    },
+    "quality_metrics": {
+      "mean": 0.9245596173314631,
+      "median": 0.9519607843137254,
+      "std": 0.06084723044157917,
+      "min": 0.8048234683516472,
+      "max": 0.9689976765900159
+    }
+  },
+  "peer_review_assessment": {
+    "total_studies": 5,
+    "passed_studies": 5,
+    "pass_rate": 1.0,
+    "study_type_breakdown": {
+      "experimental": {
+        "total": 2,
+        "passed": 2
+      },
+      "literature": {
+        "total": 1,
+        "passed": 1
+      },
+      "benchmark": {
+        "total": 1,
+        "passed": 1
+      },
+      "cross_validation": {
+        "total": 1,
+        "passed": 1
+      }
+    },
+    "quality_distribution": {
+      "mean": 0.9245596173314631,
+      "median": 0.9519607843137254,
+      "std": 0.06084723044157917,
+      "min": 0.8048234683516472,
+      "max": 0.9689976765900159
+    },
+    "overall_recommendation": "highly_recommended",
+    "scientific_rigor": "excellent",
+    "publication_readiness": "ready_for_publication",
+    "detailed_assessment": {
+      "accuracy_assessment": {
+        "mean_accuracy": 0.9649026664929539,
+        "studies_evaluated": 2,
+        "meets_criteria": "True"
+      },
+      "reproducibility_assessment": {
+        "mean_reproducibility": 0.8048234683516472,
+        "studies_evaluated": 1,
+        "meets_criteria": "False"
+      },
+      "performance_assessment": {
+        "mean_performance_ratio": 0.7657142857142857,
+        "studies_evaluated": 1,
+        "meets_criteria": "True"
+      },
+      "literature_validation_assessment": {
+        "mean_reproduction_quality": 0.9519607843137254,
+        "studies_evaluated": 1,
+        "meets_criteria": "True"
+      },
+      "recommendations": [
+        "Enhance reproducibility: Implement stricter numerical precision controls and ensure proper random seed management across simulations.",
+        "Expand validation coverage: Add more validation studies across different system types and conditions to strengthen scientific credibility."
+      ]
+    }
+  },
+  "publication_readiness": "ready_for_publication",
+  "recommendations": [
+    "Enhance reproducibility: Implement stricter numerical precision controls and ensure proper random seed management across simulations.",
+    "Expand validation coverage: Add more validation studies across different system types and conditions to strengthen scientific credibility."
+  ],
+  "external_reviewer_comments": []
+}

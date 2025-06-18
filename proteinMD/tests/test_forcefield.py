@@ -533,12 +533,12 @@ class TestParameterValidation:
             atom_type2="CT",
             atom_type3="CT",
             k=100.0,
-            theta0=109.5
+            theta0=np.radians(109.5)  # Convert degrees to radians
         )
         
         assert params.is_valid()
         assert params.k > 0
-        assert 0 < params.theta0 < 180
+        assert 0 < params.theta0 <= np.pi
     
     def test_dihedral_parameters(self):
         """Test DihedralParameters validation."""
@@ -560,16 +560,16 @@ class TestParameterValidation:
     def test_invalid_parameters(self):
         """Test validation of invalid parameters."""
         # Invalid atom type parameters
-        with pytest.raises((ValueError, AssertionError)):
-            AtomTypeParameters("CT", "C", -1.0, 0.0, 0.35, 0.1)  # Negative mass
+        params1 = AtomTypeParameters("CT", "C", -1.0, 0.0, 0.35, 0.1)  # Negative mass
+        assert not params1.is_valid()
         
         # Invalid bond parameters
-        with pytest.raises((ValueError, AssertionError)):
-            BondParameters("CT", "CT", -100.0, 0.15)  # Negative k
+        params2 = BondParameters("CT", "CT", -100.0, 0.15)  # Negative k
+        assert not params2.is_valid()
         
-        # Invalid angle parameters
-        with pytest.raises((ValueError, AssertionError)):
-            AngleParameters("CT", "CT", "CT", 100.0, 200.0)  # Invalid angle
+        # Invalid angle parameters (angle > π)
+        params3 = AngleParameters("CT", "CT", "CT", 100.0, np.radians(200.0))  # Invalid angle
+        assert not params3.is_valid()
 
 
 class TestForceFieldPerformance:

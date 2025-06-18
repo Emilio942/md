@@ -25,7 +25,7 @@ def test_optimized_parallel_forces():
     except ImportError:
         NUMBA_AVAILABLE = False
         print("❌ Numba not available")
-        return False
+        assert False
     
     # Define optimized parallel force calculation
     @jit(nopython=True, parallel=True)
@@ -285,7 +285,7 @@ def test_optimized_parallel_forces():
         print(f"- Optimized Lennard-Jones force calculation with cutoffs")
         print(f"- Tested on {n_particles} particles with realistic density")
     
-    return all_requirements_met
+    assert all_requirements_met
 
 if __name__ == "__main__":
     success = test_optimized_parallel_forces()

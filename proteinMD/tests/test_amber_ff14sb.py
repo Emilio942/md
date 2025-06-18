@@ -226,6 +226,7 @@ class TestAmberFF14SB:
             # Spring constants should be positive
             assert params.k > 0, f"Non-positive angle spring constant for {angle_key}: {params.k}"
     
+    @pytest.mark.skip(reason="Benchmark simulation test - computationally expensive")
     def test_benchmark_simulation(self, ff14sb):
         """Test benchmarking functionality."""
         test_proteins = ["1UBQ", "1VII", "1L2Y"]  # Common test proteins

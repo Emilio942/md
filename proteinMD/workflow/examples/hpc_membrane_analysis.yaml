@@ -1,0 +1,265 @@
+# High-Performance Computing Workflow
+# Example workflow for SLURM cluster with advanced scheduling features
+
+name: "hpc_membrane_protein_analysis"
+description: "Large-scale membrane protein simulation and analysis on HPC cluster"
+version: "1.0.0"
+author: "HPC Research Team"
+output_directory: "hpc_membrane_results"
+max_parallel_steps: 8
+on_failure: "continue"
+
+global_parameters:
+  membrane_system: "POPC_bilayer"
+  protein_file: "membrane_protein.pdb"
+  simulation_time_ns: 500
+  steps_per_ns: 500000
+  analysis_stride: 100
+  replica_count: 8
+
+default_resources:
+  cpu_cores: 16
+  memory_gb: 32
+  time_limit: "24:00:00"
+  gpu_count: 1
+
+scheduler:
+  type: "slurm"
+  partition: "gpu"
+  account: "membrane_research"
+  qos: "high_priority"
+
+steps:
+  # System preparation with membrane insertion
+  - name: "membrane_setup"
+    command: "proteinmd membrane-setup"
+    parameters:
+      protein: "${global_parameters.protein_file}"
+      membrane_type: "${global_parameters.membrane_system}"
+      lipid_ratio: {"POPC": 0.8, "CHOL": 0.2}
+      membrane_size: [15, 15]  # nm
+      water_thickness: 2.0     # nm
+    outputs:
+      membrane_system: "setup/membrane_system.pdb"
+      topology: "setup/system.top"
+      parameters: "setup/membrane_params.json"
+    resources:
+      cpu_cores: 8
+      memory_gb: 16
+      time_limit: "02:00:00"
+
+  # Energy minimization - single node
+  - name: "minimize_membrane"
+    command: "proteinmd simulate"
+    parameters:
+      template: "membrane_minimization"
+      steps: 50000
+      constraints: "h_bonds"
+      integrator: "steep"
+    dependencies: ["membrane_setup"]
+    inputs:
+      structure: "${membrane_setup.outputs.membrane_system}"
+      topology: "${membrane_setup.outputs.topology}"
+    outputs:
+      minimized_system: "minimization/minimized_membrane.pdb"
+      energy_log: "minimization/energy.log"
+    resources:
+      cpu_cores: 16
+      memory_gb: 32
+      time_limit: "04:00:00"
+      gpu_count: 1
+
+  # Temperature equilibration - job array for different temperatures
+  - name: "temperature_equilibration"
+    command: "proteinmd simulate"
+    parameters:
+      template: "membrane_equilibration"
+      steps: 500000
+      ensemble: "nvt"
+      temperature_range: [250, 300, 320, 350]  # K
+      restraints: "protein_backbone"
+    dependencies: ["minimize_membrane"]
+    inputs:
+      structure: "${minimize_membrane.outputs.minimized_system}"
+      topology: "${membrane_setup.outputs.topology}"
+    outputs:
+      equilibrated_systems: "equilibration/temp_eq_${SLURM_ARRAY_TASK_ID}.pdb"
+      trajectories: "equilibration/temp_eq_${SLURM_ARRAY_TASK_ID}.xtc"
+    resources:
+      cpu_cores: 32
+      memory_gb: 64
+      time_limit: "08:00:00"
+      gpu_count: 2
+    scheduler_options:
+      array: "1-4"  # 4 temperature conditions
+      exclusive: true
+
+  # Production simulations - replica exchange
+  - name: "replica_exchange_md"
+    command: "proteinmd simulate"
+    parameters:
+      template: "replica_exchange"
+      method: "temperature_remd"
+      replica_count: "${global_parameters.replica_count}"
+      steps: "${global_parameters.simulation_time_ns * global_parameters.steps_per_ns}"
+      exchange_frequency: 1000
+      temperature_range: [300, 350]  # K
+    dependencies: ["temperature_equilibration"]
+    inputs:
+      equilibrated_systems: "${temperature_equilibration.outputs.equilibrated_systems}"
+    outputs:
+      remd_trajectories: "production/remd_replica_${SLURM_ARRAY_TASK_ID}.xtc"
+      exchange_log: "production/exchange.log"
+      final_structures: "production/final_replica_${SLURM_ARRAY_TASK_ID}.pdb"
+    resources:
+      cpu_cores: 64
+      memory_gb: 128
+      time_limit: "72:00:00"  # 3 days
+      gpu_count: 4
+    scheduler_options:
+      array: "1-8"  # 8 replicas
+      exclusive: true
+      dependency_type: "afterok"
+
+  # Membrane analysis - parallel analysis jobs
+  - name: "membrane_analysis"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: [
+        "membrane_thickness",
+        "lipid_order_parameters", 
+        "protein_membrane_contacts",
+        "membrane_curvature"
+      ]
+      stride: "${global_parameters.analysis_stride}"
+      membrane_selection: "resname POPC CHOL"
+    dependencies: ["replica_exchange_md"]
+    inputs:
+      trajectories: "${replica_exchange_md.outputs.remd_trajectories}"
+      topology: "${membrane_setup.outputs.topology}"
+    outputs:
+      thickness_data: "analysis/membrane_thickness.csv"
+      order_parameters: "analysis/lipid_order.csv"
+      contact_analysis: "analysis/protein_contacts.csv"
+      curvature_data: "analysis/membrane_curvature.csv"
+    resources:
+      cpu_cores: 16
+      memory_gb: 32
+      time_limit: "06:00:00"
+    scheduler_options:
+      array: "1-8"  # Analyze each replica
+
+  # Protein conformational analysis
+  - name: "protein_analysis"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: [
+        "rmsd",
+        "rmsf", 
+        "radius_of_gyration",
+        "secondary_structure",
+        "principal_components"
+      ]
+      stride: "${global_parameters.analysis_stride}"
+      protein_selection: "protein"
+    dependencies: ["replica_exchange_md"]
+    inputs:
+      trajectories: "${replica_exchange_md.outputs.remd_trajectories}"
+      reference: "${minimize_membrane.outputs.minimized_system}"
+    outputs:
+      rmsd_data: "analysis/protein_rmsd.csv"
+      rmsf_data: "analysis/protein_rmsf.csv"
+      rg_data: "analysis/protein_rg.csv"
+      ss_data: "analysis/secondary_structure.csv"
+      pca_data: "analysis/principal_components.csv"
+    resources:
+      cpu_cores: 16
+      memory_gb: 32
+      time_limit: "04:00:00"
+    scheduler_options:
+      array: "1-8"
+
+  # Free energy landscape calculation
+  - name: "free_energy_landscape"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: ["free_energy_surface"]
+      collective_variables: [
+        {"type": "rmsd", "reference": "${minimize_membrane.outputs.minimized_system}"},
+        {"type": "radius_of_gyration"}
+      ]
+      temperature: 300.0
+      reweight_method: "wham"
+    dependencies: ["protein_analysis"]
+    inputs:
+      trajectories: "${replica_exchange_md.outputs.remd_trajectories}"
+      rmsd_data: "${protein_analysis.outputs.rmsd_data}"
+      rg_data: "${protein_analysis.outputs.rg_data}"
+    outputs:
+      free_energy_surface: "analysis/free_energy_landscape.dat"
+      landscape_plot: "analysis/fe_landscape.png"
+      minima_structures: "analysis/fe_minima/"
+    resources:
+      cpu_cores: 32
+      memory_gb: 64
+      time_limit: "12:00:00"
+
+  # Aggregate analysis results
+  - name: "aggregate_results"
+    command: "proteinmd aggregate"
+    parameters:
+      replica_count: "${global_parameters.replica_count}"
+      analysis_types: ["membrane", "protein", "free_energy"]
+      statistical_analysis: true
+      bootstrap_samples: 1000
+    dependencies: ["membrane_analysis", "protein_analysis", "free_energy_landscape"]
+    inputs:
+      membrane_data: "${membrane_analysis.outputs}"
+      protein_data: "${protein_analysis.outputs}"
+      free_energy_data: "${free_energy_landscape.outputs}"
+    outputs:
+      aggregated_data: "results/aggregated_analysis.json"
+      statistics: "results/statistical_summary.csv"
+      plots: "results/summary_plots/"
+    resources:
+      cpu_cores: 8
+      memory_gb: 16
+      time_limit: "02:00:00"
+
+  # Generate comprehensive HPC report
+  - name: "hpc_report"
+    command: "proteinmd report"
+    parameters:
+      format: "html"
+      template: "hpc_membrane"
+      include_performance_metrics: true
+      include_resource_usage: true
+    dependencies: ["aggregate_results"]
+    inputs:
+      aggregated_data: "${aggregate_results.outputs.aggregated_data}"
+      statistics: "${aggregate_results.outputs.statistics}"
+      plots: "${aggregate_results.outputs.plots}"
+    outputs:
+      final_report: "report/hpc_membrane_analysis_report.html"
+      performance_summary: "report/hpc_performance.json"
+      publication_figures: "report/publication_quality_figures/"
+    resources:
+      cpu_cores: 4
+      memory_gb: 8
+      time_limit: "01:00:00"
+
+notifications:
+  email:
+    enabled: true
+    recipients: ["hpc-admin@cluster.edu", "researcher@university.edu"]
+    on_completion: true
+    on_failure: true
+    include_logs: true
+  
+  monitoring:
+    enabled: true
+    metrics: ["cpu_usage", "memory_usage", "gpu_utilization"]
+    alert_thresholds:
+      cpu_usage: 95
+      memory_usage: 90
+      gpu_utilization: 5  # Alert if GPU usage drops below 5%

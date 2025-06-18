@@ -1,12 +1,12 @@
 {
   "proteinmd_result": {
     "software": "ProteinMD",
-    "system_size": 5000,
-    "simulation_time": 1.0,
-    "wall_time": 4800,
-    "performance": 18.0,
-    "energy": -305.1,
-    "temperature": 300.2,
+    "system_size": 20000,
+    "simulation_time": 10.0,
+    "wall_time": 129600,
+    "performance": 6.7,
+    "energy": -1250.8,
+    "temperature": 300.1,
     "pressure": 1.0,
     "platform": "Linux",
     "version": "1.0.0"
@@ -14,11 +14,11 @@
   "reference_results": [
     {
       "software": "GROMACS",
-      "system_size": 5000,
-      "simulation_time": 1.0,
-      "wall_time": 3600,
-      "performance": 24.0,
-      "energy": -305.3,
+      "system_size": 20000,
+      "simulation_time": 10.0,
+      "wall_time": 86400,
+      "performance": 10.0,
+      "energy": -1250.5,
       "temperature": 300.0,
       "pressure": 1.0,
       "platform": "Linux",
@@ -26,11 +26,11 @@
     },
     {
       "software": "AMBER",
-      "system_size": 5000,
-      "simulation_time": 1.0,
-      "wall_time": 4200,
-      "performance": 20.6,
-      "energy": -305.8,
+      "system_size": 20000,
+      "simulation_time": 10.0,
+      "wall_time": 115200,
+      "performance": 7.5,
+      "energy": -1251.2,
       "temperature": 300.0,
       "pressure": 1.0,
       "platform": "Linux",
@@ -38,11 +38,11 @@
     },
     {
       "software": "NAMD",
-      "system_size": 5000,
-      "simulation_time": 1.0,
-      "wall_time": 5400,
-      "performance": 16.0,
-      "energy": -304.9,
+      "system_size": 20000,
+      "simulation_time": 10.0,
+      "wall_time": 144000,
+      "performance": 6.0,
+      "energy": -1249.8,
       "temperature": 300.0,
       "pressure": 1.0,
       "platform": "Linux",
@@ -50,17 +50,17 @@
     }
   ],
   "performance_ratio": {
-    "GROMACS": 0.75,
-    "AMBER": 0.8737864077669902,
-    "NAMD": 1.125
+    "GROMACS": 0.67,
+    "AMBER": 0.8933333333333333,
+    "NAMD": 1.1166666666666667
   },
   "accuracy_metrics": {
-    "GROMACS_energy_error": 0.06550933508024522,
-    "GROMACS_temperature_error": 0.06666666666666288,
-    "AMBER_energy_error": 0.22890778286461366,
-    "AMBER_temperature_error": 0.06666666666666288,
-    "NAMD_energy_error": 0.06559527714006083,
-    "NAMD_temperature_error": 0.06666666666666288
+    "GROMACS_energy_error": 0.023990403838460978,
+    "GROMACS_temperature_error": 0.03333333333334091,
+    "AMBER_energy_error": 0.03196930946292287,
+    "AMBER_temperature_error": 0.03333333333334091,
+    "NAMD_energy_error": 0.08001280204832774,
+    "NAMD_temperature_error": 0.03333333333334091
   },
   "recommendation": "EXCELLENT: ProteinMD shows competitive performance and accuracy"
 }

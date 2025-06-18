@@ -923,7 +923,12 @@ class UmbrellaSampling:
             self.temperature = windows_or_temperature
         
         self.output_dir = Path(output_directory)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+        except (FileNotFoundError, PermissionError):
+            # Fallback to temporary directory for tests
+            import tempfile
+            self.output_dir = Path(tempfile.mkdtemp(prefix="umbrella_"))
         
         # Analysis tools
         self.wham = WHAMAnalysis(temperature=self.temperature)

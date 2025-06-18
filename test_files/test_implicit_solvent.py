@@ -526,16 +526,16 @@ def main():
             print(f"  ✓ Surface Area term for hydrophobic effects")
             print(f"  ✓ 10x+ speed advantage demonstrated")
             print(f"  ✓ Comparable accuracy validated")
-            return True
+            assert True  # Test completed successfully
         else:
             print(f"\n⚠ VALIDATION INCOMPLETE - Some tests failed")
-            return False
+            assert False, "Implicit solvent validation failed"
             
     except Exception as e:
         print(f"\n✗ Test suite failed with error: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        assert False, f"Test suite failed with error: {e}"
 
 if __name__ == '__main__':
     success = main()

@@ -303,7 +303,7 @@ class RadiusOfGyrationAnalyzer:
             'median': float(np.median(overall_rg_values)),
             'q25': float(np.percentile(overall_rg_values, 25)),
             'q75': float(np.percentile(overall_rg_values, 75))
-        }
+        };
         
         # Extract segmental statistics if available
         segmental_stats = {}
@@ -550,95 +550,55 @@ class RadiusOfGyrationAnalyzer:
         with open(filepath, 'w') as f:
             json.dump(export_data, f, indent=2, default=str)
     
-    def calculate_radius_of_gyration(self, protein_structure) -> float:
+    def calculate_radius_of_gyration(self, structure) -> float:
         """
-        Calculate radius of gyration for a protein structure (test compatibility method).
+        Calculate radius of gyration for a structure.
+        
+        Compatibility method for tests.
         
         Parameters
         ----------
-        protein_structure : object
-            Protein structure with positions and masses attributes or residues with atoms
+        structure : object with atoms attribute
+            Structure to analyze
             
         Returns
         -------
         float
             Radius of gyration value
         """
-        # Extract positions and masses from protein structure
-        if hasattr(protein_structure, 'positions') and hasattr(protein_structure, 'masses'):
-            positions = protein_structure.positions
-            masses = protein_structure.masses
+        if hasattr(structure, 'atoms'):
+            positions = np.array([atom.position for atom in structure.atoms])
+            masses = np.array([getattr(atom, 'mass', 1.0) for atom in structure.atoms])
         else:
-            # Extract from residues/atoms structure
-            positions = []
-            masses = []
+            raise ValueError("Structure must have atoms attribute")
             
-            if hasattr(protein_structure, 'residues'):
-                for residue in protein_structure.residues:
-                    for atom in residue.atoms:
-                        positions.append(atom.position)
-                        masses.append(atom.mass)
-            else:
-                # Fallback: create mock data
-                n_atoms = getattr(protein_structure, 'num_atoms', 10)
-                positions = np.random.randn(n_atoms, 3)
-                masses = np.ones(n_atoms)
-            
-            positions = np.array(positions)
-            masses = np.array(masses)
-            
-        # Calculate center of mass and radius of gyration
-        center_of_mass = calculate_center_of_mass(positions, masses)
-        return calculate_radius_of_gyration(positions, masses, center_of_mass)
+        return calculate_radius_of_gyration(positions, masses)
     
-    def calculate_segmental_rg(self, protein_structure, segments: Dict[str, List[int]]) -> Dict[str, float]:
+    def calculate_segmental_rg(self, structure, segments):
         """
-        Calculate segmental radius of gyration (test compatibility method).
+        Calculate segmental radius of gyration.
+        
+        Compatibility method for tests.
         
         Parameters
         ----------
-        protein_structure : object
-            Protein structure with positions and masses attributes or residues with atoms
+        structure : object with atoms attribute
+            Structure to analyze
         segments : dict
             Dictionary mapping segment names to atom indices
             
         Returns
         -------
         dict
-            Dictionary mapping segment names to Rg values
+            Segmental RG values
         """
-        # Extract positions and masses from protein structure
-        if hasattr(protein_structure, 'positions') and hasattr(protein_structure, 'masses'):
-            positions = protein_structure.positions
-            masses = protein_structure.masses
+        if hasattr(structure, 'atoms'):
+            positions = np.array([atom.position for atom in structure.atoms])
+            masses = np.array([getattr(atom, 'mass', 1.0) for atom in structure.atoms])
         else:
-            # Extract from residues/atoms structure
-            positions = []
-            masses = []
+            raise ValueError("Structure must have atoms attribute")
             
-            if hasattr(protein_structure, 'residues'):
-                for residue in protein_structure.residues:
-                    for atom in residue.atoms:
-                        positions.append(atom.position)
-                        masses.append(atom.mass)
-            else:
-                # Fallback: create mock data
-                n_atoms = getattr(protein_structure, 'num_atoms', 20)
-                positions = np.random.randn(n_atoms, 3)
-                masses = np.ones(n_atoms)
-            
-            positions = np.array(positions)
-            masses = np.array(masses)
-        
-        # Convert segments to numpy arrays and ensure valid indices
-        segment_arrays = {}
-        for name, indices in segments.items():
-            # Filter indices to be within bounds
-            valid_indices = [i for i in indices if 0 <= i < len(positions)]
-            if valid_indices:
-                segment_arrays[name] = np.array(valid_indices)
-        
-        return calculate_segmental_rg(positions, masses, segment_arrays)
+        return calculate_segmental_rg(positions, masses, segments)
 
 
 def create_rg_analyzer(segment_definitions: Optional[Dict[str, np.ndarray]] = None) -> RadiusOfGyrationAnalyzer:

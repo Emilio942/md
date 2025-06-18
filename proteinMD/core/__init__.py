@@ -7,11 +7,34 @@ including system initialization, force calculations, and integration algorithms.
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Union, Any
 import logging
+from pathlib import Path
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Error Handling & Logging System Integration
+# ==========================================
+
+# Import error handling components
+try:
+    from .exceptions import *
+    from .logging_system import ProteinMDLogger, setup_logging, get_logger
+    from .logging_config import LoggingConfig, ConfigurationManager, get_template_config
+    from .error_integration import (
+        ModuleIntegrator, integrate_proteinmd_package, 
+        setup_comprehensive_logging, safe_operation, 
+        with_error_recovery, exception_context, ValidationMixin
+    )
+    
+    # Error handling system availability flag
+    ERROR_HANDLING_AVAILABLE = True
+    
+except ImportError as e:
+    logger.warning(f"Error handling system not fully available: {e}")
+    ERROR_HANDLING_AVAILABLE = False
+
 
 class MDSystem:
     """
@@ -369,3 +392,329 @@ class LangevinIntegrator(Integrator):
         new_positions = positions + new_velocities * self.time_step
         
         return new_positions, new_velocities
+
+
+class ProteinMDErrorHandlingSystem:
+    """Main class for managing the ProteinMD error handling and logging system."""
+    
+    def __init__(self):
+        self.logger = None
+        self.config_manager = None
+        self.integrator = None
+        self.is_initialized = False
+        
+    def initialize(self, 
+                  config_file=None,
+                  environment="development",
+                  log_level="INFO",
+                  enable_integration=True,
+                  custom_config=None):
+        """Initialize the complete error handling and logging system."""
+        
+        if not ERROR_HANDLING_AVAILABLE:
+            logger.warning("Error handling system components not available")
+            return False
+        
+        try:
+            # Step 1: Setup configuration
+            self._setup_configuration(config_file, environment, custom_config)
+            
+            # Step 2: Initialize logging system
+            self._initialize_logging(log_level)
+            
+            # Step 3: Setup module integration
+            if enable_integration:
+                self._setup_integration()
+            
+            # Step 4: Register default fallback operations
+            self._register_default_fallbacks()
+            
+            self.is_initialized = True
+            if self.logger:
+                self.logger.info("ProteinMD Error Handling & Logging System initialized successfully")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize ProteinMD Error Handling System: {e}")
+            return False
+    
+    def _setup_configuration(self, 
+                           config_file, 
+                           environment,
+                           custom_config):
+        """Setup configuration management."""
+        
+        self.config_manager = ConfigurationManager(config_file)
+        
+        if config_file and Path(config_file).exists():
+            # Load from file
+            config = self.config_manager.load_configuration()
+        elif custom_config:
+            # Use custom configuration
+            config = LoggingConfig.from_dict(custom_config)
+        else:
+            # Use template configuration
+            config = get_template_config(environment)
+            config.apply_environment_overrides()
+        
+        self.config = config
+    
+    def _initialize_logging(self, log_level):
+        """Initialize the logging system."""
+        
+        # Override log level if specified
+        if log_level != "INFO":
+            config_dict = self.config.to_dict()
+            config_dict['log_level'] = log_level
+            self.config = LoggingConfig.from_dict(config_dict)
+        
+        # Setup main logger
+        self.logger = setup_logging(self.config.to_dict())
+    
+    def _setup_integration(self):
+        """Setup module integration."""
+        
+        self.integrator = ModuleIntegrator(self.logger)
+        
+        # Define common fallback operations
+        common_fallbacks = {
+            'read_file': self._fallback_read_file,
+            'write_file': self._fallback_write_file,
+            'parse_structure': self._fallback_parse_structure,
+            'calculate_energy': self._fallback_calculate_energy,
+        }
+        
+        # Register fallbacks for core modules
+        core_modules = ['io', 'structure', 'simulation', 'analysis', 'visualization']
+        for module in core_modules:
+            try:
+                self.integrator._register_fallbacks(f"proteinMD.{module}", common_fallbacks)
+            except Exception as e:
+                if self.logger:
+                    self.logger.warning(f"Could not register fallbacks for {module}: {e}")
+    
+    def _register_default_fallbacks(self):
+        """Register default fallback operations."""
+        
+        if not self.logger:
+            return
+        
+        # File I/O fallbacks
+        self.logger.graceful_degradation.register_fallback(
+            "read_file", self._fallback_read_file
+        )
+        self.logger.graceful_degradation.register_fallback(
+            "write_file", self._fallback_write_file
+        )
+        
+        # Structure processing fallbacks
+        self.logger.graceful_degradation.register_fallback(
+            "parse_structure", self._fallback_parse_structure
+        )
+        
+        # Simulation fallbacks
+        self.logger.graceful_degradation.register_fallback(
+            "calculate_energy", self._fallback_calculate_energy
+        )
+        
+        self.logger.info("Default fallback operations registered")
+    
+    # Fallback functions
+    def _fallback_read_file(self, filename, *args, **kwargs):
+        """Fallback for file reading operations."""
+        if self.logger:
+            self.logger.warning(f"Using fallback for reading file: {filename}")
+        return f"# Fallback content for {filename}\n# Original file could not be read\n"
+    
+    def _fallback_write_file(self, filename, content, *args, **kwargs):
+        """Fallback for file writing operations."""
+        if self.logger:
+            self.logger.warning(f"Using fallback for writing file: {filename}")
+        try:
+            # Try to write to a backup location
+            backup_path = Path(filename).with_suffix('.backup')
+            with open(backup_path, 'w') as f:
+                f.write(content)
+            return True
+        except Exception:
+            return False
+    
+    def _fallback_parse_structure(self, structure_data, *args, **kwargs):
+        """Fallback for structure parsing operations."""
+        if self.logger:
+            self.logger.warning("Using fallback for structure parsing")
+        return {
+            'atoms': [],
+            'bonds': [],
+            'residues': [],
+            'chains': [],
+            'fallback': True,
+            'message': 'Structure parsing failed, using empty structure'
+        }
+    
+    def _fallback_calculate_energy(self, *args, **kwargs):
+        """Fallback for energy calculation operations."""
+        if self.logger:
+            self.logger.warning("Using fallback for energy calculation")
+        return 0.0  # Return neutral energy
+    
+    def get_system_status(self):
+        """Get comprehensive system status."""
+        
+        if not self.is_initialized:
+            return {'initialized': False, 'error': 'System not initialized'}
+        
+        status = {
+            'initialized': True,
+            'configuration': self.config.to_dict() if hasattr(self, 'config') else {},
+            'logging_statistics': self.logger.get_statistics() if self.logger else {},
+            'integrated_modules': self.integrator.integrated_modules if self.integrator else {},
+            'fallback_operations': len(self.logger.graceful_degradation.fallback_registry) if self.logger else 0
+        }
+        
+        return status
+    
+    def shutdown(self):
+        """Shutdown the error handling system gracefully."""
+        
+        if self.logger:
+            self.logger.info("Shutting down ProteinMD Error Handling & Logging System")
+            
+            # Log final statistics
+            stats = self.logger.get_statistics()
+            self.logger.info("Final system statistics", stats)
+        
+        self.is_initialized = False
+
+
+# Global system instance
+_error_handling_system = None
+
+
+def initialize_error_handling(config_file=None,
+                            environment="development",
+                            log_level="INFO",
+                            enable_integration=True,
+                            custom_config=None):
+    """Initialize the global ProteinMD error handling system."""
+    
+    global _error_handling_system
+    
+    if not ERROR_HANDLING_AVAILABLE:
+        logger.warning("Error handling system not available")
+        return False
+    
+    _error_handling_system = ProteinMDErrorHandlingSystem()
+    success = _error_handling_system.initialize(
+        config_file=config_file,
+        environment=environment,
+        log_level=log_level,
+        enable_integration=enable_integration,
+        custom_config=custom_config
+    )
+    
+    return success
+
+
+def get_error_handling_system():
+    """Get the global error handling system."""
+    return _error_handling_system
+
+
+def shutdown_error_handling():
+    """Shutdown the global error handling system."""
+    global _error_handling_system
+    
+    if _error_handling_system:
+        _error_handling_system.shutdown()
+        _error_handling_system = None
+
+
+def get_system_logger():
+    """Get the system logger."""
+    if ERROR_HANDLING_AVAILABLE and _error_handling_system and _error_handling_system.is_initialized:
+        return _error_handling_system.logger
+    return None
+
+
+def get_system_status():
+    """Get system status."""
+    if _error_handling_system:
+        return _error_handling_system.get_system_status()
+    return {'initialized': False, 'error': 'System not created', 'available': ERROR_HANDLING_AVAILABLE}
+
+
+# Auto-initialization for development
+def auto_initialize_error_handling():
+    """Auto-initialize the error handling system with sensible defaults."""
+    
+    if not ERROR_HANDLING_AVAILABLE:
+        return False
+    
+    # Check if already initialized
+    if _error_handling_system and _error_handling_system.is_initialized:
+        return True
+    
+    # Determine environment
+    import os
+    environment = os.getenv('PROTEINMD_ENVIRONMENT', 'development')
+    log_level = os.getenv('PROTEINMD_LOG_LEVEL', 'INFO')
+    
+    # Look for config file
+    config_file = None
+    possible_configs = [
+        'proteinmd_config.json',
+        'config/logging.json',
+        'config/proteinmd.json',
+        os.path.expanduser('~/.proteinmd/config.json')
+    ]
+    
+    for config_path in possible_configs:
+        if Path(config_path).exists():
+            config_file = config_path
+            break
+    
+    return initialize_error_handling(
+        config_file=config_file,
+        environment=environment,
+        log_level=log_level,
+        enable_integration=True
+    )
+
+
+# Auto-initialize on import in development mode
+if ERROR_HANDLING_AVAILABLE:
+    import os
+    if os.getenv('PROTEINMD_AUTO_INIT', 'true').lower() in ['true', '1', 'yes']:
+        try:
+            auto_initialize_error_handling()
+            logger.info("Error handling system auto-initialized")
+        except Exception as e:
+            logger.warning(f"Auto-initialization of error handling failed: {e}")
+
+
+# Export error handling components if available
+if ERROR_HANDLING_AVAILABLE:
+    __all__ = [
+        # Original core components
+        'MDSystem', 'Force', 'Particle', 'VelocityVerletIntegrator', 
+        'LangevinIntegrator', 'LennardJonesForce',
+        # Error handling components
+        'ProteinMDError', 'SimulationError', 'StructureError', 'ForceFieldError',
+        'ProteinMDIOError', 'AnalysisError', 'VisualizationError', 
+        'PerformanceError', 'ConfigurationError', 'ProteinMDWarning',
+        'ProteinMDLogger', 'LoggingConfig', 'initialize_error_handling',
+        'get_error_handling_system', 'get_system_logger', 'get_system_status',
+        'safe_operation', 'with_error_recovery', 'exception_context',
+        'ValidationMixin', 'ERROR_HANDLING_AVAILABLE'
+    ]
+else:
+    __all__ = [
+        # Original core components only
+        'MDSystem', 'Force', 'Particle', 'VelocityVerletIntegrator', 
+        'LangevinIntegrator', 'LennardJonesForce', 'ERROR_HANDLING_AVAILABLE'
+    ]
+
+# Log initialization status
+logger.info(f"ProteinMD core module initialized. Error handling available: {ERROR_HANDLING_AVAILABLE}")

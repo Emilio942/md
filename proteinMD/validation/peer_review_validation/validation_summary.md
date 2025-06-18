@@ -2,10 +2,10 @@
 # ProteinMD Validation Results Summary
 
 ## Submission Information
-- **Submission ID**: submission_20250610_165605
+- **Submission ID**: submission_20250612_180139
 - **ProteinMD Version**: 1.0.0
-- **Submission Date**: 2025-06-10T16:56:05.521824
-- **Review Deadline**: 2025-06-29T16:56:05.521688
+- **Submission Date**: 2025-06-12T18:01:39.632502
+- **Review Deadline**: 2025-06-29T18:01:39.632376
 
 ## Validation Overview
 This validation study comprehensively evaluates ProteinMD against established MD software packages and experimental data.

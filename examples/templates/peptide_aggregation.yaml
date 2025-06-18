@@ -1,0 +1,112 @@
+name: "peptide_aggregation"
+description: "Multi-peptide aggregation simulation for studying amyloid formation"
+version: "1.1.0"
+author: "ProteinMD Research Team"
+created_date: "2024-12-19T11:00:00"
+tags:
+  - aggregation
+  - amyloid
+  - peptides
+  - self_assembly
+dependencies:
+  - amber_ff14sb
+  - tip3p
+
+parameters:
+  peptide_count:
+    description: "Number of peptides in simulation"
+    default_value: 8
+    type: "int"
+    min_value: 2
+    max_value: 20
+    required: false
+
+  box_size:
+    description: "Simulation box size"
+    default_value: 8.0
+    type: "float"
+    min_value: 5.0
+    max_value: 15.0
+    units: "nm"
+    required: false
+
+  simulation_time:
+    description: "Total aggregation simulation time"
+    default_value: 500.0
+    type: "float"
+    min_value: 100.0
+    max_value: 2000.0
+    units: "ns"
+    required: false
+
+  ionic_strength:
+    description: "Ionic strength of solution"
+    default_value: 0.15
+    type: "float"
+    min_value: 0.0
+    max_value: 1.0
+    units: "M"
+    required: false
+
+config:
+  simulation:
+    timestep: 0.002
+    temperature: 310.0
+    pressure: 1.0
+    n_steps: 250000000
+    output_frequency: 5000
+    trajectory_output: "aggregation_trajectory.npz"
+    log_output: "aggregation_simulation.log"
+
+  forcefield:
+    type: "amber_ff14sb"
+    water_model: "tip3p"
+    cutoff: 1.2
+    long_range_correction: true
+
+  environment:
+    solvent: "explicit"
+    box_type: "cubic"
+    box_size: 8.0
+    periodic_boundary: true
+    ion_concentration: 0.15
+    neutralize_system: true
+
+  system_setup:
+    peptide_count: 8
+    initial_separation: 2.0
+    random_orientation: true
+    energy_minimization: true
+
+  analysis:
+    rmsd: true
+    radius_of_gyration: true
+    secondary_structure: true
+    hydrogen_bonds: true
+    contact_analysis: true
+    cluster_analysis: true
+    aggregation_kinetics: true
+    fibril_formation: true
+    solvent_accessible_surface: true
+    stride: 50
+    output_dir: "aggregation_analysis"
+
+  visualization:
+    enabled: true
+    realtime: false
+    aggregation_animation: true
+    cluster_visualization: true
+    time_evolution_plots: true
+    plots_output: "aggregation_plots"
+
+  special_analysis:
+    amyloid_detection:
+      enabled: true
+      beta_sheet_threshold: 0.3
+      contact_cutoff: 0.5
+
+    kinetic_analysis:
+      enabled: true
+      lag_time_calculation: true
+      growth_rate_analysis: true
+      nucleation_detection: true

@@ -3,6 +3,7 @@
 Test script to reproduce the trajectory storage issue.
 """
 import sys
+import os
 import numpy as np
 from pathlib import Path
 
@@ -55,18 +56,22 @@ def test_trajectory_saving():
         sim.temperatures = []
         
         # Run simulation
-        def progress_callback(simulation, state, step_index):
+        def progress_callback(step_index, simulation):
             if step_index % 100 == 0 or step_index < 10:
-                print(f"Step {step_index}: time={state['time']:.4f}ps, T={state['temperature']:.2f}K")
+                current_T = simulation.calculate_temperature()
+                print(f"Step {step_index}: time={simulation.time:.4f}ps, T={current_T:.2f}K")
         
         final_state = sim.run(steps, callback=progress_callback)
         
         # Save trajectory
-        sim.save_trajectory(filename)
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix='.npz', delete=False) as tmp:
+            temp_filename = tmp.name
+        sim.save_trajectory(temp_filename)
         
         # Check trajectory file
         try:
-            data = np.load(filename)
+            data = np.load(temp_filename)
             n_frames = len(data['times'])
             expected_frames = (steps // sim.trajectory_stride)
             if steps % sim.trajectory_stride == 0:
@@ -77,6 +82,8 @@ def test_trajectory_saving():
             print(f"Trajectory file {filename}:")
             print(f"  - {n_frames} frames saved")
             print(f"  - Expected ~{expected_frames} frames (steps {steps}, stride {sim.trajectory_stride})")
+            
+            os.unlink(temp_filename)  # Clean up
             print(f"  - Times: {data['times']}")
             print(f"  - Position shape: {data['positions'].shape}")
             

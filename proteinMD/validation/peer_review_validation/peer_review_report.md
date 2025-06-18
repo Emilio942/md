@@ -2,9 +2,9 @@
 # ProteinMD Peer Review Report
 
 ## Submission Information
-- **Submission ID**: submission_20250610_165605
+- **Submission ID**: submission_20250612_180139
 - **ProteinMD Version**: 1.0.0
-- **Submission Date**: 2025-06-10T16:56:05.521824
+- **Submission Date**: 2025-06-12T18:01:39.632502
 - **Number of Reviewers**: 2
 
 ## Reviewer Panel
@@ -35,10 +35,10 @@
 ## Areas of Reviewer Disagreement
 
 ## Consolidated Recommendations
-1. Consider adding more diverse protein systems for validation
-2. Improve parallel scaling efficiency
-3. Improve documentation of parameter sources
-4. Optimize memory usage for large systems
+1. Improve parallel scaling efficiency
+2. Consider adding more diverse protein systems for validation
+3. Optimize memory usage for large systems
+4. Improve documentation of parameter sources
 
 ## Individual Reviewer Comments
 

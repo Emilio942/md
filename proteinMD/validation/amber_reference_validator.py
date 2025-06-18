@@ -582,14 +582,15 @@ class AmberReferenceValidator:
         
         for protein_name, result in results.items():
             export_data["results"][protein_name] = {
-                "energy_deviation_percent": result.energy_deviation_percent,
-                "force_deviation_percent": result.force_deviation_percent,
-                "correlation_energy": result.correlation_energy,
-                "correlation_forces": result.correlation_forces,
-                "passed_5_percent_test": result.passed_5_percent_test,
-                "n_frames_compared": result.n_frames_compared,
-                "rmsd_positions": result.rmsd_positions,
-                "detailed_stats": result.detailed_stats
+                "energy_deviation_percent": float(result.energy_deviation_percent),
+                "force_deviation_percent": float(result.force_deviation_percent),
+                "correlation_energy": float(result.correlation_energy),
+                "correlation_forces": float(result.correlation_forces),
+                "passed_5_percent_test": bool(result.passed_5_percent_test),
+                "n_frames_compared": int(result.n_frames_compared),
+                "rmsd_positions": float(result.rmsd_positions),
+                "detailed_stats": {k: float(v) if isinstance(v, (np.integer, np.floating)) else v 
+                                 for k, v in result.detailed_stats.items()}
             }
         
         # Summary statistics
@@ -604,7 +605,7 @@ class AmberReferenceValidator:
                 "mean_force_deviation": float(np.mean(force_devs)),
                 "max_force_deviation": float(np.max(force_devs)),
                 "pass_rate": float(sum(passed_tests) / len(passed_tests)),
-                "total_proteins_passed": sum(passed_tests)
+                "total_proteins_passed": int(sum(passed_tests))
             }
         
         with open(filepath, 'w') as f:

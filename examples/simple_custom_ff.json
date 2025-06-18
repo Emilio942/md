@@ -1,0 +1,67 @@
+{
+  "metadata": {
+    "name": "Example Custom Force Field",
+    "version": "1.0.0",
+    "description": "Example custom force field demonstrating the JSON format",
+    "author": "ProteinMD Development Team",
+    "date": "2025-06-11",
+    "references": [
+      "Custom Force Field Development Guide",
+      "ProteinMD Documentation"
+    ],
+    "units": {
+      "length": "nm",
+      "energy": "kJ/mol",
+      "mass": "amu",
+      "angle": "degrees"
+    }
+  },
+  "atom_types": [
+    {
+      "atom_type": "CT",
+      "mass": 12.01,
+      "sigma": 0.339967,
+      "epsilon": 0.457730,
+      "charge": -0.1,
+      "description": "Aliphatic carbon",
+      "source": "Custom parameters based on AMBER"
+    },
+    {
+      "atom_type": "HC",
+      "mass": 1.008,
+      "sigma": 0.264953,
+      "epsilon": 0.065689,
+      "charge": 0.05,
+      "description": "Hydrogen bonded to aliphatic carbon",
+      "source": "Custom parameters based on AMBER"
+    }
+  ],
+  "bond_types": [
+    {
+      "atom_types": ["CT", "HC"],
+      "k": 284512.0,
+      "r0": 0.1090,
+      "description": "Carbon-hydrogen bond",
+      "source": "AMBER ff14SB adapted"
+    }
+  ],
+  "angle_types": [
+    {
+      "atom_types": ["HC", "CT", "HC"],
+      "k": 276.144,
+      "theta0": 109.5,
+      "description": "H-C-H angle",
+      "source": "Standard tetrahedral"
+    }
+  ],
+  "dihedral_types": [
+    {
+      "atom_types": ["HC", "CT", "CT", "HC"],
+      "k": 0.6508,
+      "n": 3,
+      "phase": 0.0,
+      "description": "H-C-C-H dihedral",
+      "source": "AMBER ff14SB"
+    }
+  ]
+}

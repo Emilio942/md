@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<forcefield>
+  <metadata>
+    <name>Example Custom Force Field XML</name>
+    <version>1.0.0</version>
+    <description>Example custom force field demonstrating the XML format</description>
+    <author>ProteinMD Development Team</author>
+    <date>2025-06-11</date>
+    <units>
+      <length>nm</length>
+      <energy>kJ/mol</energy>
+      <mass>amu</mass>
+      <angle>degrees</angle>
+    </units>
+  </metadata>
+  
+  <atom_types>
+    <atom_type>
+      <atom_type>CA</atom_type>
+      <mass>12.01</mass>
+      <sigma>0.339967</sigma>
+      <epsilon>0.457730</epsilon>
+      <charge>0.0</charge>
+      <description>Aromatic carbon</description>
+      <source>Custom parameters</source>
+    </atom_type>
+    <atom_type>
+      <atom_type>HA</atom_type>
+      <mass>1.008</mass>
+      <sigma>0.259964</sigma>
+      <epsilon>0.062760</epsilon>
+      <charge>0.1</charge>
+      <description>Hydrogen on aromatic carbon</description>
+      <source>Custom parameters</source>
+    </atom_type>
+  </atom_types>
+  
+  <bond_types>
+    <bond_type>
+      <atom_types>CA, CA</atom_types>
+      <k>392459.2</k>
+      <r0>0.1400</r0>
+      <description>Aromatic C-C bond</description>
+      <source>Custom parameterization</source>
+    </bond_type>
+    <bond_type>
+      <atom_types>CA, HA</atom_types>
+      <k>307105.6</k>
+      <r0>0.1080</r0>
+      <description>Aromatic C-H bond</description>
+      <source>Custom parameterization</source>
+    </bond_type>
+  </bond_types>
+  
+  <angle_types>
+    <angle_type>
+      <atom_types>CA, CA, CA</atom_types>
+      <k>527.184</k>
+      <theta0>120.0</theta0>
+      <description>Aromatic C-C-C angle</description>
+      <source>Custom parameterization</source>
+    </angle_type>
+    <angle_type>
+      <atom_types>CA, CA, HA</atom_types>
+      <k>292.880</k>
+      <theta0>120.0</theta0>
+      <description>Aromatic C-C-H angle</description>
+      <source>Custom parameterization</source>
+    </angle_type>
+  </angle_types>
+  
+  <dihedral_types>
+    <dihedral_type>
+      <atom_types>CA, CA, CA, CA</atom_types>
+      <k>15.167</k>
+      <n>2</n>
+      <phase>180.0</phase>
+      <description>Aromatic ring dihedral</description>
+      <source>Custom parameterization</source>
+    </dihedral_type>
+  </dihedral_types>
+</forcefield>

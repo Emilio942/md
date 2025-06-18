@@ -1,0 +1,265 @@
+# Protein Folding Analysis Workflow
+# Complete workflow for protein folding simulation with comprehensive analysis
+
+name: "protein_folding_complete"
+description: "Complete protein folding simulation with comprehensive analysis and visualization"
+version: "1.0.0"
+author: "ProteinMD Team"
+output_directory: "protein_folding_results"
+max_parallel_steps: 3
+on_failure: "stop"
+
+global_parameters:
+  simulation_steps: 100000
+  temperature: 300.0
+  timestep: 0.002
+  analysis_stride: 10
+  output_frequency: 1000
+
+default_resources:
+  cpu_cores: 4
+  memory_gb: 8
+  time_limit: "02:00:00"
+
+scheduler:
+  type: "local"  # Can be changed to "slurm", "pbs", etc.
+
+steps:
+  # Step 1: Initial structure preparation and minimization
+  - name: "minimize"
+    command: "proteinmd simulate"
+    parameters:
+      template: "minimization"
+      steps: 5000
+      output_prefix: "minimized"
+      forcefield: "amber_ff14sb"
+      solvent: "implicit"
+    outputs:
+      structure: "minimization/minimized_structure.pdb"
+      trajectory: "minimization/minimization.npz"
+    resources:
+      cpu_cores: 2
+      memory_gb: 4
+      time_limit: "00:30:00"
+
+  # Step 2: Equilibration with explicit solvent
+  - name: "equilibrate"
+    command: "proteinmd simulate"
+    parameters:
+      template: "equilibration"
+      steps: 50000
+      temperature: "${global_parameters.temperature}"
+      timestep: "${global_parameters.timestep}"
+      forcefield: "amber_ff14sb"
+      solvent: "explicit"
+      water_model: "tip3p"
+      box_padding: 1.0
+      periodic_boundary: true
+    dependencies: ["minimize"]
+    inputs:
+      structure: "${minimize.outputs.structure}"
+    outputs:
+      trajectory: "equilibration/equilibration.npz"
+      structure: "equilibration/equilibrated_structure.pdb"
+      log: "equilibration/equilibration.log"
+    resources:
+      cpu_cores: 4
+      memory_gb: 8
+      time_limit: "01:00:00"
+
+  # Step 3: Production simulation
+  - name: "production"
+    command: "proteinmd simulate"
+    parameters:
+      template: "production"
+      steps: "${global_parameters.simulation_steps}"
+      temperature: "${global_parameters.temperature}"
+      timestep: "${global_parameters.timestep}"
+      output_frequency: "${global_parameters.output_frequency}"
+      forcefield: "amber_ff14sb"
+      solvent: "explicit"
+      water_model: "tip3p"
+      periodic_boundary: true
+    dependencies: ["equilibrate"]
+    inputs:
+      structure: "${equilibrate.outputs.structure}"
+    outputs:
+      trajectory: "production/production_trajectory.npz"
+      final_structure: "production/final_structure.pdb"
+      energy_log: "production/energy.log"
+    resources:
+      cpu_cores: 8
+      memory_gb: 16
+      time_limit: "04:00:00"
+
+  # Step 4: RMSD Analysis (parallel with other analyses)
+  - name: "rmsd_analysis"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: ["rmsd"]
+      stride: "${global_parameters.analysis_stride}"
+      reference_structure: "${minimize.outputs.structure}"
+    dependencies: ["production"]
+    inputs:
+      trajectory: "${production.outputs.trajectory}"
+      structure: "${production.outputs.final_structure}"
+    outputs:
+      rmsd_data: "analysis/rmsd_analysis.csv"
+      rmsd_plot: "analysis/rmsd_time_series.png"
+    resources:
+      cpu_cores: 2
+      memory_gb: 4
+      time_limit: "00:30:00"
+
+  # Step 5: Radius of Gyration Analysis (parallel)
+  - name: "rg_analysis"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: ["radius_of_gyration"]
+      stride: "${global_parameters.analysis_stride}"
+    dependencies: ["production"]
+    inputs:
+      trajectory: "${production.outputs.trajectory}"
+      structure: "${production.outputs.final_structure}"
+    outputs:
+      rg_data: "analysis/radius_of_gyration.csv"
+      rg_plot: "analysis/rg_time_series.png"
+      rg_distribution: "analysis/rg_distribution.png"
+    resources:
+      cpu_cores: 2
+      memory_gb: 4
+      time_limit: "00:30:00"
+
+  # Step 6: Secondary Structure Analysis (parallel)
+  - name: "secondary_structure"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: ["secondary_structure"]
+      stride: "${global_parameters.analysis_stride}"
+    dependencies: ["production"]
+    inputs:
+      trajectory: "${production.outputs.trajectory}"
+      structure: "${production.outputs.final_structure}"
+    outputs:
+      ss_data: "analysis/secondary_structure.csv"
+      ss_timeline: "analysis/ss_timeline.png"
+      ss_composition: "analysis/ss_composition.png"
+    resources:
+      cpu_cores: 2
+      memory_gb: 4
+      time_limit: "00:45:00"
+
+  # Step 7: Hydrogen Bond Analysis (parallel)
+  - name: "hydrogen_bonds"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: ["hydrogen_bonds"]
+      stride: "${global_parameters.analysis_stride}"
+    dependencies: ["production"]
+    inputs:
+      trajectory: "${production.outputs.trajectory}"
+      structure: "${production.outputs.final_structure}"
+    outputs:
+      hb_data: "analysis/hydrogen_bonds.csv"
+      hb_statistics: "analysis/hb_statistics.json"
+      hb_network: "analysis/hb_network.png"
+    resources:
+      cpu_cores: 2
+      memory_gb: 4
+      time_limit: "00:45:00"
+
+  # Step 8: Ramachandran Analysis (parallel)
+  - name: "ramachandran"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: ["ramachandran"]
+      stride: "${global_parameters.analysis_stride}"
+    dependencies: ["production"]
+    inputs:
+      trajectory: "${production.outputs.trajectory}"
+      structure: "${production.outputs.final_structure}"
+    outputs:
+      rama_data: "analysis/ramachandran_data.csv"
+      rama_plot: "analysis/ramachandran_plot.png"
+    resources:
+      cpu_cores: 2
+      memory_gb: 4
+      time_limit: "00:30:00"
+
+  # Step 9: Energy Analysis
+  - name: "energy_analysis"
+    command: "proteinmd analyze"
+    parameters:
+      analysis: ["energy"]
+      stride: 1  # Analyze all energy points
+    dependencies: ["production"]
+    inputs:
+      energy_log: "${production.outputs.energy_log}"
+    outputs:
+      energy_data: "analysis/energy_analysis.csv"
+      energy_plots: "analysis/energy_dashboard.png"
+    resources:
+      cpu_cores: 1
+      memory_gb: 2
+      time_limit: "00:15:00"
+
+  # Step 10: Create trajectory animation
+  - name: "animation"
+    command: "proteinmd visualize"
+    parameters:
+      type: "animation"
+      format: "gif"
+      stride: 100
+      duration: 10
+    dependencies: ["production"]
+    inputs:
+      trajectory: "${production.outputs.trajectory}"
+      structure: "${production.outputs.final_structure}"
+    outputs:
+      animation: "visualization/trajectory_animation.gif"
+      frames: "visualization/frames/"
+    resources:
+      cpu_cores: 2
+      memory_gb: 4
+      time_limit: "00:30:00"
+
+  # Step 11: Generate comprehensive report (depends on all analyses)
+  - name: "generate_report"
+    command: "proteinmd report"
+    parameters:
+      format: "html"
+      include_plots: true
+      include_statistics: true
+      template: "comprehensive"
+    dependencies: [
+      "rmsd_analysis",
+      "rg_analysis", 
+      "secondary_structure",
+      "hydrogen_bonds",
+      "ramachandran",
+      "energy_analysis",
+      "animation"
+    ]
+    inputs:
+      rmsd_data: "${rmsd_analysis.outputs.rmsd_data}"
+      rg_data: "${rg_analysis.outputs.rg_data}"
+      ss_data: "${secondary_structure.outputs.ss_data}"
+      hb_data: "${hydrogen_bonds.outputs.hb_data}"
+      rama_data: "${ramachandran.outputs.rama_data}"
+      energy_data: "${energy_analysis.outputs.energy_data}"
+      animation: "${animation.outputs.animation}"
+    outputs:
+      report: "report/comprehensive_analysis_report.html"
+      summary: "report/analysis_summary.json"
+      plots_archive: "report/all_plots.zip"
+    resources:
+      cpu_cores: 1
+      memory_gb: 2
+      time_limit: "00:15:00"
+
+notifications:
+  email:
+    enabled: false
+    recipients: []
+    on_completion: true
+    on_failure: true

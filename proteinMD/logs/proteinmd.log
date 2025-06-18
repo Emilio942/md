@@ -1,0 +1,170 @@
+2025-06-14 13:49:54,934 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 13:49:54,935 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 13:49:54,936 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 205, in failing_operation
+    raise ValueError("First attempt fails")
+ValueError: First attempt fails
+2025-06-14 13:49:54,936 - proteinmd - INFO - error_handling.py:204 - info - Attempting recovery for ValueError
+2025-06-14 13:49:54,937 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 13:49:55,938 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 2/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 13:49:55,940 - proteinmd - CRITICAL - error_handling.py:219 - critical - Operation failed after 2 attempts
+NoneType: None
+2025-06-14 13:49:55,992 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: test_operation took 0.0102s
+2025-06-14 13:49:56,008 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: decorated_operation took 0.0102s
+2025-06-14 13:49:56,027 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0101s
+2025-06-14 13:49:56,039 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0101s
+2025-06-14 13:49:56,045 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_b took 0.0051s
+2025-06-14 14:03:46,078 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 14:03:46,080 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 14:03:46,080 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 205, in failing_operation
+    raise ValueError("First attempt fails")
+ValueError: First attempt fails
+2025-06-14 14:03:46,080 - proteinmd - INFO - error_handling.py:204 - info - Attempting recovery for ValueError
+2025-06-14 14:03:46,082 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 14:03:47,082 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 2/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 14:03:47,084 - proteinmd - CRITICAL - error_handling.py:219 - critical - Operation failed after 2 attempts
+NoneType: None
+2025-06-14 14:03:47,129 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: test_operation took 0.0102s
+2025-06-14 14:03:47,144 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: decorated_operation took 0.0102s
+2025-06-14 14:03:47,160 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0102s
+2025-06-14 14:03:47,171 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0101s
+2025-06-14 14:03:47,178 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_b took 0.0052s
+2025-06-14 14:22:23,174 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 14:22:23,175 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 14:22:23,175 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 205, in failing_operation
+    raise ValueError("First attempt fails")
+ValueError: First attempt fails
+2025-06-14 14:22:23,175 - proteinmd - INFO - error_handling.py:204 - info - Attempting recovery for ValueError
+2025-06-14 14:22:23,177 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 14:22:24,177 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 2/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 14:22:24,179 - proteinmd - CRITICAL - error_handling.py:219 - critical - Operation failed after 2 attempts
+NoneType: None
+2025-06-14 14:22:24,222 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: test_operation took 0.0101s
+2025-06-14 14:22:24,238 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: decorated_operation took 0.0101s
+2025-06-14 14:22:24,254 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0103s
+2025-06-14 14:22:24,265 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0102s
+2025-06-14 14:22:24,272 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_b took 0.0052s
+2025-06-14 14:51:41,481 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 14:51:41,482 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 14:51:41,482 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 205, in failing_operation
+    raise ValueError("First attempt fails")
+ValueError: First attempt fails
+2025-06-14 14:51:41,482 - proteinmd - INFO - error_handling.py:204 - info - Attempting recovery for ValueError
+2025-06-14 14:51:41,483 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 14:51:42,483 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 2/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 14:51:42,484 - proteinmd - CRITICAL - error_handling.py:219 - critical - Operation failed after 2 attempts
+NoneType: None
+2025-06-14 14:51:42,525 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: test_operation took 0.0101s
+2025-06-14 14:51:42,539 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: decorated_operation took 0.0101s
+2025-06-14 14:51:42,555 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0101s
+2025-06-14 14:51:42,566 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0101s
+2025-06-14 14:51:42,572 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_b took 0.0051s
+2025-06-14 14:54:32,479 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 14:54:32,481 - proteinmd - INFO - error_handling.py:204 - info - Registered recovery strategy for ValueError
+2025-06-14 14:54:32,481 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 205, in failing_operation
+    raise ValueError("First attempt fails")
+ValueError: First attempt fails
+2025-06-14 14:54:32,481 - proteinmd - INFO - error_handling.py:204 - info - Attempting recovery for ValueError
+2025-06-14 14:54:32,483 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 1/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 14:54:33,483 - proteinmd - WARNING - error_handling.py:209 - warning - Operation failed (attempt 2/2)
+Traceback (most recent call last):
+  File "/home/emilio/Documents/ai/md/proteinMD/utils/error_handling.py", line 253, in execute_with_recovery
+    return operation(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/emilio/Documents/ai/md/proteinMD/tests/test_error_handling.py", line 225, in always_failing_operation
+    raise ValueError("Always fails")
+ValueError: Always fails
+2025-06-14 14:54:33,485 - proteinmd - CRITICAL - error_handling.py:219 - critical - Operation failed after 2 attempts
+NoneType: None
+2025-06-14 14:54:33,541 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: test_operation took 0.0102s
+2025-06-14 14:54:33,559 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: decorated_operation took 0.0102s
+2025-06-14 14:54:33,575 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0102s
+2025-06-14 14:54:33,587 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_a took 0.0101s
+2025-06-14 14:54:33,594 - proteinmd.performance - INFO - enhanced_logging.py:102 - log_performance - Performance: operation_b took 0.0051s

@@ -1,6 +1,6 @@
 # ProteinMD Benchmark Comparison Report
 
-Generated: 2025-06-10T16:56:21.598548
+Generated: 2025-06-12T18:01:35.892616
 
 ## Executive Summary
 
@@ -9,36 +9,36 @@ EXCELLENT: ProteinMD shows competitive performance and accuracy
 ## Performance Analysis
 
 ### System Information
-- **System Size**: 5,000 atoms
-- **Simulation Time**: 1.0 ns
+- **System Size**: 20,000 atoms
+- **Simulation Time**: 10.0 ns
 - **Platform**: Linux
 
 ### Performance Metrics
 
 | Software | Performance (ns/day) | Relative to ProteinMD |
 |----------|---------------------|----------------------|
-| ProteinMD | 18.00 | 1.00 |
-| GROMACS | 24.00 | 1.33 |
-| AMBER | 20.60 | 1.14 |
-| NAMD | 16.00 | 0.89 |
+| ProteinMD | 6.70 | 1.00 |
+| GROMACS | 10.00 | 1.49 |
+| AMBER | 7.50 | 1.12 |
+| NAMD | 6.00 | 0.90 |
 
 ### Accuracy Analysis
 
 | Metric | ProteinMD | Reference Range | Status |
 |--------|-----------|----------------|--------|
-| Total Energy (kJ/mol) | -305.1 | -305.8 - -304.9 | ✅ PASS |
-| Temperature (K) | 300.2 | 300.0 - 300.0 | ✅ PASS |
+| Total Energy (kJ/mol) | -1250.8 | -1251.2 - -1249.8 | ✅ PASS |
+| Temperature (K) | 300.1 | 300.0 - 300.0 | ✅ PASS |
 | Pressure (bar) | 1.0 | 1.0 - 1.0 | ✅ PASS |
 
 ### Detailed Error Analysis
 
-- **Gromacs Energy Error**: 0.07% ✅ EXCELLENT
-- **Amber Energy Error**: 0.23% ✅ EXCELLENT
-- **Namd Energy Error**: 0.07% ✅ EXCELLENT
+- **Gromacs Energy Error**: 0.02% ✅ EXCELLENT
+- **Amber Energy Error**: 0.03% ✅ EXCELLENT
+- **Namd Energy Error**: 0.08% ✅ EXCELLENT
 
 ## Performance Recommendations
 
-- **Average Performance Ratio**: 0.92
+- **Average Performance Ratio**: 0.89
 - **Status**: Excellent performance, suitable for production use
 
 ## Conclusion

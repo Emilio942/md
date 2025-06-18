@@ -2,6 +2,7 @@
 """
 Task 3.3 Radius of Gyration - Quick Verification Test
 """
+import os
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
@@ -82,22 +83,25 @@ def test_task_3_3_requirements():
         title="Task 3.3 Test: Rg Time Evolution"
     )
     
-    # Save plot
-    output_file = "test_task_3_3_timeseries.png"
-    fig.savefig(output_file, dpi=300, bbox_inches='tight')
-    plt.close(fig)
-    
-    import os
-    assert os.path.exists(output_file), "Time series plot not created"
-    print(f"✅ Generated time series plot: {output_file}")
+    # Save plot to temporary directory
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_file = os.path.join(tmpdir, "test_task_3_3_timeseries.png")
+        fig.savefig(output_file, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        
+        assert os.path.exists(output_file), "Time series plot not created"
+        print(f"✅ Generated time series plot: {output_file}")
     
     # Also create distribution plot
     fig2 = analyzer.plot_rg_distribution(figsize=(10, 6), bins=20)
-    dist_file = "test_task_3_3_distribution.png"
-    fig2.savefig(dist_file, dpi=300, bbox_inches='tight')
-    plt.close(fig2)
-    
-    print(f"✅ Generated distribution plot: {dist_file}")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dist_file = os.path.join(tmpdir, "test_task_3_3_distribution.png")
+        fig2.savefig(dist_file, dpi=300, bbox_inches='tight')
+        plt.close(fig2)
+        
+        assert os.path.exists(dist_file), "Distribution plot not created"
+        print(f"✅ Generated distribution plot: {dist_file}")
     
     print("\n3️⃣ Testing: Getrennte Analyse für verschiedene Proteinsegmente möglich")
     print("-" * 68)
@@ -154,14 +158,17 @@ def test_task_3_3_requirements():
     print("\n📊 Testing Data Export...")
     print("-" * 25)
     
+    import tempfile
     # CSV export
-    csv_file = "test_task_3_3_data.csv"
+    with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as tmp:
+        csv_file = tmp.name
     analyzer.export_data(csv_file, format='csv')
     assert os.path.exists(csv_file), "CSV export failed"
     print(f"✅ CSV export successful: {csv_file}")
     
     # JSON export  
-    json_file = "test_task_3_3_data.json"
+    with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as tmp:
+        json_file = tmp.name
     analyzer.export_data(json_file, format='json')
     assert os.path.exists(json_file), "JSON export failed"
     print(f"✅ JSON export successful: {json_file}")
@@ -173,6 +180,10 @@ def test_task_3_3_requirements():
         header = lines[0].strip().split(',')
         assert 'time' in header, "CSV missing time column"
         assert 'overall_rg' in header, "CSV missing overall_rg column"
+    
+    # Clean up temp files
+    os.unlink(csv_file)
+    os.unlink(json_file)
     
     print("\n" + "="*60)
     print("🎉 TASK 3.3 VERIFICATION COMPLETE 🎉")
@@ -196,7 +207,7 @@ def test_task_3_3_requirements():
     print(f"Mean Rg: {overall_stats['mean']:.3f} ± {overall_stats['std']:.3f} nm")
     print(f"Segments analyzed: {len(segments)}")
     
-    return True
+    assert True  # Test completed successfully
 
 if __name__ == "__main__":
     try:

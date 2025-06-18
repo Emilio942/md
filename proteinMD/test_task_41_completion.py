@@ -45,11 +45,11 @@ def test_amber_ff14sb_basic():
         
         print(f"✓ Parameter counts: {bond_count} bonds, {angle_count} angles, {dihedral_count} dihedrals")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"✗ Error testing AMBER ff14SB: {e}")
-        return False
+        assert False
 
 def test_validation_system():
     """Test the validation system."""
@@ -71,11 +71,11 @@ def test_validation_system():
         except Exception as e:
             print(f"✓ Validation system available (expected error: {str(e)[:50]}...)")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"✗ Error testing validation system: {e}")
-        return False
+        assert False
 
 def test_amber_benchmarking():
     """Test AMBER benchmarking functionality."""
@@ -94,11 +94,11 @@ def test_amber_benchmarking():
         print(f"✓ Overall accuracy: {results.get('overall_accuracy', 0)*100:.2f}% deviation")
         print(f"✓ Passed 5% test: {results.get('passed_5_percent_test', False)}")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"✗ Error testing benchmarking: {e}")
-        return False
+        assert False
 
 def run_tests():
     """Run all tests and generate summary."""

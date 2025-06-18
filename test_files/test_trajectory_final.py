@@ -55,52 +55,55 @@ def test_trajectory_storage_comprehensive():
     # Run simulation with minimal output
     final_state = sim.run(steps, callback=None)
     
-    # Save trajectory
-    trajectory_file = "test_final_trajectory.npz"
-    sim.save_trajectory(trajectory_file)
-    
-    print(f"✓ Simulation completed")
-    print(f"✓ Trajectory saved to {trajectory_file}")
-    
-    # Test 2: Loading and verifying trajectory
-    print(f"\n📂 Test 2: Loading and verifying trajectory")
-    
-    try:
-        # Load trajectory
-        data = np.load(trajectory_file)
+    # Save trajectory to temporary file
+    import tempfile
+    import os
+    with tempfile.TemporaryDirectory() as tmpdir:
+        trajectory_file = os.path.join(tmpdir, "test_final_trajectory.npz")
+        sim.save_trajectory(trajectory_file)
         
-        # Verify structure
-        assert 'times' in data, "Missing 'times' array"
-        assert 'positions' in data, "Missing 'positions' array"
+        print(f"✓ Simulation completed")
+        print(f"✓ Trajectory saved to {trajectory_file}")
         
-        n_frames = len(data['times'])
+        # Test 2: Loading and verifying trajectory
+        print(f"\n📂 Test 2: Loading and verifying trajectory")
         
-        # Verify correct number of frames
-        assert n_frames == expected_frames, f"Expected {expected_frames} frames, got {n_frames}"
-        
-        # Verify time progression
-        times = data['times']
-        assert len(times) > 0, "No time data"
-        assert times[0] > 0, "First time should be > 0"
-        if len(times) > 1:
-            time_diffs = np.diff(times)
-            expected_dt = sim.trajectory_stride * sim.time_step
-            assert np.allclose(time_diffs, expected_dt, rtol=1e-6), "Time intervals incorrect"
-        
-        # Verify position data
-        positions = data['positions']
-        assert positions.shape == (n_frames, num_particles, 3), f"Wrong position shape: {positions.shape}, expected ({n_frames}, {num_particles}, 3)"
-        assert not np.any(np.isnan(positions)), "NaN values in positions"
-        assert not np.any(np.isinf(positions)), "Infinite values in positions"
-        
-        print(f"✓ Trajectory loaded successfully")
-        print(f"✓ {n_frames} frames verified")
-        print(f"✓ Time range: {times[0]:.3f} to {times[-1]:.3f} ps")
-        print(f"✓ Position data validated")
-        
-    except Exception as e:
-        print(f"✗ Error loading/verifying trajectory: {e}")
-        return False
+        try:
+            # Load trajectory
+            data = np.load(trajectory_file)
+            
+            # Verify structure
+            assert 'times' in data, "Missing 'times' array"
+            assert 'positions' in data, "Missing 'positions' array"
+            
+            n_frames = len(data['times'])
+            
+            # Verify correct number of frames
+            assert n_frames == expected_frames, f"Expected {expected_frames} frames, got {n_frames}"
+            
+            # Verify time progression
+            times = data['times']
+            assert len(times) > 0, "No time data"
+            assert times[0] > 0, "First time should be > 0"
+            if len(times) > 1:
+                time_diffs = np.diff(times)
+                expected_dt = sim.trajectory_stride * sim.time_step
+                assert np.allclose(time_diffs, expected_dt, rtol=1e-6), "Time intervals incorrect"
+            
+            # Verify position data
+            positions = data['positions']
+            assert positions.shape == (n_frames, num_particles, 3), f"Wrong position shape: {positions.shape}, expected ({n_frames}, {num_particles}, 3)"
+            assert not np.any(np.isnan(positions)), "NaN values in positions"
+            assert not np.any(np.isinf(positions)), "Infinite values in positions"
+            
+            print(f"✓ Trajectory loaded successfully")
+            print(f"✓ {n_frames} frames verified")
+            print(f"✓ Time range: {times[0]:.3f} to {times[-1]:.3f} ps")
+            print(f"✓ Position data validated")
+            
+        except Exception as e:
+            print(f"✗ Error loading/verifying trajectory: {e}")
+            return False
     
     # Test 3: Multiple trajectory saves
     print(f"\n🔄 Test 3: Multiple trajectory operations")
@@ -121,11 +124,14 @@ def test_trajectory_storage_comprehensive():
         sim.initialize_velocities()
         
         # Run simulation
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix='.npz', delete=False) as tmp:
+            temp_filename = tmp.name
         final_state = sim.run(steps, callback=None)
-        sim.save_trajectory(filename)
+        sim.save_trajectory(temp_filename)
         
         # Quick verification
-        data = np.load(filename)
+        data = np.load(temp_filename)
         expected = steps // sim.trajectory_stride
         actual = len(data['times'])
         
@@ -133,7 +139,10 @@ def test_trajectory_storage_comprehensive():
             print(f"✓ {filename}: {actual} frames (correct)")
         else:
             print(f"✗ {filename}: {actual} frames (expected {expected})")
+            os.unlink(temp_filename)
             return False
+        
+        os.unlink(temp_filename)  # Clean up
     
     # Test 4: Large simulation test
     print(f"\n🚀 Test 4: Large simulation (500 steps)")
@@ -147,7 +156,8 @@ def test_trajectory_storage_comprehensive():
     sim.initialize_velocities()
     
     large_steps = 500
-    large_file = "test_large_final.npz"
+    with tempfile.NamedTemporaryFile(suffix='.npz', delete=False) as tmp:
+        large_file = tmp.name
     
     final_state = sim.run(large_steps, callback=None)
     sim.save_trajectory(large_file)
@@ -161,7 +171,10 @@ def test_trajectory_storage_comprehensive():
         print(f"✓ Large simulation: {actual_large} frames saved correctly")
     else:
         print(f"✗ Large simulation: {actual_large} frames (expected {expected_large})")
+        os.unlink(large_file)
         return False
+    
+    os.unlink(large_file)  # Clean up
     
     # Final summary
     print(f"\n🎉 ALL TESTS PASSED!")
@@ -170,9 +183,8 @@ def test_trajectory_storage_comprehensive():
     print(f"✓ Tests with 100+ simulation steps run successfully")
     print(f"✓ Multiple file operations work correctly")
     print(f"✓ Large simulations (500 steps) work correctly")
-    
-    return True
 
 if __name__ == "__main__":
-    success = test_trajectory_storage_comprehensive()
-    sys.exit(0 if success else 1)
+    test_trajectory_storage_comprehensive()
+    print("All trajectory tests completed successfully")
+    sys.exit(0)

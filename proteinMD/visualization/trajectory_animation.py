@@ -254,7 +254,8 @@ class TrajectoryAnimator:
         positions = self.trajectory_data[frame]
         
         # Update atom positions
-        self.scatter._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
+        if hasattr(self, 'scatter') and self.scatter is not None:
+            self.scatter._offsets3d = (positions[:, 0], positions[:, 1], positions[:, 2])
         
         # Update trails
         if self.show_trails and self.trail_lines:
@@ -269,15 +270,16 @@ class TrajectoryAnimator:
                     line.set_3d_properties([])
         
         # Update title with current information
-        current_time = self.time_points[frame]
-        self.ax3d.set_title(
-            f'MD Trajectory Animation - Frame {frame+1}/{self.n_frames} '
-            f'(t = {current_time:.3f} ns)',
-            fontsize=12, fontweight='bold'
-        )
+        if hasattr(self, 'ax3d') and self.ax3d is not None:
+            current_time = self.time_points[frame]
+            self.ax3d.set_title(
+                f'MD Trajectory Animation - Frame {frame+1}/{self.n_frames} '
+                f'(t = {current_time:.3f} ns)',
+                fontsize=12, fontweight='bold'
+            )
         
         # Redraw
-        if self.fig.canvas:
+        if hasattr(self, 'fig') and self.fig is not None and hasattr(self.fig, 'canvas') and self.fig.canvas:
             self.fig.canvas.draw()
     
     def _animate_frame(self, frame_num) -> None:
@@ -345,6 +347,22 @@ class TrajectoryAnimator:
         """Update to specific frame (for performance tests)."""
         self.current_frame = frame
         self._update_visualization()
+
+    def export_animation(self, filename: str, fps: int = 30, **kwargs):
+        """Alias for export_video for backward compatibility."""
+        return self.export_video(filename, fps, **kwargs)
+    
+    def add_property_plot(self, property_name: str):
+        """Add a property plot for tracking during animation."""
+        if not hasattr(self, 'property_plots'):
+            self.property_plots = {}
+        self.property_plots[property_name] = True
+        logger.info(f"Added property plot for {property_name}")
+    
+    def render_frame(self, frame: int):
+        """Render a specific frame."""
+        self.set_frame(frame)
+        return self.fig
 
     def export_video(self, filename: str, fps: int = 30, format: str = 'auto', 
                      frame_range: Optional[Tuple[int, int]] = None) -> None:

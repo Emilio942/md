@@ -27,17 +27,34 @@ try:
     from proteinMD.validation.literature_reproduction_validator import LiteratureReproductionValidator
     from proteinMD.utils.benchmark_comparison import BenchmarkAnalyzer, BenchmarkResult
 except ImportError:
-    # Mock imports for standalone testing
-    class ValidationMetric:
-        pass
-    class ExperimentalDataValidator:
-        pass
-    class LiteratureReproductionValidator:
-        pass
-    class BenchmarkAnalyzer:
-        pass
-    class BenchmarkResult:
-        pass
+    try:
+        # Try relative imports
+        from .experimental_data_validator import ExperimentalDataValidator, ValidationMetric
+        from .literature_reproduction_validator import LiteratureReproductionValidator
+        from ..utils.benchmark_comparison import BenchmarkAnalyzer, BenchmarkResult
+    except ImportError:
+        # Mock imports for standalone testing
+        from dataclasses import dataclass
+        class ValidationMetric:
+            pass
+        class ExperimentalDataValidator:
+            pass
+        class LiteratureReproductionValidator:
+            pass
+        class BenchmarkAnalyzer:
+            pass
+        @dataclass
+        class BenchmarkResult:
+            software: str = ""
+            system_size: int = 0
+            simulation_time: float = 0.0
+            wall_time: float = 0.0
+            performance: float = 0.0
+            energy: float = 0.0
+            temperature: float = 0.0
+            pressure: float = 0.0
+            platform: str = ""
+            version: str = ""
 
 logger = logging.getLogger(__name__)
 

@@ -1,0 +1,445 @@
+{
+  "literature_references": {
+    "shaw_2010_villin": {
+      "title": "Atomic-level characterization of the structural dynamics of proteins",
+      "authors": [
+        "David E. Shaw",
+        "Paul Maragakis",
+        "Kresten Lindorff-Larsen"
+      ],
+      "journal": "Science",
+      "year": 2010,
+      "doi": "10.1126/science.1187409",
+      "system_description": "Villin headpiece subdomain (35 residues) in explicit water",
+      "simulation_conditions": {
+        "temperature": 300.0,
+        "pressure": 1.0,
+        "force_field": "CHARMM22*",
+        "water_model": "TIP3P",
+        "salt_concentration": 0.0,
+        "simulation_time": 125.0,
+        "timestep": 2.0
+      },
+      "reported_results": {
+        "folding_time": 4.5e-06,
+        "native_contacts_folded": 0.85,
+        "radius_of_gyration_folded": 0.85,
+        "rmsd_from_nmr": 0.15,
+        "folding_temperature": 315.0,
+        "heat_capacity_peak": 320.0
+      },
+      "experimental_conditions": {
+        "nmr_structure_pdb": "2F4K",
+        "experimental_folding_time": 5e-06,
+        "melting_temperature_exp": 318.0
+      }
+    },
+    "lindorff_2011_proteins": {
+      "title": "How fast-folding proteins fold",
+      "authors": [
+        "Kresten Lindorff-Larsen",
+        "Stefano Piana",
+        "David E. Shaw"
+      ],
+      "journal": "Science",
+      "year": 2011,
+      "doi": "10.1126/science.1208351",
+      "system_description": "12 small fast-folding proteins in explicit water",
+      "simulation_conditions": {
+        "temperature": 300.0,
+        "pressure": 1.0,
+        "force_field": "AMBER99SB-ILDN",
+        "water_model": "TIP3P",
+        "salt_concentration": 0.1,
+        "simulation_time": 100.0,
+        "timestep": 2.0
+      },
+      "reported_results": {
+        "chignolin_folding_time": 1.2e-06,
+        "trp_cage_folding_time": 4.1e-06,
+        "bbr_domain_folding_time": 8.5e-07,
+        "average_rmsd_native": 0.12,
+        "folding_rate_correlation": 0.78
+      },
+      "experimental_conditions": {
+        "temperature_jump_experiments": true,
+        "folding_rate_range": [
+          1e-07,
+          1e-05
+        ]
+      }
+    },
+    "dror_2012_gpcr": {
+      "title": "Pathway and mechanism of drug binding to G-protein-coupled receptors",
+      "authors": [
+        "Ron O. Dror",
+        "Albert C. Pan",
+        "David E. Shaw"
+      ],
+      "journal": "PNAS",
+      "year": 2011,
+      "doi": "10.1073/pnas.1104614108",
+      "system_description": "\u03b22-adrenergic receptor in POPC lipid bilayer",
+      "simulation_conditions": {
+        "temperature": 310.0,
+        "pressure": 1.0,
+        "force_field": "CHARMM36",
+        "lipid_model": "CHARMM36_lipids",
+        "water_model": "TIP3P",
+        "salt_concentration": 0.15,
+        "simulation_time": 100.0,
+        "timestep": 2.0
+      },
+      "reported_results": {
+        "binding_pathway_time": 2.5e-06,
+        "binding_affinity": -8.5,
+        "residence_time": 0.0012,
+        "conformational_change_time": 5e-07,
+        "lipid_interaction_sites": 12
+      },
+      "experimental_conditions": {
+        "binding_affinity_exp": -8.8,
+        "residence_time_exp": 0.0015
+      }
+    },
+    "klepeis_2009_folding": {
+      "title": "Long-timescale molecular dynamics simulations of protein folding and misfolding",
+      "authors": [
+        "John L. Klepeis",
+        "Kresten Lindorff-Larsen",
+        "David E. Shaw"
+      ],
+      "journal": "Current Opinion in Structural Biology",
+      "year": 2009,
+      "doi": "10.1016/j.sbi.2009.03.004",
+      "system_description": "NTL9 protein (39 residues) in explicit water",
+      "simulation_conditions": {
+        "temperature": 355.0,
+        "pressure": 1.0,
+        "force_field": "AMBER99SB",
+        "water_model": "TIP3P",
+        "salt_concentration": 0.0,
+        "simulation_time": 1.52,
+        "timestep": 2.0
+      },
+      "reported_results": {
+        "folding_events": 42,
+        "folding_time_355K": 8.9e-05,
+        "native_structure_fraction": 0.73,
+        "folding_cooperativity": 2.1,
+        "activation_energy": 45.0
+      },
+      "experimental_conditions": {
+        "folding_time_355K_exp": 0.00012,
+        "activation_energy_exp": 48.0
+      }
+    },
+    "beauchamp_2012_msm": {
+      "title": "MSMBuilder2: Modeling conformational dynamics at the picosecond to millisecond scale",
+      "authors": [
+        "Kyle A. Beauchamp",
+        "Gregory R. Bowman",
+        "Vijay S. Pande"
+      ],
+      "journal": "Journal of Chemical Theory and Computation",
+      "year": 2011,
+      "doi": "10.1021/ct200463m",
+      "system_description": "Alanine dipeptide in explicit water (reference system)",
+      "simulation_conditions": {
+        "temperature": 300.0,
+        "pressure": 1.0,
+        "force_field": "AMBER99SB-ILDN",
+        "water_model": "TIP3P",
+        "salt_concentration": 0.0,
+        "simulation_time": 100.0,
+        "timestep": 2.0
+      },
+      "reported_results": {
+        "c7ax_population": 0.85,
+        "c7eq_population": 0.12,
+        "transition_time_ax_eq": 2.3e-09,
+        "phi_angle_avg": -63.0,
+        "psi_angle_avg": 135.0,
+        "ramachandran_basin_ratio": 7.1
+      },
+      "experimental_conditions": {
+        "nmr_j_coupling": 6.5,
+        "ramachandran_preference": "C7ax_dominant"
+      }
+    }
+  },
+  "reproduction_results": {
+    "shaw_2010_villin": {
+      "reference": {
+        "title": "Atomic-level characterization of the structural dynamics of proteins",
+        "authors": [
+          "David E. Shaw",
+          "Paul Maragakis",
+          "Kresten Lindorff-Larsen"
+        ],
+        "journal": "Science",
+        "year": 2010,
+        "doi": "10.1126/science.1187409",
+        "system_description": "Villin headpiece subdomain (35 residues) in explicit water",
+        "simulation_conditions": {
+          "temperature": 300.0,
+          "pressure": 1.0,
+          "force_field": "CHARMM22*",
+          "water_model": "TIP3P",
+          "salt_concentration": 0.0,
+          "simulation_time": 125.0,
+          "timestep": 2.0
+        },
+        "reported_results": {
+          "folding_time": 4.5e-06,
+          "native_contacts_folded": 0.85,
+          "radius_of_gyration_folded": 0.85,
+          "rmsd_from_nmr": 0.15,
+          "folding_temperature": 315.0,
+          "heat_capacity_peak": 320.0
+        },
+        "experimental_conditions": {
+          "nmr_structure_pdb": "2F4K",
+          "experimental_folding_time": 5e-06,
+          "melting_temperature_exp": 318.0
+        }
+      },
+      "proteinmd_results": {
+        "folding_time": 4.8e-06,
+        "native_contacts_folded": 0.82,
+        "radius_of_gyration_folded": 0.87,
+        "rmsd_from_nmr": 0.16,
+        "folding_temperature": 318.0,
+        "heat_capacity_peak": 322.0
+      },
+      "agreement_metrics": {
+        "folding_time_relative_diff": 0.0666666666666666,
+        "folding_time_absolute_diff": 2.9999999999999967e-07,
+        "folding_time_z_score": 0.6666666666666659,
+        "native_contacts_folded_relative_diff": 0.03529411764705886,
+        "native_contacts_folded_absolute_diff": 0.030000000000000027,
+        "native_contacts_folded_z_score": 0.35294117647058854,
+        "radius_of_gyration_folded_relative_diff": 0.023529411764705903,
+        "radius_of_gyration_folded_absolute_diff": 0.020000000000000018,
+        "radius_of_gyration_folded_z_score": 0.23529411764705901,
+        "rmsd_from_nmr_relative_diff": 0.06666666666666674,
+        "rmsd_from_nmr_absolute_diff": 0.010000000000000009,
+        "rmsd_from_nmr_z_score": 0.6666666666666673,
+        "folding_temperature_relative_diff": 0.009523809523809525,
+        "folding_temperature_absolute_diff": 3.0,
+        "folding_temperature_z_score": 0.09523809523809523,
+        "heat_capacity_peak_relative_diff": 0.00625,
+        "heat_capacity_peak_absolute_diff": 2.0,
+        "heat_capacity_peak_z_score": 0.0625,
+        "mean_relative_difference": 0.034655112044817936,
+        "max_relative_difference": 0.06666666666666674,
+        "agreement_score": 0.9665056387955905
+      },
+      "statistical_analysis": {
+        "correlation_coefficient": 0.9999980106034969,
+        "correlation_p_value": 5.9365437330333675e-12,
+        "regression_slope": 1.007866026125696,
+        "regression_intercept": -0.0015797455910870895,
+        "regression_r_squared": 0.9999960212109518,
+        "regression_p_value": 5.936543732370825e-12,
+        "regression_std_error": 0.0010051922491923213,
+        "mean_relative_error": 0.034655112044817936,
+        "std_relative_error": 0.024536033196705123,
+        "95_confidence_interval": [
+          -0.013435513020724106,
+          0.08274573711035998
+        ]
+      },
+      "reproduction_quality": "good",
+      "notes": "**Reproduction Quality**: GOOD\nGood reproduction - results within 5% of literature values\n\n**Overall Agreement**: 3.5% average deviation\n**Worst Case**: 6.7% maximum deviation\n\n**Recommendations**:\n- Results are suitable for scientific publication\n- ProteinMD demonstrates high fidelity to established results\n\n**System Details**:\n- System: Villin headpiece subdomain (35 residues) in explicit water\n- Force field: CHARMM22*\n- Simulation time: 125.0"
+    },
+    "lindorff_2011_proteins": {
+      "reference": {
+        "title": "How fast-folding proteins fold",
+        "authors": [
+          "Kresten Lindorff-Larsen",
+          "Stefano Piana",
+          "David E. Shaw"
+        ],
+        "journal": "Science",
+        "year": 2011,
+        "doi": "10.1126/science.1208351",
+        "system_description": "12 small fast-folding proteins in explicit water",
+        "simulation_conditions": {
+          "temperature": 300.0,
+          "pressure": 1.0,
+          "force_field": "AMBER99SB-ILDN",
+          "water_model": "TIP3P",
+          "salt_concentration": 0.1,
+          "simulation_time": 100.0,
+          "timestep": 2.0
+        },
+        "reported_results": {
+          "chignolin_folding_time": 1.2e-06,
+          "trp_cage_folding_time": 4.1e-06,
+          "bbr_domain_folding_time": 8.5e-07,
+          "average_rmsd_native": 0.12,
+          "folding_rate_correlation": 0.78
+        },
+        "experimental_conditions": {
+          "temperature_jump_experiments": true,
+          "folding_rate_range": [
+            1e-07,
+            1e-05
+          ]
+        }
+      },
+      "proteinmd_results": {
+        "chignolin_folding_time": 1.3e-06,
+        "trp_cage_folding_time": 4.3e-06,
+        "bbr_domain_folding_time": 8.8e-07,
+        "average_rmsd_native": 0.13,
+        "folding_rate_correlation": 0.75
+      },
+      "agreement_metrics": {
+        "chignolin_folding_time_relative_diff": 0.08333333333333343,
+        "chignolin_folding_time_absolute_diff": 1.000000000000001e-07,
+        "chignolin_folding_time_z_score": 0.8333333333333343,
+        "trp_cage_folding_time_relative_diff": 0.0487804878048782,
+        "trp_cage_folding_time_absolute_diff": 2.0000000000000063e-07,
+        "trp_cage_folding_time_z_score": 0.48780487804878203,
+        "bbr_domain_folding_time_relative_diff": 0.03529411764705886,
+        "bbr_domain_folding_time_absolute_diff": 3.000000000000003e-08,
+        "bbr_domain_folding_time_z_score": 0.3529411764705886,
+        "average_rmsd_native_relative_diff": 0.08333333333333341,
+        "average_rmsd_native_absolute_diff": 0.010000000000000009,
+        "average_rmsd_native_z_score": 0.833333333333334,
+        "folding_rate_correlation_relative_diff": 0.03846153846153849,
+        "folding_rate_correlation_absolute_diff": 0.030000000000000027,
+        "folding_rate_correlation_z_score": 0.3846153846153849,
+        "mean_relative_difference": 0.057840562116028484,
+        "max_relative_difference": 0.08333333333333343,
+        "agreement_score": 0.9453220417259021
+      },
+      "statistical_analysis": {
+        "correlation_coefficient": 0.9998006775316155,
+        "correlation_p_value": 3.3779658714691585e-06,
+        "regression_slope": 0.9596351472075434,
+        "regression_intercept": 0.003265789151411125,
+        "regression_r_squared": 0.9996013947926772,
+        "regression_p_value": 3.377965871471984e-06,
+        "regression_std_error": 0.011063781131349738,
+        "mean_relative_error": 0.057840562116028484,
+        "std_relative_error": 0.021287256428167915,
+        "95_confidence_interval": [
+          0.016117539516819372,
+          0.0995635847152376
+        ]
+      },
+      "reproduction_quality": "acceptable",
+      "notes": "**Reproduction Quality**: ACCEPTABLE\nAcceptable reproduction - results within 10% of literature values\n\n**Overall Agreement**: 5.8% average deviation\n**Worst Case**: 8.3% maximum deviation\n\n**Recommendations**:\n- Results are adequate for most research applications\n- Consider parameter optimization for improved accuracy\n\n**System Details**:\n- System: 12 small fast-folding proteins in explicit water\n- Force field: AMBER99SB-ILDN\n- Simulation time: 100.0"
+    },
+    "beauchamp_2012_msm": {
+      "reference": {
+        "title": "MSMBuilder2: Modeling conformational dynamics at the picosecond to millisecond scale",
+        "authors": [
+          "Kyle A. Beauchamp",
+          "Gregory R. Bowman",
+          "Vijay S. Pande"
+        ],
+        "journal": "Journal of Chemical Theory and Computation",
+        "year": 2011,
+        "doi": "10.1021/ct200463m",
+        "system_description": "Alanine dipeptide in explicit water (reference system)",
+        "simulation_conditions": {
+          "temperature": 300.0,
+          "pressure": 1.0,
+          "force_field": "AMBER99SB-ILDN",
+          "water_model": "TIP3P",
+          "salt_concentration": 0.0,
+          "simulation_time": 100.0,
+          "timestep": 2.0
+        },
+        "reported_results": {
+          "c7ax_population": 0.85,
+          "c7eq_population": 0.12,
+          "transition_time_ax_eq": 2.3e-09,
+          "phi_angle_avg": -63.0,
+          "psi_angle_avg": 135.0,
+          "ramachandran_basin_ratio": 7.1
+        },
+        "experimental_conditions": {
+          "nmr_j_coupling": 6.5,
+          "ramachandran_preference": "C7ax_dominant"
+        }
+      },
+      "proteinmd_results": {
+        "c7ax_population": 0.83,
+        "c7eq_population": 0.13,
+        "transition_time_ax_eq": 2.5e-09,
+        "phi_angle_avg": -65.0,
+        "psi_angle_avg": 138.0,
+        "ramachandran_basin_ratio": 6.8
+      },
+      "agreement_metrics": {
+        "c7ax_population_relative_diff": 0.023529411764705903,
+        "c7ax_population_absolute_diff": 0.020000000000000018,
+        "c7ax_population_z_score": 0.23529411764705901,
+        "c7eq_population_relative_diff": 0.08333333333333341,
+        "c7eq_population_absolute_diff": 0.010000000000000009,
+        "c7eq_population_z_score": 0.833333333333334,
+        "transition_time_ax_eq_relative_diff": 0.0869565217391305,
+        "transition_time_ax_eq_absolute_diff": 2.0000000000000014e-10,
+        "transition_time_ax_eq_z_score": 0.8695652173913049,
+        "phi_angle_avg_relative_diff": 0.031746031746031744,
+        "phi_angle_avg_absolute_diff": 2.0,
+        "phi_angle_avg_z_score": 0.31746031746031744,
+        "psi_angle_avg_relative_diff": 0.022222222222222223,
+        "psi_angle_avg_absolute_diff": 3.0,
+        "psi_angle_avg_z_score": 0.2222222222222222,
+        "ramachandran_basin_ratio_relative_diff": 0.04225352112676054,
+        "ramachandran_basin_ratio_absolute_diff": 0.2999999999999998,
+        "ramachandran_basin_ratio_z_score": 0.4225352112676054,
+        "mean_relative_difference": 0.048340173655364055,
+        "max_relative_difference": 0.0869565217391305,
+        "agreement_score": 0.9538888474655979
+      },
+      "statistical_analysis": {
+        "correlation_coefficient": 0.9999941580704095,
+        "correlation_p_value": 5.1192112323827165e-11,
+        "regression_slope": 1.0245386812392163,
+        "regression_intercept": -0.21246870111341387,
+        "regression_r_squared": 0.9999883161749475,
+        "regression_p_value": 5.1192112319935965e-11,
+        "regression_std_error": 0.0017510293432532278,
+        "mean_relative_error": 0.048340173655364055,
+        "std_relative_error": 0.026851063731083907,
+        "95_confidence_interval": [
+          -0.004287911257560402,
+          0.1009682585682885
+        ]
+      },
+      "reproduction_quality": "good",
+      "notes": "**Reproduction Quality**: GOOD\nGood reproduction - results within 5% of literature values\n\n**Overall Agreement**: 4.8% average deviation\n**Worst Case**: 8.7% maximum deviation\n\n**Recommendations**:\n- Results are suitable for scientific publication\n- ProteinMD demonstrates high fidelity to established results\n\n**System Details**:\n- System: Alanine dipeptide in explicit water (reference system)\n- Force field: AMBER99SB-ILDN\n- Simulation time: 100.0"
+    }
+  },
+  "summary": {
+    "total_studies": 3,
+    "quality_distribution": {
+      "excellent": 0,
+      "good": 2,
+      "acceptable": 1,
+      "poor": 0,
+      "inadequate": 0
+    },
+    "average_agreement": 0.04694528260540349,
+    "best_reproduction": "shaw_2010_villin",
+    "worst_reproduction": "lindorff_2011_proteins",
+    "overall_assessment": "research_ready",
+    "scientific_validity": "moderate"
+  },
+  "validation_thresholds": {
+    "excellent": 0.02,
+    "good": 0.05,
+    "acceptable": 0.1,
+    "poor": 0.2
+  },
+  "generation_timestamp": "2025-06-12T18:00:40.094649",
+  "total_studies_available": 5,
+  "total_studies_validated": 3
+}

@@ -152,7 +152,26 @@ class RMSDAnalyzer:
             - 'ca': alpha carbon atoms only
             - 'all': all atoms (default: 'backbone')
         """
-        self.reference_structure = reference_structure
+        # Handle reference structure setup
+        if reference_structure is not None:
+            try:
+                if hasattr(reference_structure, 'atoms') and hasattr(reference_structure.atoms, '__iter__'):
+                    self.reference_structure = np.array([atom.position for atom in reference_structure.atoms])
+                elif hasattr(reference_structure, 'positions'):
+                    self.reference_structure = reference_structure.positions.copy()
+                elif isinstance(reference_structure, np.ndarray):
+                    self.reference_structure = reference_structure.copy()
+                else:
+                    self.reference_structure = reference_structure
+            except (TypeError, AttributeError):
+                # Fall back to positions if atoms iteration fails
+                if hasattr(reference_structure, 'positions'):
+                    self.reference_structure = reference_structure.positions.copy()
+                else:
+                    self.reference_structure = reference_structure
+        else:
+            self.reference_structure = None
+            
         self.atom_selection = atom_selection
         
         # Storage for results
@@ -561,6 +580,136 @@ class RMSDAnalyzer:
             'q75': float(np.percentile(rmsd_data, 75)),
             'n_frames': len(rmsd_data)
         }
+    
+    def calculate_rmsd(self, structure) -> float:
+        """
+        Calculate RMSD between a structure and the reference structure.
+        
+        Compatibility method for tests.
+        
+        Parameters
+        ----------
+        structure : object with atoms attribute or np.ndarray
+            Structure to compare with reference
+            
+        Returns
+        -------
+        float
+            RMSD value
+        """
+        # Handle reference structure setup
+        if self.reference_structure is None:
+            raise ValueError("Reference structure not set")
+            
+        # Extract coordinates from reference structure
+        if hasattr(self.reference_structure, 'atoms'):
+            ref_coords = np.array([atom.position for atom in self.reference_structure.atoms])
+        elif hasattr(self.reference_structure, 'positions'):
+            ref_coords = self.reference_structure.positions
+        elif isinstance(self.reference_structure, np.ndarray):
+            ref_coords = self.reference_structure
+        else:
+            raise ValueError("Invalid reference structure format")
+        
+        # Extract coordinates from input structure
+        if hasattr(structure, 'atoms'):
+            coords = np.array([atom.position for atom in structure.atoms])
+        elif hasattr(structure, 'positions'):
+            coords = structure.positions
+        elif isinstance(structure, np.ndarray):
+            coords = structure
+        else:
+            raise ValueError("Invalid structure format")
+            
+        return calculate_rmsd(coords, ref_coords, align=self.align_structures)
+    
+    def align_structure(self, structure):
+        """
+        Align a structure to the reference structure.
+        
+        Compatibility method for tests.
+        
+        Parameters
+        ----------
+        structure : object with atoms attribute or np.ndarray
+            Structure to align
+            
+        Returns
+        -------
+        aligned structure (same type as input)
+        """
+        # Handle reference structure setup
+        if self.reference_structure is None:
+            raise ValueError("Reference structure not set")
+            
+        # Extract coordinates from reference structure
+        if hasattr(self.reference_structure, 'atoms'):
+            ref_coords = np.array([atom.position for atom in self.reference_structure.atoms])
+        elif hasattr(self.reference_structure, 'positions'):
+            ref_coords = self.reference_structure.positions
+        elif isinstance(self.reference_structure, np.ndarray):
+            ref_coords = self.reference_structure
+        else:
+            raise ValueError("Invalid reference structure format")
+        
+        # Extract coordinates from structure and align
+        if hasattr(structure, 'atoms'):
+            coords = np.array([atom.position for atom in structure.atoms])
+            aligned_coords = align_structures(coords, ref_coords)
+            # Update atom positions
+            for i, atom in enumerate(structure.atoms):
+                atom.position = aligned_coords[i]
+            return structure
+        elif hasattr(structure, 'positions'):
+            coords = structure.positions
+            aligned_coords = align_structures(coords, ref_coords)
+            structure.positions = aligned_coords
+            return structure
+        elif isinstance(structure, np.ndarray):
+            return align_structures(structure, ref_coords)
+        else:
+            raise ValueError("Invalid structure format")
+    
+    def analyze_trajectory(self, trajectory):
+        """
+        Analyze trajectory and return RMSD values.
+        
+        Compatibility method for tests.
+        
+        Parameters
+        ----------
+        trajectory : object with frames attribute
+            Trajectory to analyze
+            
+        Returns
+        -------
+        list
+            RMSD values for each frame
+        """
+        if hasattr(trajectory, 'frames'):
+            # Convert frames to coordinate arrays
+            coord_trajectory = []
+            for frame in trajectory.frames:
+                try:
+                    # Try to access atoms if they exist and are iterable
+                    if hasattr(frame, 'atoms') and hasattr(frame.atoms, '__iter__'):
+                        coords = np.array([atom.position for atom in frame.atoms])
+                    elif hasattr(frame, 'positions'):
+                        coords = frame.positions
+                    else:
+                        coords = frame
+                except (TypeError, AttributeError):
+                    # Fall back to positions if atoms iteration fails
+                    if hasattr(frame, 'positions'):
+                        coords = frame.positions
+                    else:
+                        coords = frame
+                coord_trajectory.append(coords)
+            
+            times, rmsd_values = self.calculate_trajectory_rmsd(coord_trajectory)
+            return rmsd_values.tolist()
+        else:
+            raise ValueError("Invalid trajectory format")
 
 
 def create_rmsd_analyzer(reference_structure: Optional[np.ndarray] = None,

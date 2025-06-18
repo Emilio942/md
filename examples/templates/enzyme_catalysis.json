@@ -1,0 +1,126 @@
+{
+  "name": "enzyme_catalysis",
+  "description": "Enzyme-substrate reaction simulation with QM/MM methods",
+  "version": "2.0.0",
+  "author": "Computational Enzymology Lab",
+  "created_date": "2024-12-19T12:00:00",
+  "tags": ["enzyme", "catalysis", "qm_mm", "reaction", "mechanism"],
+  "dependencies": ["amber_ff14sb", "tip3p", "qm_engine"],
+  "parameters": {
+    "qm_region_residues": {
+      "description": "Residue numbers for QM region",
+      "default_value": [],
+      "type": "list",
+      "required": true
+    },
+    "reaction_coordinate": {
+      "description": "Definition of reaction coordinate",
+      "default_value": "bond_distance",
+      "type": "str",
+      "allowed_values": ["bond_distance", "bond_angle", "dihedral", "custom"],
+      "required": false
+    },
+    "qm_method": {
+      "description": "Quantum mechanical method",
+      "default_value": "B3LYP",
+      "type": "str",
+      "allowed_values": ["B3LYP", "PBE0", "M06-2X", "wB97X-D"],
+      "required": false
+    },
+    "basis_set": {
+      "description": "Basis set for QM calculations",
+      "default_value": "6-31G*",
+      "type": "str",
+      "allowed_values": ["6-31G*", "6-31+G*", "6-311G**", "cc-pVDZ"],
+      "required": false
+    },
+    "reaction_time": {
+      "description": "Total reaction simulation time",
+      "default_value": 10.0,
+      "type": "float",
+      "min_value": 1.0,
+      "max_value": 50.0,
+      "units": "ps",
+      "required": false
+    }
+  },
+  "config": {
+    "simulation": {
+      "timestep": 0.0005,
+      "temperature": 300.0,
+      "pressure": 1.0,
+      "n_steps": 20000,
+      "output_frequency": 100,
+      "trajectory_output": "catalysis_trajectory.npz",
+      "log_output": "catalysis_simulation.log"
+    },
+    "forcefield": {
+      "type": "amber_ff14sb",
+      "water_model": "tip3p",
+      "cutoff": 1.0
+    },
+    "environment": {
+      "solvent": "explicit",
+      "box_padding": 1.2,
+      "periodic_boundary": true,
+      "ion_concentration": 0.15
+    },
+    "qm_mm_setup": {
+      "enabled": true,
+      "qm_method": "B3LYP",
+      "basis_set": "6-31G*",
+      "qm_region": {
+        "selection": "residue_based",
+        "residues": [],
+        "buffer_region": 0.3
+      },
+      "embedding": {
+        "type": "electrostatic",
+        "point_charges": true,
+        "polarization": false
+      }
+    },
+    "reaction_coordinate": {
+      "type": "bond_distance",
+      "atoms": [1, 2],
+      "constraints": {
+        "enabled": true,
+        "force_constant": 2500.0
+      }
+    },
+    "analysis": {
+      "reaction_pathway": true,
+      "activation_energy": true,
+      "transition_state_search": true,
+      "bond_analysis": true,
+      "charge_analysis": true,
+      "energy_decomposition": true,
+      "catalytic_efficiency": true,
+      "output_dir": "catalysis_analysis"
+    },
+    "visualization": {
+      "enabled": true,
+      "qm_region_highlight": true,
+      "reaction_animation": true,
+      "energy_profile_plots": true,
+      "orbital_visualization": true
+    },
+    "advanced_options": {
+      "umbrella_sampling": {
+        "enabled": false,
+        "windows": 20,
+        "force_constant": 1000.0
+      },
+      "steered_md": {
+        "enabled": false,
+        "pulling_speed": 0.001,
+        "spring_constant": 1000.0
+      },
+      "free_energy_perturbation": {
+        "enabled": false,
+        "lambda_windows": 21,
+        "soft_core": true
+      }
+    }
+  }
+}

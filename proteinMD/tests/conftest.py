@@ -412,6 +412,7 @@ def mock_protein_structure():
     
     # Mock residues with realistic structure
     residues = []
+    all_atoms = []
     aa_types = ["ALA", "VAL", "GLY", "SER", "LEU", "ILE", "PRO", "PHE", "TYR", "TRP"]
     
     for i in range(10):
@@ -444,22 +445,81 @@ def mock_protein_structure():
             atom.position = np.random.randn(3) + np.array([i*2.0, 0, 0])  # Spread along x-axis
             atom.mass = {'C': 12.01, 'N': 14.01, 'O': 16.00, 'S': 32.06, 'H': 1.008}[atom.element]
             atom.charge = np.random.uniform(-0.5, 0.5)
+            # Add required attributes for PDB writing
+            atom.residue_name = residue.name
+            atom.residue_number = i + 1
+            atom.residue_id = i + 1
+            atom.chain_id = 'A'
+            atom.x = float(atom.position[0])
+            atom.y = float(atom.position[1])
+            atom.z = float(atom.position[2])
+            atom.occupancy = 1.00
+            atom.b_factor = 20.00
+            atom.atom_id = len(all_atoms) + 1
+            
+            # Add distance method
+            def distance_to(other_atom):
+                return np.linalg.norm(atom.position - other_atom.position)
+            atom.distance_to = distance_to
+            
             residue.atoms.append(atom)
+            all_atoms.append(atom)
         
         residues.append(residue)
     
     protein.residues = residues
+    # Critical: make atoms a list, not a Mock
+    protein.atoms = all_atoms
     
     # Add positions and masses arrays for analysis compatibility
     all_positions = []
     all_masses = []
-    for residue in residues:
-        for atom in residue.atoms:
-            all_positions.append(atom.position)
-            all_masses.append(atom.mass)
+    for atom in all_atoms:
+        all_positions.append(atom.position)
+        all_masses.append(atom.mass)
     
     protein.positions = np.array(all_positions)
     protein.masses = np.array(all_masses)
+    
+    # Add required methods
+    def center_of_mass():
+        return np.mean(protein.positions, axis=0)
+    
+    def bounding_box():
+        return {
+            'min': np.min(protein.positions, axis=0),
+            'max': np.max(protein.positions, axis=0)
+        }
+    
+    def select_atoms(**criteria):
+        selected = []
+        for atom in protein.atoms:
+            match = True
+            for key, value in criteria.items():
+                if hasattr(atom, key) and getattr(atom, key) != value:
+                    match = False
+                    break
+            if match:
+                selected.append(atom)
+        return selected
+    
+    def validate():
+        return {'valid': True, 'errors': [], 'warnings': []}
+    
+    def align_to(other_protein):
+        # Mock alignment returning a random RMSD
+        return np.random.uniform(0.5, 3.0)
+    
+    def superpose_on(reference):
+        # Mock superposition returning a random RMSD  
+        return np.random.uniform(0.1, 2.0)
+    
+    protein.center_of_mass = center_of_mass
+    protein.bounding_box = bounding_box
+    protein.select_atoms = select_atoms
+    protein.validate = validate
+    protein.align_to = align_to
+    protein.superpose_on = superpose_on
     
     return protein
 
@@ -836,9 +896,29 @@ def mock_protein(mock_protein_structure):
     return mock_protein_structure
 
 @pytest.fixture
-def mock_large_trajectory():
+def mock_large_trajectory(mock_large_trajectory_data):
     """Mock large trajectory for performance testing."""
-    return mock_large_trajectory_data()
+    # Create a mock trajectory object that works with both approaches
+    trajectory = Mock()
+    
+    # For direct numpy array access (preferred by RadiusOfGyrationAnalyzer)
+    trajectory.__len__ = lambda: len(mock_large_trajectory_data)
+    trajectory.__iter__ = lambda: iter(mock_large_trajectory_data)
+    trajectory.__getitem__ = lambda self, key: mock_large_trajectory_data[key]
+    trajectory.shape = mock_large_trajectory_data.shape
+    
+    # Create mock frames with positions attribute for compatibility
+    frames = []
+    for frame_data in mock_large_trajectory_data:
+        frame = Mock()
+        frame.positions = frame_data
+        frames.append(frame)
+    
+    trajectory.frames = frames
+    trajectory.n_frames = len(mock_large_trajectory_data)
+    trajectory.n_atoms = mock_large_trajectory_data.shape[1] if len(mock_large_trajectory_data.shape) > 1 else 0
+    
+    return trajectory
 
 @pytest.fixture
 def benchmark():

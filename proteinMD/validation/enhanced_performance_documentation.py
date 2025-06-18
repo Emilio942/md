@@ -513,6 +513,10 @@ class EnhancedPerformanceDocumentationGenerator:
     
     def generate_methodology_documentation(self) -> str:
         """Generate detailed methodology documentation."""
+        
+        # Handle GPU memory safely
+        gpu_memory_str = f"{self.system_specs.gpu_memory_gb:.1f}" if self.system_specs.gpu_memory_gb else "N/A"
+        
         methodology = f"""
 # ProteinMD Performance Benchmarking Methodology
 
@@ -527,7 +531,7 @@ This document describes the comprehensive methodology used for benchmarking Prot
 - **CPU Cores**: {self.system_specs.cpu_cores} physical, {self.system_specs.cpu_threads} logical
 - **Memory**: {self.system_specs.memory_gb:.1f} GB
 - **GPU**: {self.system_specs.gpu_model or 'None'}
-- **GPU Memory**: {self.system_specs.gpu_memory_gb:.1f} GB if self.system_specs.gpu_memory_gb else 'N/A'
+- **GPU Memory**: {gpu_memory_str} GB
 - **Operating System**: {self.system_specs.operating_system}
 - **Python Version**: {self.system_specs.python_version}
 - **Compiler**: {self.system_specs.compiler_version}

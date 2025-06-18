@@ -1,0 +1,261 @@
+{
+  "name": "drug_discovery_pipeline",
+  "description": "High-throughput drug discovery workflow with ligand binding analysis",
+  "version": "1.0.0",
+  "author": "ProteinMD Drug Discovery Team",
+  "output_directory": "drug_discovery_results",
+  "max_parallel_steps": 4,
+  "on_failure": "continue",
+  
+  "global_parameters": {
+    "target_protein": "protein.pdb",
+    "ligand_library": "ligands/",
+    "binding_site": {
+      "center": [10.0, 15.0, 20.0],
+      "radius": 12.0
+    },
+    "simulation_time": 10000,
+    "temperature": 310.0,
+    "ph": 7.4
+  },
+  
+  "default_resources": {
+    "cpu_cores": 4,
+    "memory_gb": 8,
+    "time_limit": "01:30:00"
+  },
+  
+  "scheduler": {
+    "type": "slurm",
+    "partition": "gpu",
+    "account": "drug_discovery"
+  },
+  
+  "steps": [
+    {
+      "name": "prepare_protein",
+      "command": "proteinmd prepare",
+      "parameters": {
+        "input_structure": "${global_parameters.target_protein}",
+        "add_hydrogens": true,
+        "optimize_structure": true,
+        "ph": "${global_parameters.ph}"
+      },
+      "outputs": {
+        "prepared_protein": "preparation/prepared_protein.pdb",
+        "binding_site": "preparation/binding_site.json"
+      },
+      "resources": {
+        "cpu_cores": 2,
+        "memory_gb": 4,
+        "time_limit": "00:30:00"
+      }
+    },
+    
+    {
+      "name": "screen_ligands",
+      "command": "proteinmd screen",
+      "parameters": {
+        "ligand_library": "${global_parameters.ligand_library}",
+        "binding_site_center": "${global_parameters.binding_site.center}",
+        "binding_site_radius": "${global_parameters.binding_site.radius}",
+        "scoring_function": "vina",
+        "max_ligands": 1000
+      },
+      "dependencies": ["prepare_protein"],
+      "inputs": {
+        "protein": "${prepare_protein.outputs.prepared_protein}",
+        "binding_site": "${prepare_protein.outputs.binding_site}"
+      },
+      "outputs": {
+        "top_ligands": "screening/top_ligands.sdf",
+        "screening_results": "screening/screening_results.csv",
+        "docking_poses": "screening/poses/"
+      },
+      "resources": {
+        "cpu_cores": 8,
+        "memory_gb": 16,
+        "time_limit": "02:00:00"
+      }
+    },
+    
+    {
+      "name": "md_simulation_top10",
+      "command": "proteinmd simulate",
+      "parameters": {
+        "template": "ligand_binding",
+        "steps": "${global_parameters.simulation_time}",
+        "temperature": "${global_parameters.temperature}",
+        "ligand_count": 10,
+        "ensemble": "npt",
+        "forcefield": "amber_ff14sb",
+        "ligand_forcefield": "gaff2"
+      },
+      "dependencies": ["screen_ligands"],
+      "inputs": {
+        "protein": "${prepare_protein.outputs.prepared_protein}",
+        "ligands": "${screen_ligands.outputs.top_ligands}"
+      },
+      "outputs": {
+        "trajectories": "md_simulations/trajectories/",
+        "binding_energies": "md_simulations/binding_energies.csv",
+        "complex_structures": "md_simulations/final_complexes/"
+      },
+      "resources": {
+        "cpu_cores": 16,
+        "memory_gb": 32,
+        "time_limit": "06:00:00",
+        "gpu_count": 1
+      }
+    },
+    
+    {
+      "name": "binding_analysis",
+      "command": "proteinmd analyze",
+      "parameters": {
+        "analysis": ["binding_affinity", "interaction_analysis", "rmsd"],
+        "binding_site_residues": "auto_detect",
+        "stride": 10
+      },
+      "dependencies": ["md_simulation_top10"],
+      "inputs": {
+        "trajectories": "${md_simulation_top10.outputs.trajectories}",
+        "binding_energies": "${md_simulation_top10.outputs.binding_energies}"
+      },
+      "outputs": {
+        "affinity_data": "analysis/binding_affinities.csv",
+        "interaction_maps": "analysis/interaction_maps/",
+        "stability_analysis": "analysis/complex_stability.csv"
+      },
+      "resources": {
+        "cpu_cores": 4,
+        "memory_gb": 8,
+        "time_limit": "01:00:00"
+      }
+    },
+    
+    {
+      "name": "pharmacophore_analysis",
+      "command": "proteinmd analyze",
+      "parameters": {
+        "analysis": ["pharmacophore"],
+        "feature_types": ["hbd", "hba", "hydrophobic", "aromatic"],
+        "tolerance": 1.5
+      },
+      "dependencies": ["binding_analysis"],
+      "inputs": {
+        "complex_structures": "${md_simulation_top10.outputs.complex_structures}",
+        "interaction_maps": "${binding_analysis.outputs.interaction_maps}"
+      },
+      "outputs": {
+        "pharmacophore_model": "pharmacophore/model.json",
+        "feature_maps": "pharmacophore/feature_maps/",
+        "pharmacophore_visualization": "pharmacophore/model.png"
+      },
+      "resources": {
+        "cpu_cores": 2,
+        "memory_gb": 4,
+        "time_limit": "00:30:00"
+      }
+    },
+    
+    {
+      "name": "admet_prediction",
+      "command": "proteinmd predict",
+      "parameters": {
+        "prediction_type": "admet",
+        "properties": ["solubility", "permeability", "toxicity", "metabolism"],
+        "method": "machine_learning"
+      },
+      "dependencies": ["screen_ligands"],
+      "inputs": {
+        "ligands": "${screen_ligands.outputs.top_ligands}"
+      },
+      "outputs": {
+        "admet_predictions": "admet/predictions.csv",
+        "property_plots": "admet/property_distributions.png",
+        "filtered_ligands": "admet/drug_like_ligands.sdf"
+      },
+      "resources": {
+        "cpu_cores": 2,
+        "memory_gb": 4,
+        "time_limit": "00:45:00"
+      }
+    },
+    
+    {
+      "name": "free_energy_calculation",
+      "command": "proteinmd fep",
+      "parameters": {
+        "method": "thermodynamic_integration",
+        "lambda_windows": 20,
+        "steps_per_window": 100000,
+        "ligand_pairs": "top_5"
+      },
+      "dependencies": ["binding_analysis"],
+      "inputs": {
+        "complex_structures": "${md_simulation_top10.outputs.complex_structures}",
+        "affinity_data": "${binding_analysis.outputs.affinity_data}"
+      },
+      "outputs": {
+        "free_energies": "fep/free_energy_results.csv",
+        "convergence_plots": "fep/convergence_analysis.png",
+        "perturbation_maps": "fep/perturbation_network.png"
+      },
+      "resources": {
+        "cpu_cores": 32,
+        "memory_gb": 64,
+        "time_limit": "12:00:00",
+        "gpu_count": 2
+      }
+    },
+    
+    {
+      "name": "generate_drug_report",
+      "command": "proteinmd report",
+      "parameters": {
+        "format": "html",
+        "template": "drug_discovery",
+        "include_3d_structures": true,
+        "include_interaction_diagrams": true
+      },
+      "dependencies": [
+        "binding_analysis",
+        "pharmacophore_analysis", 
+        "admet_prediction",
+        "free_energy_calculation"
+      ],
+      "inputs": {
+        "screening_results": "${screen_ligands.outputs.screening_results}",
+        "affinity_data": "${binding_analysis.outputs.affinity_data}",
+        "pharmacophore_model": "${pharmacophore_analysis.outputs.pharmacophore_model}",
+        "admet_predictions": "${admet_prediction.outputs.admet_predictions}",
+        "free_energies": "${free_energy_calculation.outputs.free_energies}"
+      },
+      "outputs": {
+        "final_report": "report/drug_discovery_report.html",
+        "lead_compounds": "report/lead_compounds.csv",
+        "recommendation_summary": "report/recommendations.json"
+      },
+      "resources": {
+        "cpu_cores": 1,
+        "memory_gb": 4,
+        "time_limit": "00:30:00"
+      }
+    }
+  ],
+  
+  "notifications": {
+    "email": {
+      "enabled": true,
+      "recipients": ["researcher@university.edu"],
+      "on_completion": true,
+      "on_failure": true
+    },
+    "slack": {
+      "enabled": false,
+      "webhook_url": "",
+      "channel": "#drug-discovery"
+    }
+  }
+}

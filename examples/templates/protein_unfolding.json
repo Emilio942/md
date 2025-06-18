@@ -1,0 +1,84 @@
+{
+  "name": "protein_unfolding",
+  "description": "High-temperature protein unfolding simulation for studying denaturation pathways",
+  "version": "1.0.0",
+  "author": "ProteinMD Team",
+  "created_date": "2024-12-19T10:30:00",
+  "tags": ["unfolding", "denaturation", "high_temperature", "protein"],
+  "dependencies": ["amber_ff14sb", "tip3p"],
+  "parameters": {
+    "unfolding_temperature": {
+      "description": "Temperature for unfolding simulation",
+      "default_value": 400.0,
+      "type": "float",
+      "min_value": 350.0,
+      "max_value": 500.0,
+      "units": "K",
+      "required": false
+    },
+    "simulation_time": {
+      "description": "Total simulation time",
+      "default_value": 50.0,
+      "type": "float",
+      "min_value": 10.0,
+      "max_value": 200.0,
+      "units": "ns",
+      "required": false
+    },
+    "heating_rate": {
+      "description": "Temperature ramping rate",
+      "default_value": 2.0,
+      "type": "float",
+      "min_value": 0.5,
+      "max_value": 10.0,
+      "units": "K/ns",
+      "required": false
+    }
+  },
+  "config": {
+    "simulation": {
+      "timestep": 0.002,
+      "temperature": 400.0,
+      "pressure": 1.0,
+      "n_steps": 25000000,
+      "output_frequency": 2000,
+      "trajectory_output": "unfolding_trajectory.npz",
+      "log_output": "unfolding_simulation.log"
+    },
+    "forcefield": {
+      "type": "amber_ff14sb",
+      "water_model": "tip3p",
+      "cutoff": 1.2
+    },
+    "environment": {
+      "solvent": "explicit",
+      "box_padding": 1.5,
+      "periodic_boundary": true,
+      "ion_concentration": 0.15
+    },
+    "temperature_control": {
+      "type": "gradual_heating",
+      "initial_temperature": 300.0,
+      "final_temperature": 400.0,
+      "heating_rate": 2.0
+    },
+    "analysis": {
+      "rmsd": true,
+      "radius_of_gyration": true,
+      "secondary_structure": true,
+      "hydrogen_bonds": true,
+      "contact_maps": true,
+      "unfolding_pathway": true,
+      "critical_residues": true,
+      "stride": 20,
+      "output_dir": "unfolding_analysis"
+    },
+    "visualization": {
+      "enabled": true,
+      "realtime": false,
+      "temperature_monitoring": true,
+      "unfolding_animation": true,
+      "plots_output": "unfolding_plots"
+    }
+  }
+}
