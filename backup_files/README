@@ -1,0 +1,37 @@
+# DM and Two-Particle Simulation
+
+Welcome to the **DM (Dynamics and Motion) and Two-Particle Simulation** repository! This project simulates the dynamics and interactions between two particles under various physical conditions. It provides a platform to explore and visualize fundamental principles of particle dynamics in a 3D space.
+
+![Particles Interaction](<https://raw.githubusercontent.com/Emilio942/md/refs/heads/main/DALL.webp>)
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Introduction
+
+This project is designed to simulate the behavior of two interacting particles in a **3D space**. It helps in understanding fundamental concepts like Newton's laws of motion, gravitational forces, and potential energy interactions. The simulation is implemented in Python using **NumPy** and **Matplotlib** for efficient computation and visualization.
+
+## Features
+
+- **3D Particle Dynamics**: Simulate the motion of two particles in a 3D environment.
+- **Trajectory Visualization**: Track and visualize the paths and interactions of the particles over time.
+- **Custom Initial Conditions**: Set initial positions, velocities, and masses for each particle.
+- **Force Models**: Choose from different interaction models (e.g., gravitational, electrostatic).
+- **Data Export**: Export simulation results for further analysis.
+
+## Usage
+
+To run the simulation script with default or custom parameters, use the following commands:
+
+```bash
+# Run the simulation with default settings
+python simulate.py
+
+# Run the simulation with custom parameters
+python simulate.py --mass1 5 --mass2 10 --pos1 0,0,0 --pos2 1,1,1 --vel1 0,1,0 --vel2 -1,0,0

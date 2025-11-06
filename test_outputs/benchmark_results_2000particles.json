@@ -1,0 +1,67 @@
+{
+  "current": {
+    "implementation": "current",
+    "time": 11.235678672790527,
+    "forces_norm": 47259.80464594524,
+    "energy": 171473.08545574962,
+    "particles": 2000,
+    "cutoff": 1.2
+  },
+  "optimized_lj_switch": {
+    "implementation": "optimized_lj",
+    "time": 2.3758137226104736,
+    "avg_time": 2.3758113384246826,
+    "forces_norm": 53855.249762916836,
+    "energy": 110353.57239815332,
+    "particles": 2000,
+    "cutoff": 1.2,
+    "cutoff_method": "switch",
+    "neighbor_list_size": 183525
+  },
+  "optimized_lj_force_switch": {
+    "implementation": "optimized_lj",
+    "time": 2.539870262145996,
+    "avg_time": 2.5398683547973633,
+    "forces_norm": 53855.36087855372,
+    "energy": 110341.67897481639,
+    "particles": 2000,
+    "cutoff": 1.2,
+    "cutoff_method": "force_switch",
+    "neighbor_list_size": 183525
+  },
+  "optimized_lj_hard": {
+    "implementation": "optimized_lj",
+    "time": 3.5291295051574707,
+    "avg_time": 3.529127597808838,
+    "forces_norm": 53855.337469075486,
+    "energy": 110338.67876219153,
+    "particles": 2000,
+    "cutoff": 1.2,
+    "cutoff_method": "hard",
+    "neighbor_list_size": 183525
+  },
+  "ewald": {
+    "implementation": "ewald",
+    "time": 0.48230504989624023,
+    "avg_time": 0.4823017120361328,
+    "forces_norm": 800030.8920087313,
+    "energy": -471910.7938631112,
+    "particles": 2000,
+    "cutoff": 1.2
+  },
+  "combined": {
+    "implementation": "combined_optimized",
+    "time": 3.1322975158691406,
+    "forces_norm": 801258.6802861639,
+    "energy": -361557.22146495787,
+    "particles": 2000,
+    "cutoff": 1.2
+  },
+  "energy_conservation": {
+    "initial_energy": -361557.22146495787,
+    "final_energy": -381290.8305900561,
+    "energy_drift": 0.05457949102811876,
+    "energy_fluctuation": -0.09132316005554872,
+    "n_steps": 100
+  }
+}

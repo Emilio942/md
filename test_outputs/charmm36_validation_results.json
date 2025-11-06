@@ -1,0 +1,76 @@
+{
+  "charmm36_loaded": true,
+  "psf_compatibility": true,
+  "protein_simulations": [
+    {
+      "protein": "Small Peptide (Ala-Gly-Ser)",
+      "sequence": "AGS",
+      "charmm36_result": {
+        "success": true,
+        "steps_completed": 1,
+        "simulation_time": 0.02357006072998047,
+        "average_energy": 0.0,
+        "energy_stability": 0.0,
+        "performance_metric": 8485.340886101558
+      },
+      "amber_result": {
+        "success": true,
+        "steps_completed": 1,
+        "simulation_time": 0.005420207977294922,
+        "average_energy": 0.0,
+        "energy_stability": 0.0,
+        "performance_metric": 36898.953109879476
+      },
+      "success": true
+    },
+    {
+      "protein": "Alpha Helix Peptide",
+      "sequence": "AAEAAAKEAAAKAA",
+      "charmm36_result": {
+        "success": true,
+        "steps_completed": 1,
+        "simulation_time": 0.08271312713623047,
+        "average_energy": 0.0,
+        "energy_stability": 0.0,
+        "performance_metric": 2417.9958722947968
+      },
+      "amber_result": {
+        "success": true,
+        "steps_completed": 1,
+        "simulation_time": 0.07798337936401367,
+        "average_energy": 0.0,
+        "energy_stability": 0.0,
+        "performance_metric": 2564.649052542756
+      },
+      "success": true
+    },
+    {
+      "protein": "Beta Sheet Peptide",
+      "sequence": "VKVKVKVK",
+      "charmm36_result": {
+        "success": true,
+        "steps_completed": 1,
+        "simulation_time": 0.028595924377441406,
+        "average_energy": 0.0,
+        "energy_stability": 0.0,
+        "performance_metric": 6994.003668500917
+      },
+      "amber_result": {
+        "success": true,
+        "steps_completed": 1,
+        "simulation_time": 0.026677608489990234,
+        "average_energy": 0.0,
+        "energy_stability": 0.0,
+        "performance_metric": 7496.923874381111
+      },
+      "success": true
+    }
+  ],
+  "performance_comparison": {
+    "charmm36_performance": 5965.7801422990915,
+    "amber_performance": 15653.50867893445,
+    "performance_ratio": 0.38111456445081093,
+    "comparable": "False"
+  },
+  "overall_success": true
+}
